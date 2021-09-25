@@ -10,7 +10,8 @@
       "love-typescript-definitions",
       "typescript-to-lua/language-extensions"
     ],
-    "sourceMap": true
+    "sourceMap": true,
+    "strict": true
   },
   "tstl": {
     "luaLibImport": "require",
