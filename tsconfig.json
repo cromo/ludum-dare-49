@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "lib": ["esnext"],
+    "lib": [
+      "esnext"
+    ],
     "rootDir": "src",
     "outDir": "game",
     "types": [
       "lua-types/jit",
       "love-typescript-definitions",
       "typescript-to-lua/language-extensions"
-    ]
+    ],
+    "sourceMap": true
   },
   "tstl": {
     "luaLibImport": "require",
