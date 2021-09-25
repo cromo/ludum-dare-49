@@ -11,6 +11,7 @@
     "build:copy": "copyfiles --all \"res/**/*\" game",
     "build:watch": "tstl -w -p tsconfig.json",
     "build:copy:watch": "chokidar \"res/**\" -c \"yarn build:copy\"",
+    "build:watch:all": "concurrently -n tstl,res \"yarn:build:watch\" \"yarn:build:copy:watch\"",
     "lint:eslint": "eslint -c .eslintrc src/**",
     "lint:prettier": "cross-var prettier \"$npm_package_prettierGlob\" --check",
     "fix:prettier": "cross-var prettier \"$npm_package_prettierGlob\" --check --write"
@@ -29,6 +30,7 @@
     "@typescript-eslint/eslint-plugin": "^2.26.0",
     "@typescript-eslint/parser": "^2.26.0",
     "chokidar-cli": "^3.0.0",
+    "concurrently": "^6.2.1",
     "copyfiles": "^2.1.1",
     "cross-var": "^1.1.0",
     "eslint": "^6.8.0",
