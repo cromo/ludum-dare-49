@@ -15,11 +15,7 @@
     "fix:prettier": "cross-var prettier \"$npm_package_prettierGlob\" --check --write"
   },
   "prettier": {
-    "printWidth": 120,
-    "tabWidth": 4,
-    "arrowParens": "avoid",
-    "trailingComma": "es5",
-    "endOfLine": "auto"
+    "printWidth": 120
   },
   "importSort": {
     ".ts, .d.ts": {
