@@ -1,46 +1,37 @@
-# LÖVE 2D TypeScript Project Template
+# Ludum Dare 49
 
-A template LÖVE 2D TypeScript Project made possible with [TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua).
+This is the starting point for our entry to the 49th Ludum Dare game jam.
 
-You can click `Use this template` to clone this repo, or download it as a zip.
+## Installation
 
-## Scripts
+You must have [Yarn](https://www.npmjs.com/package/yarn) installed globally and [LÖVE 2D](https://love2d.org/) 11.3 available on your `PATH`.
 
-Requires [Yarn](https://www.npmjs.com/package/yarn) and [LÖVE 2D](https://love2d.org/) within your CLI.
+```bash
+yarn  # To install dependencies
+yarn build  # To build the game
+yarn start  # To run the game
+```
 
-| Command             | Description                                     |
-| ------------------- | ----------------------------------------------- |
-| `yarn`              | ⏬ Install dependencies                         |
-| `yarn build`        | 🔨 Build everything                             |
-| `yarn watch`        | 🔨x♾ Re-build Lua files when a TS file is saved |
-| `yarn start`        | 🎮 Start the game                               |
-| `yarn fix:prettier` | 💄 Fixes linting issues                         |
-| `yarn lint`         | 💄 Checks for linting issues in code            |
+## Contributing
 
-To distribute the game, zip the output in the `game/` directory into a `.love` archive. See the [game distribution wiki page](https://love2d.org/wiki/Game_Distribution) for how to distribute this or check out [love-release](https://github.com/MisterDA/love-release) for a more streamlined process.
+We recommend using [Visual Studio Code](https://code.visualstudio.com/) as your editor with the following plugins installed:
 
-Importable files can be placed in the `res/` directory and referenced them with `res/[resource name]`.
+- [Draw.io Integration](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) for diagram support
+- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) for in-editor linting and formatting
+- [Local Lua Debugger](https://marketplace.visualstudio.com/items?itemName=tomblind.local-lua-debugger-vscode) to add debugging support
 
-e.g.
+To watch for changes to code or to resources, run
 
-- new file: `res/input.txt`
-- main.ts: `love.filesystem.read("res/input.txt")`
+```bash
+yarn build:watch:all
+```
 
-### Notes
+## Contributors
 
-- It is entirely possible to use existing Lua libraries for a LÖVE 2D project within your TypeScript code
-- [TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua) preserves some `esnext` behaviour. This means you can use `Array.map` and `new Error(...)`
-- GitHub projects can be imported and be tracked as a dependency with `yarn add [username]/[repo]`
-- The `copyfiles` command line can be used to copy other needed files into the `game/` directory to compile a game (see scripts)
-- Index arrays at 0
-- Lua does not iterate over sparse arrays (arrays with empty values in the middle of them)
-- love-typescript-definitions comes with documentation accessible at `love-typescript-definitions/docs/index.html`
+- cromo
 
-### Links
+## Credits
 
-- [TypeScriptToLua Wiki](https://github.com/TypeScriptToLua/TypeScriptToLua/wiki)
-  - [Writing Declarations](https://github.com/TypeScriptToLua/TypeScriptToLua/wiki/Writing-Declarations)
-  - [Compiler Directives](https://github.com/TypeScriptToLua/TypeScriptToLua/wiki/Compiler-Directives)
-- [LÖVE 2D Wiki](https://love2d.org/wiki/Main_Page)
-- [LÖVE 2D - Getting Started](https://love2d.org/wiki/Getting_Started)
-- [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki)
+- [LÖVE 2D](https://love2d.org/) ([docs](https://love2d.org/wiki/Main_Page)) for being an awesome framework for game development
+- Based on [love-typescript-template](https://github.com/hazzard993/love-typescript-template), which provides a starting point for getting started with [TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua) with [LÖVE 2D](https://love2d.org/) and [love-typescript-definitions](https://github.com/hazzard993/love-typescript-definitions)
+- Made possible by [TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua) ([docs](https://typescripttolua.github.io/docs/getting-started))
