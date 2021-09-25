@@ -15,7 +15,8 @@
     "fix:prettier": "cross-var prettier \"$npm_package_prettierGlob\" --check --write"
   },
   "prettier": {
-    "printWidth": 120
+    "printWidth": 120,
+    "endOfLine": "auto"
   },
   "importSort": {
     ".ts, .d.ts": {
