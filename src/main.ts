@@ -1,3 +1,5 @@
+import { tick } from "./engine";
+
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
@@ -10,6 +12,16 @@ love.load = () => {
     content = rawContent;
   }
   print(content);
+};
+
+let dtsum = 0;
+const TICK_INTERVAL = 1 / 60;
+love.update = (dt) => {
+  dtsum += dt;
+  while (dtsum > TICK_INTERVAL) {
+    dtsum -= TICK_INTERVAL;
+    tick();
+  }
 };
 
 love.draw = () => {
