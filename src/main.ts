@@ -4,6 +4,7 @@ import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel } from "./levels";
 import { debugLevel } from "./levels/debugLevel";
 import { GAME_SCALE } from "./models";
+import { loadPlayerSprites } from "./player";
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
@@ -16,6 +17,8 @@ love.load = () => {
     content = rawContent;
   }
   print(content);
+
+  loadPlayerSprites();
 
   const levelData = parseLevelDefinition(debugLevel);
   print(levelData);
