@@ -1,8 +1,9 @@
-import { drawLevel, drawLevelEntities, loadLevel, tick } from "./engine";
+import { drawLevel, drawLevelEntities, loadLevel, reloadLevel, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel } from "./levels";
 import { debugLevel } from "./levels/debugLevel";
+import { sampleLevelEmpty } from "./levels/sampleLevel";
 import { GAME_SCALE } from "./models";
 import { loadPlayerSprites } from "./player";
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
@@ -10,6 +11,9 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 }
 
 let content = "";
+
+const LEVEL_SEQUENCE = [debugLevel, sampleLevelEmpty];
+let currentLevelIndex = 0;
 
 love.load = () => {
   const [rawContent] = love.filesystem.read("res/index.txt");
@@ -22,7 +26,8 @@ love.load = () => {
 
   const levelData = parseLevelDefinition(debugLevel);
   print(levelData);
-  loadLevel(debugLevel);
+  currentLevelIndex = 0;
+  loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
 };
 
 love.keypressed = input.onKeyDown;
@@ -34,7 +39,22 @@ love.update = (dt) => {
   dtsum += dt;
   while (dtsum > TICK_INTERVAL) {
     dtsum -= TICK_INTERVAL;
+
+    // do lots of stuff
     tick(getCurrentLevel());
+
+    // check engile-level controls control codes
+    const level = getCurrentLevel();
+    if (level.doRestart) {
+      reloadLevel(level);
+    } else if (level.gotoLevel) {
+      loadLevel(level.gotoLevel);
+    } else if (level.nextLevel) {
+      currentLevelIndex++;
+      if (LEVEL_SEQUENCE[currentLevelIndex]) {
+        loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
+      }
+    }
   }
 };
 

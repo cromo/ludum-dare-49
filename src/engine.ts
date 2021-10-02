@@ -10,6 +10,13 @@ export function tick(level: Level): void {
 export function loadLevel(levelDefinition: LevelDefinition): void {
   setCurrentLevel(parseLevelDefinition(levelDefinition));
 }
+export function reloadLevel(level: Level): void {
+  const freshLevel = parseLevelDefinition(level.levelDef);
+  // move over terminal state
+
+  // start the reloaded level
+  setCurrentLevel(freshLevel);
+}
 
 export function drawLevel({ tiles }: Level): void {
   const { push, pop, translate, draw, setColor } = love.graphics;
