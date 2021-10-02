@@ -109,10 +109,33 @@ const parseLayoutLine = (annotationIndex: { [key: string]: LevelAnnotation }, lo
     if (annotationIndex[annotationKey] == undefined) {
       log(`unknown annotation key \"${annotationKey}\"`);
     }
+    const annotation = annotationIndex[annotationKey] || DEFAULT_ANNO;
     const entities: Entity[] = [];
+    // if (annotation.flags?.includes("player_spawn")) {
+    //   const playerSpawnEntity: PlayerSpawnEntity = {
+    //     type: "playerSpawnEntity",
+    //     pos: { x: 5, y: 5 }, //TODO: get position from place in level
+    //     update: (entity) => {
+    //       /*actually spawn the player now lol*/
+    //       const level = getCurrentLevel();
+
+    //       // remove the player spawner
+    //       level.entities = level.entities.filter((entity) => entity.type != "playerSpawnEntity");
+
+    //       //@nick add an actual player entity here
+    //       level.entities.push(createPlayerEntity(entity.pos));
+    //       print("PLAYER SPAWNING");
+    //     },
+    //     draw: () => {
+    //       return;
+    //     },
+    //   };
+    //   entities.push(playerSpawnEntity);
+    // }
+
     return {
       tile: tileCodeToTileType(tile, log),
-      annotation: annotationIndex[annotationKey] || DEFAULT_ANNO,
+      annotation,
       entities: entities,
     };
   });

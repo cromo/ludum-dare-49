@@ -28,6 +28,8 @@
 // Also need a facing for all of these
 
 import { GameInput, HorizontalDirection } from "./input";
+import { getCurrentLevel } from "./levels";
+import { Point, VisibleEntity } from "./models";
 
 export enum Facing {
   Left,
@@ -51,6 +53,38 @@ export interface PlayerState {
   facing: Facing;
   entropy: number;
   state: OutOfEntropy | Standing | Walking;
+}
+
+//@nick give this position and everything else for physics and fun
+export interface PlayerEntity extends VisibleEntity {
+  type: "playerEntity";
+  pos: Point;
+  entropy: number;
+}
+
+//@nick this makes a brand new player entity
+export function createPlayerEntity(pos: Point): PlayerEntity {
+  return {
+    type: "playerEntity",
+    pos: pos,
+    entropy: 50,
+    draw: (entity) => {
+      love.graphics.print(`P`, entity.pos.x, entity.pos.y);
+      return;
+    },
+    update: (entity) => {
+      print("PLAYER IS HERE");
+      if (entity.type != "playerEntity") return;
+      const level = getCurrentLevel();
+      //@nick have fun with the level and entity
+
+      print(entity, level); //stop complaining about unused variables
+      print(entity.pos); //player position n stuff
+      return;
+    },
+    drawEffect: {},
+    spritesheetlocation: {},
+  };
 }
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a

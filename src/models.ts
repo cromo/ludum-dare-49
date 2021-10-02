@@ -1,14 +1,16 @@
+import { PlayerEntity } from "./player";
+
 export enum TileTypes {
-  AIR,
-  WALL_VERTICAL,
-  WALL_HORIZONTAL,
-  WALL_BLOCK,
-  GLITCH_WALL,
-  ONCE_WALL,
-  SEMI_SOLID,
-  ENTRANCE_CONDUIT,
-  EXIT_CONDUIT,
-  KILL_PLANE,
+  AIR = " ",
+  WALL_VERTICAL = "|",
+  WALL_HORIZONTAL = "-",
+  WALL_BLOCK = "*",
+  GLITCH_WALL = "~",
+  ONCE_WALL = "1",
+  SEMI_SOLID = "^",
+  ENTRANCE_CONDUIT = "S",
+  EXIT_CONDUIT = "F",
+  KILL_PLANE = "K",
 }
 
 // 1920 x 1080
@@ -40,21 +42,27 @@ export interface Point {
   y: number;
 }
 
-export interface TerminalEntity extends Entity {
+export interface TerminalEntity extends BaseEntity {
+  type: "terminalEntity";
   pos: Point;
 }
 
-export interface Entity {
+export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity;
+
+export type EntityTypes = "playerEntity" | "playerSpawnEntity" | "terminalEntity";
+export interface BaseEntity {
+  type: EntityTypes;
   update: (entity: Entity) => void;
   draw: (entity: Entity) => void;
 }
 
-export interface VisibleEntity extends Entity {
+export interface VisibleEntity extends BaseEntity {
   pos: Point;
   drawEffect: {};
   spritesheetlocation: {};
 }
 
-export interface PlayerEntity extends VisibleEntity {
-  entropy: number;
+export interface PlayerSpawnEntity extends BaseEntity {
+  type: "playerSpawnEntity";
+  pos: Point;
 }
