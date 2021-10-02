@@ -19,6 +19,8 @@ export enum TileTypes {
 // x3 scale: 40 x 22(.5)
 // x4 scale: 30 x 16(.8)
 
+export const GAME_SCALE = 2;
+
 export const LEVEL_HEIGHT = 22;
 export const LEVEL_WIDTH = 40;
 export const TILE_HEIGHT = 16;
