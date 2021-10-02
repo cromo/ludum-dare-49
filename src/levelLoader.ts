@@ -18,6 +18,11 @@ const GLITCHABLE_WALL_ANNO: LevelAnnotation = {
   physicalMode: "solid",
   glitchMode: "glitch",
 };
+const ONCE_WALL_ANNO: LevelAnnotation = {
+  symbol: "1",
+  physicalMode: "solid",
+  glitchMode: "glitch_once",
+};
 const SEMI_SOLID_ANNO: LevelAnnotation = {
   symbol: "^",
   physicalMode: "semisolid",
@@ -30,15 +35,33 @@ const HOT_ZONE_ANNO: LevelAnnotation = {
   symbol: "!",
   zoneMode: "hot",
 };
+const ENTRANCE_CONDUIT_ANNO: LevelAnnotation = {
+  symbol: "S",
+  flags: ["entrance_conduit"],
+};
+const EXIT_CONDUIT_ANNO: LevelAnnotation = {
+  symbol: "F",
+  physicalMode: "exit",
+  glitchMode: "solid",
+};
+const KILL_PLANE_ANNO: LevelAnnotation = {
+  symbol: "K",
+  physicalMode: "kill",
+  glitchMode: "solid",
+};
 
 // common collission stuff
 const commonAnnotations: LevelAnnotation[] = [
   DEFAULT_ANNO,
   FULL_SOLID_WALL_ANNO,
   GLITCHABLE_WALL_ANNO,
+  ONCE_WALL_ANNO,
   SEMI_SOLID_ANNO,
   DEAD_ZONE_ANNO,
   HOT_ZONE_ANNO,
+  ENTRANCE_CONDUIT_ANNO,
+  EXIT_CONDUIT_ANNO,
+  KILL_PLANE_ANNO,
 ];
 
 interface LayoutLine {
@@ -56,6 +79,10 @@ const TILE_CODE_TO_TYPE: { [key: string]: TileTypes } = {
   "-": TileTypes.WALL_HORIZONTAL,
   "^": TileTypes.SEMI_SOLID,
   "~": TileTypes.GLITCH_WALL,
+  S: TileTypes.ENTRANCE_CONDUIT,
+  F: TileTypes.EXIT_CONDUIT,
+  "1": TileTypes.ONCE_WALL,
+  K: TileTypes.KILL_PLANE,
 };
 
 const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) => TileTypes = (tileCode, log) => {

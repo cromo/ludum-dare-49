@@ -4,7 +4,11 @@ export enum TileTypes {
   WALL_HORIZONTAL,
   WALL_BLOCK,
   GLITCH_WALL,
+  ONCE_WALL,
   SEMI_SOLID,
+  ENTRANCE_CONDUIT,
+  EXIT_CONDUIT,
+  KILL_PLANE,
 }
 
 // 1920 x 1080
@@ -18,8 +22,8 @@ export const LEVEL_WIDTH = 40;
 export const TERMINAL_HEIGHT = 6;
 export const TERMINAL_WIDTH = 9;
 
-export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit";
-export type GlitchMode = "empty" | "solid" | "glitch";
+export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
+export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
 export type ZoneMode = "normal" | "dead" | "hot";
 
 export interface Level {
