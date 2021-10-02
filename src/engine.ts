@@ -29,12 +29,14 @@ function drawLevel({ tiles }: Level): void {
     translate(0, TILE_SIZE_PIXELS);
   }
   pop();
-
-  getCurrentLevel().entities.forEach((entity) => {
-    entity.draw(entity);
-  });
 }
 
 export function drawCurrentLevel(): void {
   drawLevel(getCurrentLevel());
+}
+
+export function drawEntities(): void {
+  getCurrentLevel().entities.forEach((entity) => {
+    entity.draw(entity);
+  });
 }

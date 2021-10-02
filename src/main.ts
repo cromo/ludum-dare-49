@@ -1,4 +1,4 @@
-import { drawCurrentLevel, tick } from "./engine";
+import { drawCurrentLevel, drawEntities, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
 import { debugLevel } from "./levels/debugLevel";
@@ -45,5 +45,6 @@ Want reset: ${currentInput.wantsToReset}`);
   push();
   translate(0, 100);
   drawCurrentLevel();
+  drawEntities();
   pop();
 };
