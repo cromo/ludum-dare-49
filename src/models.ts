@@ -1,5 +1,4 @@
-import { TileDef } from "./levelLoader";
-import { PlayerEntity } from "./player";
+import { Image } from "love.graphics";
 
 export enum TileTypes {
   AIR = " ",
@@ -78,3 +77,72 @@ export interface PlayerSpawnEntity extends BaseEntity {
   type: "playerSpawnEntity";
   pos: Point;
 }
+
+export interface PlayerEntity extends VisibleEntity {
+  type: "playerEntity";
+  pos: Point;
+  vel: Vector;
+  acc: Vector;
+  speedCap: Vector;
+  friction: Vector;
+  hitbox: HitBox;
+  footSensor: Point;
+  zoneSensor: Point;
+  entropy: number;
+  stateMachine: PlayerStateMachine;
+}
+
+export enum Facing {
+  Left,
+  Right,
+}
+
+export interface OutOfEntropy {
+  type: "OUT_OF_ENTROPY";
+  ticksRemainingBeforeRechargeStarts: number;
+}
+
+export interface Standing {
+  type: "STANDING";
+}
+
+export interface Walking {
+  type: "WALKING";
+}
+
+export interface PlayerStateMachine {
+  facing: Facing;
+  entropy: number;
+  state: OutOfEntropy | Standing | Walking;
+}
+
+export interface LayoutLine {
+  tiles: TileDef[];
+  physicalModes: PhysicalMode[];
+  glitchModes: GlitchMode[];
+  zoneModes: ZoneMode[];
+  entities: Entity[];
+}
+
+export interface TileDef {
+  type: TileTypes;
+  image: Image;
+}
+
+export interface LevelDefinition {
+  layout: string[];
+  annotations: LevelAnnotation[];
+}
+
+export interface LevelAnnotation {
+  symbol: string;
+  physicalMode?: PhysicalMode;
+  glitchMode?: GlitchMode;
+  zoneMode?: ZoneMode;
+  // For adding entities and other special stuff:
+  flags?: string[];
+  data?: { [key: string]: string | number };
+}
+
+//Stop, don't add your code in here.
+//interfaces, enums, and constants only

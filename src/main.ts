@@ -1,6 +1,7 @@
 import { drawCurrentLevel, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
+import { loadLevel } from "./levels";
 import { debugLevel } from "./levels/debugLevel";
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
@@ -17,6 +18,7 @@ love.load = () => {
 
   const levelData = parseLevelDefinition(debugLevel);
   print(levelData);
+  loadLevel(debugLevel);
 };
 
 love.keypressed = input.onKeyDown;

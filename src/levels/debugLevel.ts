@@ -1,4 +1,4 @@
-import { LevelDefinition } from "../levelLoader";
+import { LevelDefinition } from "../models";
 
 export const debugLevel: LevelDefinition = {
   layout: [

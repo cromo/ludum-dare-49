@@ -30,47 +30,8 @@
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
-import { HitBox, Point, Vector, VisibleEntity } from "./models";
+import { Facing, PlayerEntity, Point } from "./models";
 import { collideWithLevel, normalSolidCollider, sensorInZone, stepPhysics } from "./physics";
-
-export enum Facing {
-  Left,
-  Right,
-}
-
-export interface OutOfEntropy {
-  type: "OUT_OF_ENTROPY";
-  ticksRemainingBeforeRechargeStarts: number;
-}
-
-export interface Standing {
-  type: "STANDING";
-}
-
-export interface Walking {
-  type: "WALKING";
-}
-
-export interface PlayerStateMachine {
-  facing: Facing;
-  entropy: number;
-  state: OutOfEntropy | Standing | Walking;
-}
-
-//@nick give this position and everything else for physics and fun
-export interface PlayerEntity extends VisibleEntity {
-  type: "playerEntity";
-  pos: Point;
-  vel: Vector;
-  acc: Vector;
-  speedCap: Vector;
-  friction: Vector;
-  hitbox: HitBox;
-  footSensor: Point;
-  zoneSensor: Point;
-  entropy: number;
-  stateMachine: PlayerStateMachine;
-}
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
 // starting point.
