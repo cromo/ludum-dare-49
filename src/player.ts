@@ -69,6 +69,43 @@ export interface PlayerEntity extends VisibleEntity {
   footSensor: Point;
   zoneSensor: Point;
   entropy: number;
+  stateMachine: PlayerStateMachine;
+}
+
+// Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
+// starting point.
+export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type === "OUT_OF_ENTROPY" && 0 < state.ticksRemainingBeforeRechargeStarts) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "OUT_OF_ENTROPY",
+          ticksRemainingBeforeRechargeStarts: state.ticksRemainingBeforeRechargeStarts - 1,
+        },
+      },
+    };
+  } else if (state.type === "OUT_OF_ENTROPY" && state.ticksRemainingBeforeRechargeStarts === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING" },
+      },
+    };
+  } else if (state.type === "STANDING" && input.moveDirection !== HorizontalDirection.Neutral) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        facing: input.moveDirection === HorizontalDirection.Left ? Facing.Left : Facing.Right,
+        state: { type: "WALKING" },
+      },
+    };
+  }
+  return player;
 }
 
 //@nick this makes a brand new player entity
@@ -91,6 +128,11 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     footSensor: { x: 8.0, y: 16 },
     zoneSensor: { x: 8.0, y: 8.0 },
     entropy: 50,
+    stateMachine: {
+      facing: Facing.Right,
+      entropy: 0,
+      state: { type: "STANDING" },
+    },
     draw: (entity) => {
       love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
       return;
@@ -132,6 +174,12 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         normalSolidCollider
       );
       entity.pos = collidedPos;
+      if (hitX) {
+        entity.vel.x = 0.0;
+      }
+      if (hitY) {
+        entity.vel.y = 0.0;
+      }
 
       const detectedZone = sensorInZone(entity.pos, entity.zoneSensor, level);
 
@@ -141,36 +189,13 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
       print(`PlayerOverlapsSolid: ${hitX}, ${hitY}`);
       print(`PlayerZone: ${detectedZone}`);
+
+      entity = updateStateMachine(entity, currentInput());
+
+      print(`PlayerState ${entity.stateMachine.state.type}`);
       return;
     },
     drawEffect: {},
     spritesheetlocation: {},
   };
-}
-
-// Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
-// starting point.
-export function updateStateMachine(player: PlayerStateMachine, input: GameInput): PlayerStateMachine {
-  const { state } = player;
-  if (state.type === "OUT_OF_ENTROPY" && 0 < state.ticksRemainingBeforeRechargeStarts) {
-    return {
-      ...player,
-      state: {
-        type: "OUT_OF_ENTROPY",
-        ticksRemainingBeforeRechargeStarts: state.ticksRemainingBeforeRechargeStarts - 1,
-      },
-    };
-  } else if (state.type === "OUT_OF_ENTROPY" && state.ticksRemainingBeforeRechargeStarts === 0) {
-    return {
-      ...player,
-      state: { type: "STANDING" },
-    };
-  } else if (state.type === "STANDING" && input.moveDirection !== HorizontalDirection.Neutral) {
-    return {
-      ...player,
-      facing: input.moveDirection === HorizontalDirection.Left ? Facing.Left : Facing.Right,
-      state: { type: "WALKING" },
-    };
-  }
-  return player;
 }
