@@ -28,8 +28,8 @@ export const LEVEL_WIDTH = 40;
 export const TILE_SIZE_PIXELS = 16;
 export const TILE_HEIGHT = TILE_SIZE_PIXELS;
 export const TILE_WIDTH = TILE_SIZE_PIXELS;
-export const TERMINAL_HEIGHT = 7;
-export const TERMINAL_WIDTH = 14;
+export const TERMINAL_HEIGHT = 5;
+export const TERMINAL_WIDTH = 12;
 
 export const GRAVITY = 0.18;
 export const WALKING_ACCELERATION = 0.2;
@@ -49,6 +49,10 @@ export interface Level {
   zoneModes: ZoneMode[][];
   entities: Entity[];
   // terminal: Terminal;
+  levelDef: LevelDefinition;
+  doRestart?: true; // true = reload this level (when you die)
+  nextLevel?: true; // true = go to the next level in the level sequence (normal)
+  gotoLevel?: LevelDefinition; // go to a specific level (storytelling)
 }
 
 export interface Point {

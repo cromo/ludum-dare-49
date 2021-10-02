@@ -544,7 +544,6 @@ export function loadPlayerSprites(): void {
   sprites.standing = newImage("res/player-standing.png");
 }
 
-//@nick this makes a brand new player entity
 export function createPlayerEntity(pos: Point): PlayerEntity {
   return {
     type: "playerEntity",
@@ -583,17 +582,16 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     update: (level, entity) => {
       if (entity.type != "playerEntity") return entity;
-      //@nick have fun with the level and entity
 
       const input = currentInput();
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
 
-      print(entity, level); //stop complaining about unused variables
-      print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
-      print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
-      print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
-      print(`PlayerState ${entity.stateMachine.state.type}`);
+      // print(entity, level); //stop complaining about unused variables
+      // print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
+      // print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
+      // print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
+      // print(`PlayerState ${entity.stateMachine.state.type}`);
       return entity;
     },
     drawEffect: {},
