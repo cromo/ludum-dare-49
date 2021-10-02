@@ -1,4 +1,4 @@
-import { drawEntities, drawLevel, loadLevel, tick } from "./engine";
+import { drawLevel, drawLevelEntities, loadLevel, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel } from "./levels";
@@ -34,7 +34,7 @@ love.update = (dt) => {
   dtsum += dt;
   while (dtsum > TICK_INTERVAL) {
     dtsum -= TICK_INTERVAL;
-    tick();
+    tick(getCurrentLevel());
   }
 };
 
@@ -45,6 +45,6 @@ love.draw = () => {
   scale(GAME_SCALE, GAME_SCALE);
   const level = getCurrentLevel();
   drawLevel(level);
-  drawEntities(level.entities);
+  drawLevelEntities(level);
   pop();
 };

@@ -14,6 +14,7 @@ import {
   TileTypes,
 } from "./models";
 import { createPlayerEntity } from "./player";
+import { createTerminalEntity } from "./terminal";
 
 love.graphics.setDefaultFilter("nearest");
 const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {
@@ -71,30 +72,18 @@ const parseLayoutLine = (
     }
     const annotation = annotationIndex[annotationKey] || DEFAULT_ANNO;
     const entities: Entity[] = [];
-    if (annotation.flags && annotation.flags.includes(LevelAnnotationFlag.spawn_player)) {
+    const flags = annotation.flags || [];
+
+    if (flags.includes(LevelAnnotationFlag.spawn_player)) {
       entities.push(createPlayerEntity(pos));
     }
-    // if (annotation.flags?.includes("player_spawn")) {
-    //   const playerSpawnEntity: PlayerSpawnEntity = {
-    //     type: "playerSpawnEntity",
-    //     pos: { x: 5, y: 5 }, //TODO: get position from place in level
-    //     update: (entity) => {
-    //       /*actually spawn the player now lol*/
-    //       const level = getCurrentLevel();
-
-    //       // remove the player spawner
-    //       level.entities = level.entities.filter((entity) => entity.type != "playerSpawnEntity");
-
-    //       //@nick add an actual player entity here
-    //       level.entities.push(createPlayerEntity(entity.pos));
-    //       print("PLAYER SPAWNING");
-    //     },
-    //     draw: () => {
-    //       return;
-    //     },
-    //   };
-    //   entities.push(playerSpawnEntity);
-    // }
+    if (flags.includes(LevelAnnotationFlag.terminal)) {
+      if (annotation.terminal) {
+        entities.push(createTerminalEntity(pos, annotation.terminal));
+      } else {
+        log("terminal flag set but no terminal annotation found");
+      }
+    }
 
     return {
       tile: tileCodeToTileType(tile, log),

@@ -1,4 +1,4 @@
-import { LevelDefinition } from "../models";
+import { LevelAnnotationFlag, LevelDefinition, TerminalTone } from "../models";
 
 export const debugLevel: LevelDefinition = {
   layout: [
@@ -11,13 +11,13 @@ export const debugLevel: LevelDefinition = {
     "|# . . . . . . .~~~~~~~~~~~~~~ . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "FF . . .*# . . . . . .~~ . . . . . . . W . . . . . . . . . . . . . . . . . . .|#",
     "FF . . .*# . . . . . .~~ . . . . . . . W . . . . . . . . . . . . . . . . . . .|#",
-    "|# . . .-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*# . . . . ! ! ! ! ! ! !|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . .*#*#*#*# . ! ! ! ! ! ! !|#",
-    "|# _ _ _ _ _ _ _ _ _ _ _ . . . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
-    "|# _ _ _ _ _ _ _ _ _ _ _ . . . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
-    "|# _ _ _ _ _ _*#*#*#*#*# . . . . . . . . . . . . . . .*#*#*#*#*# ! ! ! ! ! ! !|#",
+    "|# . . .-#-#-#-#-#-#-#-#-#-#-T-t-t-t-t-t-t-t-t-t-t-t-t*t . . . . ! ! ! ! ! ! !|#",
+    "|# . . . . . . . . . . . . . t . . . . . . . . . . . .|t . . . . ! ! ! ! ! ! !|#",
+    "|# . . . . . . . . . . . . . t . . . . . . . . . . . .|t . . . . ! ! ! ! ! ! !|#",
+    "|# . . . . . . . . . . . . . t . . . . . . . . . . . .*t*#*#*# . ! ! ! ! ! ! !|#",
+    "|# _ _ _ _ _ _ _ _ _ _ _ . . t . . . . . . . . . . . .|t . . . . ! ! ! ! ! ! !|#",
+    "|# _ _ _ _ _ _ _ _ _ _ _ . . t . . . . . . . . . . . .|t . . . . ! ! ! ! ! ! !|#",
+    "|# _ _ _ _ _ _*#*#*#*#*# . . t t t t t t t t t t t t t*t*#*#*#*# ! ! ! ! ! ! !|#",
     "|# _ _ _ _ _ _ _ _ _ _ _ . . . . . . . . . . . . . . . . . . . . ! ! ! ! ! ! !|#",
     "|# _ _ _ _ _ _ _ _ _ _ _ .SS . . . . . . . . . . . . . . . . . . ! ! ! ! ! ! !|#",
     "|# _ _ _*#*#*# _ _ _ _ _*#*#*# . . .*#*#*# . . . . .*#*#*# ^ ^ ^*#*#*# ! ! ! !|#",
@@ -25,5 +25,37 @@ export const debugLevel: LevelDefinition = {
     "|# _ _ _ _ _ _ _ _ _ _ _*#*#KK . . . .11 . . . . . .~~ . . . . . ! ! ! ! ! ! !|#",
     "*#-#-#-#-#-#-#-#-#-#KKKK-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*#",
   ],
-  annotations: [],
+  annotations: [
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "solid",
+      glitchMode: "solid",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        entrance: [
+          {
+            text: "Hello world",
+            tone: TerminalTone.teach,
+          },
+          {
+            text: "Hello world 2",
+            tone: TerminalTone.teach,
+          },
+          {
+            text: "Hello world 3",
+            tone: TerminalTone.teach,
+          },
+          {
+            text: "Hello world 4",
+            tone: TerminalTone.teach,
+          },
+        ],
+      },
+    },
+    {
+      symbol: "t", // terminal boundary
+      physicalMode: "solid",
+      glitchMode: "solid",
+    },
+  ],
 };
