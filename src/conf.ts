@@ -11,5 +11,5 @@ package.path += ";node_modules/?/?.lua";
 /* eslint-enable */
 
 love.conf = (t) => {
-  t.window.title = "TypeScript Project";
+  t.window.title = "Heat Death";
 };
