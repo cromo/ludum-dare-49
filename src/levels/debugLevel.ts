@@ -1,4 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition, TerminalTone } from "../models";
+import { frustrated, glitchy, serious, teach, tease } from "./terminalTalk";
 
 export const debugLevel: LevelDefinition = {
   layout: [
@@ -32,28 +33,15 @@ export const debugLevel: LevelDefinition = {
       glitchMode: "empty",
       flags: [LevelAnnotationFlag.terminal],
       terminal: {
-        entrance: [
-          {
-            text: "Take your time here",
-            tone: TerminalTone.teach,
-          },
-          {
-            text: "How long will going to take?",
-            tone: TerminalTone.frustrated,
-          },
-          {
-            text: "Here we go again~",
-            tone: TerminalTone.tease,
-          },
-          {
-            text: "That looks dangerous",
-            tone: TerminalTone.serious,
-          },
-          {
-            text: "Hey what's this?",
-            tone: TerminalTone.glitchy,
-          },
+        onSpawn: [
+          teach("Take your time here"),
+          frustrated("How long will going to take?"),
+          tease("Here we go again~"),
+          serious("That looks dangerous"),
+          glitchy("Hey what's this?"),
         ],
+        trackTags: [],
+        conversations: [],
       },
     },
   ],

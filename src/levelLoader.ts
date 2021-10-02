@@ -102,6 +102,7 @@ const parseLayoutLine = (
     glitchModes: annotatedPairs.map((p) => p.annotation.glitchMode || "empty"),
     zoneModes: annotatedPairs.map((p) => p.annotation.zoneMode || "normal"),
     entities: annotatedPairs.flatMap((p) => p.entities),
+    customTags: annotatedPairs.map((p) => p.annotation.customTags || []),
   };
 };
 
@@ -135,6 +136,7 @@ export function parseLevelDefinition(levelDef: LevelDefinition): Level {
   const glitchModes = parsedLayout.map((pl) => pl.glitchModes);
   const zoneModes = parsedLayout.map((pl) => pl.zoneModes);
   const entities = parsedLayout.flatMap((pl) => pl.entities);
+  const customTags = parsedLayout.map((pl) => pl.customTags);
 
   if (logLines.length > 0) {
     print("problems loading level");
@@ -148,5 +150,6 @@ export function parseLevelDefinition(levelDef: LevelDefinition): Level {
     zoneModes,
     entities,
     levelDef,
+    customTags,
   };
 }
