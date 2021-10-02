@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { Entity, GlitchMode, LEVEL_HEIGHT, LEVEL_WIDTH, Level, PhysicalMode, TileTypes, ZoneMode } from "./models";
 
-// eslint-disable-next-line no-unused-vars
-const sampleLevel: LevelDefinition = {
+export const sampleLevel: LevelDefinition = {
   layout: [
     "*#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*#",
     "|#                                                                            |#",
@@ -125,7 +121,7 @@ export function parseLevelDefinition(ld: LevelDefinition): Level {
     }
   });
 
-  const parsedLayout = layout.map(parseLayoutLine(annotationIndex, log));
+  const parsedLayout = layout.map((line) => parseLayoutLine(annotationIndex, (l) => log(l))(line));
 
   // extract the 2d maps for tiles, physical modes, glitch modes, and all of the entities in the level
   const tiles = parsedLayout.map((pl) => pl.tiles);
