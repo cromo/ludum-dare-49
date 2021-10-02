@@ -51,7 +51,7 @@ export interface Walking {
   type: "WALKING";
 }
 
-export interface PlayerState {
+export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
   state: OutOfEntropy | Standing | Walking;
@@ -69,7 +69,7 @@ export interface PlayerEntity extends VisibleEntity {
   footSensor: Point;
   zoneSensor: Point;
   entropy: number;
-  stateMachine: PlayerState;
+  stateMachine: PlayerStateMachine;
 }
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
