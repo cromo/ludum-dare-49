@@ -34,7 +34,13 @@ import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { GRAVITY, JUMP_VELOCITY, Level, Point, Vector, WALKING_ACCELERATION } from "./models";
 import { Facing, PlayerEntity } from "./models";
-import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
+import {
+  collideWithLevel,
+  glitchSolidCollider,
+  hitboxOverlapsGlitchTile,
+  normalSolidCollider,
+  stepPhysics,
+} from "./physics";
 
 function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
@@ -52,6 +58,25 @@ function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
   } else {
     player.grounded = false;
   }
+  return player;
+}
+
+function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): PlayerEntity {
+  const oldPos = { x: player.pos.x, y: player.pos.y };
+  stepPhysics(player);
+  const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
+  player.pos = collidedPos;
+  if (hitX || hitY) {
+    player.isDead = true;
+  }
+  return player;
+}
+
+function applyGlitchMovement(player: PlayerEntity, level: Level): PlayerEntity {
+  const oldPos = { x: player.pos.x, y: player.pos.y };
+  stepPhysics(player);
+  const { collidedPos } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
+  player.pos = collidedPos;
   return player;
 }
 
@@ -109,23 +134,55 @@ function dashDiretionFrom(facing: Facing, dashInput: DashDirection): Vector {
   }
 }
 
+function normalize(vec: Vector): Vector {
+  const length = math.sqrt(vec.x * vec.x + vec.y * vec.y);
+  return { x: vec.x / length, y: vec.y / length };
+}
+
 // Important: this function does many things, and persists for just ONE frame. The entire dash happens
 // here, performing several sub-physics steps that will not be drawn directly. Later, we can add FX emitters
 // at each point along the dash
-function dashingState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (player.stateMachine.state.type != "DASHING") return player;
-  const dashDirection = dashDiretionFrom(player.stateMachine.facing, player.stateMachine.state.dashDirection);
+  const dashDirection = normalize(
+    dashDiretionFrom(player.stateMachine.facing, player.stateMachine.state.dashDirection)
+  );
 
-  // NOT THE REAL DASH CODE. Just to test the state transitions.
-  const modifiedPlayer = {
+  // Set up a constant acceleration, moving the player about one half-tile per step
+  const originalSpeedCap = { ...player.speedCap };
+  const originalFriction = { ...player.friction };
+  let modifiedPlayer = {
     ...player,
     grounded: false,
-    vel: { x: dashDirection.x * 10, y: dashDirection.y * 10 },
+    vel: { x: dashDirection.x * 8.0, y: dashDirection.y * 8.0 },
     acc: { x: 0, y: 0 },
+    speedCap: { x: 8, y: 8 },
+    friction: { x: 0, y: 0 },
   };
-  return walkingState(modifiedPlayer, level, input);
 
-  //const modifiedPlayer = { ...player, grounded: false, vel: { x: 0, y: 0 }, acc: { x: 0, y: 0 } };
+  // Iterate the physics step 4 times, moving the player approximately 2 tiles in the dash direction instantly
+  for (let i = 0; i < 4; i++) {
+    modifiedPlayer = applyGlitchMovement(modifiedPlayer, level);
+  }
+
+  // Here, if we are currently in a glitch tile, continue to iterate until one of several things happens:
+  // If we leave glitch tiles, the effect ends
+  // If we hit a solid AND we are still on a glitch tile, we die
+  // If we iterate too many times, we die as a safeguard (something went horribly wrong)
+  let safetyCounter = 0;
+  while (
+    !modifiedPlayer.isDead &&
+    hitboxOverlapsGlitchTile(modifiedPlayer.pos, modifiedPlayer.hitbox, level) &&
+    safetyCounter < 16
+  ) {
+    modifiedPlayer = applyExtendedGlitchMovement(modifiedPlayer, level);
+    safetyCounter += 1;
+  }
+
+  // At this point we have either exited the dash on the other side of a glitch wall or died trying. Reset our speed cap
+  // and get out of here.
+  modifiedPlayer.speedCap = originalSpeedCap;
+  modifiedPlayer.friction = originalFriction;
 
   return modifiedPlayer;
 }
@@ -427,7 +484,15 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
 function updateStateDashing(player: PlayerEntity): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "DASHING") return player;
-  if (player.vel.y > 0) {
+  if (player.isDead) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "ASPLODE" },
+      },
+    };
+  } else if (player.vel.y > 0) {
     return {
       ...player,
       stateMachine: {
@@ -505,6 +570,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       state: { type: "STANDING", coyoteTime: 5 },
     },
     grounded: false,
+    isDead: false,
     draw: (level, entity) => {
       love.graphics.setColor(255, 255, 255);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {

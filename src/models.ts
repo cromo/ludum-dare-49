@@ -105,6 +105,7 @@ export interface PlayerEntity extends VisibleEntity {
   entropy: number;
   stateMachine: PlayerStateMachine;
   grounded: boolean;
+  isDead: boolean;
 }
 
 export enum Facing {

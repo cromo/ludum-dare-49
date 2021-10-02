@@ -1,4 +1,4 @@
-import { HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, Point, Vector, ZoneMode } from "./models";
+import { GlitchMode, HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, Point, Vector, ZoneMode } from "./models";
 import { TILE_HEIGHT, TILE_WIDTH } from "./models";
 
 // Any object which moves
@@ -70,6 +70,35 @@ export function sensorInZone(pos: Point, sensor: Point, level: Level): ZoneMode 
     return level.zoneModes[tilePos.y][tilePos.x];
   }
   return "normal";
+}
+
+export function sensorInGlitchMode(pos: Point, sensor: Point, level: Level): GlitchMode {
+  const sensorPos = { x: pos.x + sensor.x, y: pos.y + sensor.y };
+  const tilePos = tileCoordinates(sensorPos);
+  if (tileInBounds(tilePos)) {
+    return level.glitchModes[tilePos.y][tilePos.x];
+  }
+  return "empty";
+}
+
+export function hitboxOverlapsGlitchTile(pos: Point, hitbox: HitBox, level: Level): boolean {
+  const offsetHitbox = {
+    corners: hitbox.corners.map((corner) => {
+      return { x: corner.x + pos.x, y: corner.y + pos.y };
+    }),
+  };
+  for (const corner of offsetHitbox.corners) {
+    const tileCorner = tileCoordinates(corner);
+    if (tileInBounds(tileCorner)) {
+      if (
+        level.glitchModes[tileCorner.y][tileCorner.x] == "glitch" ||
+        level.glitchModes[tileCorner.y][tileCorner.x] == "glitch_once"
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export function hitboxOverlapsCollider(
@@ -165,4 +194,8 @@ export function collideWithLevel(
 
 export function normalSolidCollider(tileX: number, tileY: number, level: Level): boolean {
   return level.physicalModes[tileY][tileX] == "solid";
+}
+
+export function glitchSolidCollider(tileX: number, tileY: number, level: Level): boolean {
+  return level.glitchModes[tileY][tileX] == "solid";
 }
