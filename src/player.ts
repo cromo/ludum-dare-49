@@ -29,7 +29,6 @@
 
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
-import { getCurrentLevel } from "./levels";
 import { Facing, PlayerEntity, Point } from "./models";
 import { collideWithLevel, normalSolidCollider, sensorInZone, stepPhysics } from "./physics";
 
@@ -94,15 +93,14 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       entropy: 0,
       state: { type: "STANDING" },
     },
-    draw: (entity) => {
+    draw: (level, entity) => {
       love.graphics.setColor(0, 0, 0);
       love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
       return;
     },
-    update: (entity) => {
+    update: (level, entity) => {
       print("PLAYER IS HERE");
       if (entity.type != "playerEntity") return;
-      const level = getCurrentLevel();
       //@nick have fun with the level and entity
 
       // NOTE: pretty much all of the below is ugly, ugly debug code. Once working, it should be

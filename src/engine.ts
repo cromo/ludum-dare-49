@@ -1,10 +1,10 @@
 import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel, setCurrentLevel } from "./levels";
-import { Entity, Level, LevelDefinition, TILE_SIZE_PIXELS } from "./models";
+import { Level, LevelDefinition, TILE_SIZE_PIXELS } from "./models";
 
-export function tick(): void {
+export function tick(level: Level): void {
   getCurrentLevel().entities.forEach((entity) => {
-    entity.update(entity);
+    entity.update(level, entity);
   });
 }
 
@@ -21,7 +21,8 @@ export function drawLevel({ tiles }: Level): void {
     push();
     for (let x = 0; x < tiles[y].length; ++x) {
       const tile = tiles[y][x];
-      draw(tile.image);
+      const glitchoff = tile.effect?.glitchyLevel || 0;
+      draw(tile.image, math.floor(Math.random() * glitchoff * 2 - glitchoff), 0);
       translate(TILE_SIZE_PIXELS, 0);
     }
     pop();
@@ -30,8 +31,8 @@ export function drawLevel({ tiles }: Level): void {
   pop();
 }
 
-export function drawEntities(entities: Entity[]): void {
-  entities.forEach((entity) => {
-    entity.draw(entity);
+export function drawLevelEntities(level: Level): void {
+  level.entities.forEach((entity) => {
+    entity.draw(level, entity);
   });
 }
