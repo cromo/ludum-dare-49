@@ -21,7 +21,7 @@ export enum DashDirection {
   NW = "NW",
 }
 
-interface GameInput {
+export interface GameInput {
   mode: "GAME";
   moveDirection: HorizontalDirection;
   dashDirection: DashDirection;
