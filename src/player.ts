@@ -30,8 +30,8 @@
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
-import { HitBox, Point, Vector, VisibleEntity } from "./models";
-import { collideWithLevel, normalSolidCollider, sensorInZone, stepPhysics } from "./physics";
+import { GRAVITY, HitBox, Level, Point, Vector, VisibleEntity, WALKING_ACCELERATION } from "./models";
+import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
 
 export enum Facing {
   Left,
@@ -70,6 +70,43 @@ export interface PlayerEntity extends VisibleEntity {
   zoneSensor: Point;
   entropy: number;
   stateMachine: PlayerStateMachine;
+}
+
+function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
+  const oldPos = { x: player.pos.x, y: player.pos.y };
+  stepPhysics(player);
+  const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, normalSolidCollider);
+  player.pos.x = collidedPos.x;
+  player.pos.y = collidedPos.y;
+  if (hitX) {
+    player.vel.x = 0.0;
+  }
+  if (hitY) {
+    player.vel.y = 0.0;
+  }
+  return player;
+}
+
+function standingState(player: PlayerEntity, level: Level): PlayerEntity {
+  let modifiedPlayer = { ...player, acc: { x: 0.0, y: GRAVITY } };
+  modifiedPlayer = applyNormalMovement(modifiedPlayer, level);
+  return modifiedPlayer;
+}
+
+function walkingState(player: PlayerEntity, level: Level): PlayerEntity {
+  const directionalInfluenceX =
+    player.stateMachine.facing == Facing.Left ? -WALKING_ACCELERATION : WALKING_ACCELERATION;
+  let modifiedPlayer = { ...player, acc: { x: directionalInfluenceX, y: GRAVITY } };
+  modifiedPlayer = applyNormalMovement(modifiedPlayer, level);
+  return modifiedPlayer;
+}
+
+export function updateCurrentState(player: PlayerEntity, level: Level): PlayerEntity {
+  return {
+    STANDING: standingState,
+    OUT_OF_ENTROPY: standingState,
+    WALKING: walkingState,
+  }[player.stateMachine.state.type](player, level);
 }
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
@@ -143,55 +180,13 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       const level = getCurrentLevel();
       //@nick have fun with the level and entity
 
-      // NOTE: pretty much all of the below is ugly, ugly debug code. Once working, it should be
-      // folded into the various states, which can decide what physics properties to apply and how
-      // exactly to step / collide, as appropriate.
-
-      // For testing I really want all compass directions, but we didn't do that, soooo we cheat
-      const inputVel = {
-        N: { x: 0, y: -1 },
-        E: { x: 1, y: 0 },
-        S: { x: 0, y: 1 },
-        W: { x: -1, y: 0 },
-        NE: { x: 1, y: -1 },
-        SE: { x: 1, y: 1 },
-        SW: { x: -1, y: 1 },
-        NW: { x: -1, y: -1 },
-        Forward: { x: 0, y: 0 },
-      }[currentInput().dashDirection];
-
-      // Quick debug test: input velocity becomes player accleeration.
-      entity.acc = { x: inputVel.x * 0.1, y: inputVel.y * 0.1 };
-      const oldPos = { x: entity.pos.x, y: entity.pos.y };
-      stepPhysics(entity);
-
-      // ... apply those overlaps?
-      const { collidedPos, hitX, hitY } = collideWithLevel(
-        oldPos,
-        entity.pos,
-        entity.hitbox,
-        level,
-        normalSolidCollider
-      );
-      entity.pos = collidedPos;
-      if (hitX) {
-        entity.vel.x = 0.0;
-      }
-      if (hitY) {
-        entity.vel.y = 0.0;
-      }
-
-      const detectedZone = sensorInZone(entity.pos, entity.zoneSensor, level);
+      entity = updateStateMachine(entity, currentInput());
+      entity = updateCurrentState(entity, level);
 
       print(entity, level); //stop complaining about unused variables
       print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
-      print(`PlayerOverlapsSolid: ${hitX}, ${hitY}`);
-      print(`PlayerZone: ${detectedZone}`);
-
-      entity = updateStateMachine(entity, currentInput());
-
       print(`PlayerState ${entity.stateMachine.state.type}`);
       return;
     },
