@@ -129,6 +129,11 @@ export interface LayoutLine {
 export interface TileDef {
   type: TileTypes;
   image: Image;
+  effect?: TileEffect;
+}
+
+export interface TileEffect {
+  glitchyLevel?: number;
 }
 
 export interface LevelDefinition {
