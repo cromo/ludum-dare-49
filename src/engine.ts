@@ -12,7 +12,7 @@ export function loadLevel(levelDefinition: LevelDefinition): void {
   setCurrentLevel(parseLevelDefinition(levelDefinition));
 }
 
-function drawLevel({ tiles }: Level): void {
+export function drawLevel({ tiles }: Level): void {
   const { push, pop, translate, draw, setColor } = love.graphics;
 
   setColor(255, 255, 255);
@@ -30,12 +30,8 @@ function drawLevel({ tiles }: Level): void {
   pop();
 }
 
-export function drawCurrentLevel(): void {
-  drawLevel(getCurrentLevel());
-}
-
-export function drawEntities(): void {
-  getCurrentLevel().entities.forEach((entity) => {
+export function drawEntities(entities: Entity[]): void {
+  entities.forEach((entity) => {
     entity.draw(entity);
   });
 }
