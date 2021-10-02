@@ -95,6 +95,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       state: { type: "STANDING" },
     },
     draw: (entity) => {
+      love.graphics.setColor(0, 0, 0);
       love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
       return;
     },

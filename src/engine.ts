@@ -13,8 +13,9 @@ export function loadLevel(levelDefinition: LevelDefinition): void {
 }
 
 function drawLevel({ tiles }: Level): void {
-  const { push, pop, translate, draw } = love.graphics;
+  const { push, pop, translate, draw, setColor } = love.graphics;
 
+  setColor(255, 255, 255);
   push();
   for (let y = 0; y < tiles.length; ++y) {
     push();
