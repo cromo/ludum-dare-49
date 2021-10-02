@@ -11,7 +11,7 @@ import {
 } from "./models";
 
 love.graphics.setDefaultFilter("nearest");
-const TERMINAL_IMAGE = love.graphics.newImage("res/terminal.png");
+// const TERMINAL_IMAGE = love.graphics.newImage("res/terminal.png");
 const LINE_LEFT_MARGIN = 2;
 const LINE_TOP_MARGIN = 0;
 
@@ -34,32 +34,35 @@ const TERMINAL_BACK_COLOR = (): void => {
 const TERMINAL_TONE_SHADOW_COLOR = (): void => {
   return love.graphics.setColor(0.1, 0.1, 0.1);
 };
-const TERMINAL_TONE_COLOR: { [key: number]: () => void } = {
-  [TerminalTone.angry]: () => {
-    return love.graphics.setColor(0.8, 0.2, 0.2);
+const setDimmedColor = (r: number, g: number, b: number, a: number): void => {
+  return love.graphics.setColor(r * a, g * a, b * a);
+};
+const TERMINAL_TONE_COLOR: { [key: number]: (a: number) => void } = {
+  [TerminalTone.angry]: (a: number) => {
+    return setDimmedColor(0.8, 0.2, 0.2, a);
   },
-  [TerminalTone.emptyLine]: () => {
-    return love.graphics.setColor(1, 0, 1);
+  [TerminalTone.emptyLine]: (a: number) => {
+    return setDimmedColor(1, 0, 1, a);
   },
-  [TerminalTone.frustrated]: () => {
-    return love.graphics.setColor(0.85, 0.1, 0.1);
+  [TerminalTone.frustrated]: (a: number) => {
+    return setDimmedColor(0.85, 0.1, 0.1, a);
   },
-  [TerminalTone.serious]: () => {
-    return love.graphics.setColor(0.75, 0.75, 0.95);
+  [TerminalTone.serious]: (a: number) => {
+    return setDimmedColor(0.75, 0.75, 0.95, a);
   },
-  [TerminalTone.teach]: () => {
-    return love.graphics.setColor(0.5, 0.8, 0.5);
+  [TerminalTone.teach]: (a: number) => {
+    return setDimmedColor(0.5, 0.8, 0.5, a);
   },
-  [TerminalTone.tease]: () => {
+  [TerminalTone.tease]: (a: number) => {
     // it will do this a lot
-    return love.graphics.setColor(0.85, 0.85, 0.85);
+    return setDimmedColor(0.85, 0.85, 0.85, a);
   },
 };
 TERMINAL_FONT.setFilter("nearest");
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function drawTerminalEntity(level: Level, terminal: TerminalEntity): void {
-  const { push, pop, translate, draw, setColor, print, setFont } = love.graphics;
+  const { push, pop, translate, setColor, print, setFont } = love.graphics;
   const { pos, lines } = terminal;
 
   push();
@@ -83,7 +86,8 @@ function drawTerminalEntity(level: Level, terminal: TerminalEntity): void {
     print(text, LINE_LEFT_MARGIN + 1, LINE_TOP_MARGIN + 1);
     print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN + 1);
 
-    (TERMINAL_TONE_COLOR[tone] || TERMINAL_TONE_COLOR[TerminalTone.emptyLine])();
+    const dim = terminalLine == lines.length - 1 ? 0.5 : terminalLine == lines.length - 2 ? 0.8 : 1;
+    (TERMINAL_TONE_COLOR[tone] || TERMINAL_TONE_COLOR[TerminalTone.emptyLine])(dim);
     print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN);
 
     pop();

@@ -1,4 +1,4 @@
-import { LevelAnnotationFlag, LevelDefinition, TerminalTone } from "../models";
+import { LevelAnnotationFlag, LevelDefinition } from "../models";
 import { frustrated, glitchy, serious, teach, tease } from "./terminalTalk";
 
 export const debugLevel: LevelDefinition = {
@@ -13,7 +13,7 @@ export const debugLevel: LevelDefinition = {
     "FF . . .*# . . . . . .~~ . . . . . . . W . . . . . . . . . . . . . . . . . . .|#",
     "FF . . .*# . . . . . .~~ . . . . . . . W . . . . . . . . . . . . . . . . . . .|#",
     "|# . . .-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*# . . . . ! ! ! ! ! ! !|#",
-    "|# . . . . . . . . . . . . . . T . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
+    "|# . . . . . . . . . . . . T . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . .*#*#*#*# . ! ! ! ! ! ! !|#",
     "|# _ _ _ _ _ _ _ _ _ _ _ . . . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
