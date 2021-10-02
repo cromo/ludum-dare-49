@@ -3,8 +3,18 @@ export enum TileTypes {
   WALL,
 }
 
+export const LEVEL_HEIGHT = 100;
+export const LEVEL_WIDTH = 100;
+
+export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit";
+export type GlitchMode = "empty" | "solid" | "glitch";
+export type ZoneMode = "normal" | "dead" | "hot";
+
 export interface Level {
   tiles: TileTypes[][];
+  physicalModes: PhysicalMode[][];
+  glitchModes: GlitchMode[][];
+  zoneModes: ZoneMode[][];
   entities: Entity[];
 }
 
