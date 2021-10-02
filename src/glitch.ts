@@ -31,13 +31,18 @@ function splitRange(lower: number, upper: number, split: number): number[][] {
   return [[lower, upper]];
 }
 
+export enum GlitchMode {
+  Progressive,
+  GlitchOnly,
+}
+
 export function glitchedDraw(
   drawable: Texture,
   x: number,
   y: number,
-  options?: { glitchRate?: number; overdraw?: true; spread?: number }
+  options?: { glitchRate?: number; mode?: GlitchMode; spread?: number }
 ): void {
-  const overdraw = options?.overdraw ?? false;
+  const mode = options?.mode ?? GlitchMode.GlitchOnly;
   const requestedGlitchRate = options?.glitchRate ?? 0;
   const glitchRate = requestedGlitchRate < 0 ? 0 : 1 < requestedGlitchRate ? 1 : requestedGlitchRate;
   const spread = options?.spread ?? 10;
@@ -50,21 +55,18 @@ export function glitchedDraw(
     return;
   }
 
-  if (overdraw) {
-    draw(drawable, x, y);
-  }
   shuffleInPlace(lines);
   let spansToDrawNormally: number[][] = [[0, 15]];
   const scanlinesToOffsetCount = Math.floor(glitchRate * lines.length);
   for (let offsetScanline = 0; offsetScanline < scanlinesToOffsetCount; ++offsetScanline) {
     const scanline = lines[offsetScanline];
-    if (!overdraw) {
+    if (mode === GlitchMode.Progressive) {
       spansToDrawNormally = spansToDrawNormally.flatMap(([lower, upper]) => splitRange(lower, upper, scanline));
     }
     window.setViewport(0, scanline, 16, 1);
-    draw(drawable, window, x + Math.floor((random() - 0.5) * spread), y + scanline);
+    draw(drawable, window, x + Math.round((random() - 0.5) * spread), y + scanline);
   }
-  if (!overdraw) {
+  if (mode === GlitchMode.Progressive) {
     spansToDrawNormally.forEach(([start, end]) => {
       window.setViewport(0, start, 16, end - start + 1);
       draw(drawable, window, x, y + start);
