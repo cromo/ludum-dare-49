@@ -1,4 +1,4 @@
-import { drawCurrentLevel, drawEntities, tick } from "./engine";
+import { drawCurrentLevel, drawEntities, loadLevel, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
 import { debugLevel } from "./levels/debugLevel";
@@ -17,6 +17,7 @@ love.load = () => {
 
   const levelData = parseLevelDefinition(debugLevel);
   print(levelData);
+  loadLevel(debugLevel);
 };
 
 love.keypressed = input.onKeyDown;

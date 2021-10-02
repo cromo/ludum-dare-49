@@ -1,83 +1,20 @@
-import { Image } from "love.graphics";
+import { COMMON_ANNOTATIONS, DEFAULT_ANNO } from "./levelAnnotations";
+import {
+  Entity,
+  LEVEL_HEIGHT,
+  LEVEL_WIDTH,
+  LayoutLine,
+  Level,
+  LevelAnnotation,
+  LevelAnnotationFlag,
+  LevelDefinition,
+  Point,
+  TILE_SIZE_PIXELS,
+  TileDef,
+  TileTypes,
+} from "./models";
+import { createPlayerEntity } from "./player";
 
-import { Entity, GlitchMode, LEVEL_HEIGHT, LEVEL_WIDTH, Level, PhysicalMode, TileTypes, ZoneMode } from "./models";
-
-export interface LevelDefinition {
-  layout: string[];
-  annotations: LevelAnnotation[];
-}
-
-const DEFAULT_ANNO: LevelAnnotation = {
-  symbol: ".",
-};
-const FULL_SOLID_WALL_ANNO: LevelAnnotation = {
-  symbol: "#",
-  physicalMode: "solid",
-  glitchMode: "solid",
-};
-const GLITCHABLE_WALL_ANNO: LevelAnnotation = {
-  symbol: "~",
-  physicalMode: "solid",
-  glitchMode: "glitch",
-};
-const ONCE_WALL_ANNO: LevelAnnotation = {
-  symbol: "1",
-  physicalMode: "solid",
-  glitchMode: "glitch_once",
-};
-const SEMI_SOLID_ANNO: LevelAnnotation = {
-  symbol: "^",
-  physicalMode: "semisolid",
-};
-const DEAD_ZONE_ANNO: LevelAnnotation = {
-  symbol: "_",
-  zoneMode: "dead",
-};
-const HOT_ZONE_ANNO: LevelAnnotation = {
-  symbol: "!",
-  zoneMode: "hot",
-};
-const ENTRANCE_CONDUIT_ANNO: LevelAnnotation = {
-  symbol: "S",
-  flags: ["entrance_conduit"],
-};
-const EXIT_CONDUIT_ANNO: LevelAnnotation = {
-  symbol: "F",
-  physicalMode: "exit",
-  glitchMode: "solid",
-};
-const KILL_PLANE_ANNO: LevelAnnotation = {
-  symbol: "K",
-  physicalMode: "kill",
-  glitchMode: "solid",
-};
-
-// common collission stuff
-const commonAnnotations: LevelAnnotation[] = [
-  DEFAULT_ANNO,
-  FULL_SOLID_WALL_ANNO,
-  GLITCHABLE_WALL_ANNO,
-  ONCE_WALL_ANNO,
-  SEMI_SOLID_ANNO,
-  DEAD_ZONE_ANNO,
-  HOT_ZONE_ANNO,
-  ENTRANCE_CONDUIT_ANNO,
-  EXIT_CONDUIT_ANNO,
-  KILL_PLANE_ANNO,
-];
-
-interface LayoutLine {
-  tiles: TileDef[];
-  physicalModes: PhysicalMode[];
-  glitchModes: GlitchMode[];
-  zoneModes: ZoneMode[];
-  entities: Entity[];
-}
-
-export interface TileDef {
-  type: TileTypes;
-  image: Image;
-}
 const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {
   " ": { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") },
   "*": { type: TileTypes.WALL_BLOCK, image: love.graphics.newImage("res/wall.png") },
@@ -97,26 +34,33 @@ const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) 
   return TILE_CODE_TO_TYPE[TileTypes.AIR];
 };
 
-const lineToPairs = (line: string): { tile: string; annotationKey: string }[] => {
-  const pairs: { tile: string; annotationKey: string }[] = [];
+const lineToPairs = (line: string, y: number): { tile: string; annotationKey: string; pos: Point }[] => {
+  const pairs: { tile: string; annotationKey: string; pos: Point }[] = [];
   for (let i = 0; i < line.length; i += 2) {
     pairs.push({
       tile: line.charAt(i),
       annotationKey: line.charAt(i + 1),
+      pos: { x: (i / 2) * TILE_SIZE_PIXELS, y: y * TILE_SIZE_PIXELS },
     });
   }
   return pairs;
 };
 
-const parseLayoutLine = (annotationIndex: { [key: string]: LevelAnnotation }, log: (...items: string[]) => void) => (
+const parseLayoutLine = (
+  annotationIndex: { [key: string]: LevelAnnotation },
+  y: number,
+  log: (...items: string[]) => void,
   line: string
 ): LayoutLine => {
-  const annotatedPairs = lineToPairs(line).map(({ tile, annotationKey }) => {
+  const annotatedPairs = lineToPairs(line, y).map(({ tile, annotationKey, pos }) => {
     if (annotationIndex[annotationKey] == undefined) {
       log(`unknown annotation key \"${annotationKey}\"`);
     }
     const annotation = annotationIndex[annotationKey] || DEFAULT_ANNO;
     const entities: Entity[] = [];
+    if (annotation.flags && annotation.flags.includes(LevelAnnotationFlag.spawn_player)) {
+      entities.push(createPlayerEntity(pos));
+    }
     // if (annotation.flags?.includes("player_spawn")) {
     //   const playerSpawnEntity: PlayerSpawnEntity = {
     //     type: "playerSpawnEntity",
@@ -158,7 +102,7 @@ const parseLayoutLine = (annotationIndex: { [key: string]: LevelAnnotation }, lo
 // constructs a new playable level from a level definition, but doesn't activate it yet
 export function parseLevelDefinition(ld: LevelDefinition): Level {
   const { annotations: extraAnnotations, layout } = ld;
-  const levelAnnotations = [...commonAnnotations, ...extraAnnotations];
+  const levelAnnotations = [...COMMON_ANNOTATIONS, ...extraAnnotations];
   const logLines: string[] = [];
   const log = (...foo: string[]): number => logLines.push(...foo);
   const annotationIndex: { [key: string]: LevelAnnotation } = Object.fromEntries(
@@ -177,7 +121,7 @@ export function parseLevelDefinition(ld: LevelDefinition): Level {
     }
   });
 
-  const parsedLayout = layout.map((line) => parseLayoutLine(annotationIndex, (l) => log(l))(line));
+  const parsedLayout = layout.map((line, y) => parseLayoutLine(annotationIndex, y, (l) => log(l), line));
 
   // extract the 2d maps for tiles, physical modes, glitch modes, and all of the entities in the level
   const tiles = parsedLayout.map((pl) => pl.tiles);
@@ -191,7 +135,6 @@ export function parseLevelDefinition(ld: LevelDefinition): Level {
     logLines.forEach((line) => print(line));
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return {
     tiles,
     physicalModes,
@@ -199,15 +142,4 @@ export function parseLevelDefinition(ld: LevelDefinition): Level {
     zoneModes,
     entities,
   };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface LevelAnnotation {
-  symbol: string;
-  physicalMode?: PhysicalMode;
-  glitchMode?: GlitchMode;
-  zoneMode?: ZoneMode;
-  // For adding entities and other special stuff:
-  flags?: string[];
-  data?: { [key: string]: string | number };
 }
