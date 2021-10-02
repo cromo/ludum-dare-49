@@ -17,6 +17,20 @@ function shuffleInPlace<T>(arr: T[]): T[] {
   return arr;
 }
 
+// Returns inclusive ranges. Actual type should be [number, number][].
+function splitRange(lower: number, upper: number, split: number): number[][] {
+  const rangeOfOne = lower === upper;
+  if (rangeOfOne && split === lower) return [];
+  if (split === lower) return [[lower + 1, upper]];
+  if (split === upper) return [[lower, upper - 1]];
+  if (lower < split && split < upper)
+    return [
+      [lower, split - 1],
+      [split + 1, upper],
+    ];
+  return [[lower, upper]];
+}
+
 export function glitchedDraw(
   drawable: Texture,
   x: number,
@@ -40,10 +54,20 @@ export function glitchedDraw(
     draw(drawable, x, y);
   }
   shuffleInPlace(lines);
+  let spansToDrawNormally: number[][] = [[0, 15]];
   const scanlinesToOffsetCount = Math.floor(glitchRate * lines.length);
   for (let offsetScanline = 0; offsetScanline < scanlinesToOffsetCount; ++offsetScanline) {
     const scanline = lines[offsetScanline];
+    if (!overdraw) {
+      spansToDrawNormally = spansToDrawNormally.flatMap(([lower, upper]) => splitRange(lower, upper, scanline));
+    }
     window.setViewport(0, scanline, 16, 1);
     draw(drawable, window, x + Math.floor((random() - 0.5) * spread), y + scanline);
+  }
+  if (!overdraw) {
+    spansToDrawNormally.forEach(([start, end]) => {
+      window.setViewport(0, start, 16, end - start + 1);
+      draw(drawable, window, x, y + start);
+    });
   }
 }
