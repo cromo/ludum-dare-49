@@ -109,8 +109,10 @@ export interface PlayerEntity extends VisibleEntity {
   footSensor: Point;
   zoneSensor: Point;
   entropy: number;
+  entropyPipOffsets: Vector[];
   stateMachine: PlayerStateMachine;
   grounded: boolean;
+  isDead: boolean;
 }
 
 export enum Facing {
@@ -164,6 +166,7 @@ export interface Dashing {
 
 export interface Asplode {
   type: "ASPLODE";
+  framesDead: number;
 }
 
 export interface PlayerStateMachine {
