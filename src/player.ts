@@ -51,7 +51,7 @@ export interface Walking {
   type: "WALKING";
 }
 
-export interface PlayerState {
+export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
   state: OutOfEntropy | Standing | Walking;
@@ -150,7 +150,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
 // starting point.
-export function updateStateMachine(player: PlayerState, input: GameInput): PlayerState {
+export function updateStateMachine(player: PlayerStateMachine, input: GameInput): PlayerStateMachine {
   const { state } = player;
   if (state.type === "OUT_OF_ENTROPY" && 0 < state.ticksRemainingBeforeRechargeStarts) {
     return {

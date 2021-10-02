@@ -1,9 +1,9 @@
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
 import { Level } from "./models";
-import { Facing, PlayerState, createPlayerEntity, updateStateMachine } from "./player";
+import { Facing, PlayerStateMachine, createPlayerEntity, updateStateMachine } from "./player";
 
-let player: PlayerState = {
+let player: PlayerStateMachine = {
   facing: Facing.Left,
   entropy: 0,
   state: { type: "OUT_OF_ENTROPY", ticksRemainingBeforeRechargeStarts: 5 * 60 },
