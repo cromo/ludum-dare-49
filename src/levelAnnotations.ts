@@ -1,4 +1,4 @@
-import { LevelAnnotation } from "./models";
+import { LevelAnnotation, LevelAnnotationFlag } from "./models";
 
 export const DEFAULT_ANNO: LevelAnnotation = {
   symbol: ".",
@@ -33,7 +33,7 @@ const HOT_ZONE_ANNO: LevelAnnotation = {
 };
 const ENTRANCE_CONDUIT_ANNO: LevelAnnotation = {
   symbol: "S",
-  flags: ["entrance_conduit"],
+  flags: [LevelAnnotationFlag.spawn_player],
 };
 const EXIT_CONDUIT_ANNO: LevelAnnotation = {
   symbol: "F",

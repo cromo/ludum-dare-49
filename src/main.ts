@@ -1,7 +1,6 @@
-import { drawCurrentLevel, tick } from "./engine";
+import { drawCurrentLevel, loadLevel, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
-import { loadLevel } from "./levels";
 import { debugLevel } from "./levels/debugLevel";
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();

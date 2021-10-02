@@ -1,18 +1,16 @@
-import { getCurrentLevel } from "./levels";
-import { Level } from "./models";
-import { createPlayerEntity } from "./player";
+import { parseLevelDefinition } from "./levelLoader";
+import { getCurrentLevel, setCurrentLevel } from "./levels";
+import { Entity, Level, LevelDefinition, TILE_SIZE_PIXELS } from "./models";
 
 export function tick(): void {
-  //entity stuff down here
   getCurrentLevel().entities.forEach((entity) => {
     entity.update(entity);
   });
 }
 
-const TILE_SIZE_PIXELS = 16;
-
-//TODO: temporarily doing this terrible thing to spawn the player?
-getCurrentLevel().entities.push(createPlayerEntity({ x: 5 * TILE_SIZE_PIXELS, y: 5 * TILE_SIZE_PIXELS }));
+export function loadLevel(levelDefinition: LevelDefinition): void {
+  setCurrentLevel(parseLevelDefinition(levelDefinition));
+}
 
 function drawLevel({ tiles }: Level): void {
   const { push, pop, translate } = love.graphics;
@@ -29,12 +27,15 @@ function drawLevel({ tiles }: Level): void {
     translate(0, TILE_SIZE_PIXELS);
   }
   pop();
+}
 
-  getCurrentLevel().entities.forEach((entity) => {
+function drawEntities(entities: Entity[]): void {
+  entities.forEach((entity) => {
     entity.draw(entity);
   });
 }
 
 export function drawCurrentLevel(): void {
   drawLevel(getCurrentLevel());
+  drawEntities(getCurrentLevel().entities);
 }

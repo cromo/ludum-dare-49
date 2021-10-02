@@ -6,11 +6,14 @@ import {
   LayoutLine,
   Level,
   LevelAnnotation,
+  LevelAnnotationFlag,
   LevelDefinition,
   Point,
+  TILE_SIZE_PIXELS,
   TileDef,
   TileTypes,
 } from "./models";
+import { createPlayerEntity } from "./player";
 
 const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {
   " ": { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") },
@@ -31,13 +34,13 @@ const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) 
   return TILE_CODE_TO_TYPE[TileTypes.AIR];
 };
 
-const lineToPairs = (line: string, y: number): { tile: string; annotationKey: string }[] => {
+const lineToPairs = (line: string, y: number): { tile: string; annotationKey: string; pos: Point }[] => {
   const pairs: { tile: string; annotationKey: string; pos: Point }[] = [];
   for (let i = 0; i < line.length; i += 2) {
     pairs.push({
       tile: line.charAt(i),
       annotationKey: line.charAt(i + 1),
-      pos: { x: i, y },
+      pos: { x: (i / 2) * TILE_SIZE_PIXELS, y: y * TILE_SIZE_PIXELS },
     });
   }
   return pairs;
@@ -49,12 +52,15 @@ const parseLayoutLine = (
   log: (...items: string[]) => void,
   line: string
 ): LayoutLine => {
-  const annotatedPairs = lineToPairs(line, y).map(({ tile, annotationKey }) => {
+  const annotatedPairs = lineToPairs(line, y).map(({ tile, annotationKey, pos }) => {
     if (annotationIndex[annotationKey] == undefined) {
       log(`unknown annotation key \"${annotationKey}\"`);
     }
     const annotation = annotationIndex[annotationKey] || DEFAULT_ANNO;
     const entities: Entity[] = [];
+    if (annotation.flags && annotation.flags.includes(LevelAnnotationFlag.spawn_player)) {
+      entities.push(createPlayerEntity(pos));
+    }
     // if (annotation.flags?.includes("player_spawn")) {
     //   const playerSpawnEntity: PlayerSpawnEntity = {
     //     type: "playerSpawnEntity",

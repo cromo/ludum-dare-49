@@ -26,6 +26,8 @@ export const TILE_WIDTH = 16;
 export const TERMINAL_HEIGHT = 6;
 export const TERMINAL_WIDTH = 9;
 
+export const TILE_SIZE_PIXELS = 16;
+
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
 export type ZoneMode = "normal" | "dead" | "hot";
@@ -134,13 +136,17 @@ export interface LevelDefinition {
   annotations: LevelAnnotation[];
 }
 
+export enum LevelAnnotationFlag {
+  "spawn_player",
+}
+
 export interface LevelAnnotation {
   symbol: string;
   physicalMode?: PhysicalMode;
   glitchMode?: GlitchMode;
   zoneMode?: ZoneMode;
   // For adding entities and other special stuff:
-  flags?: string[];
+  flags?: LevelAnnotationFlag[];
   data?: { [key: string]: string | number };
 }
 

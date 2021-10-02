@@ -1,20 +1,19 @@
-import { parseLevelDefinition } from "./levelLoader";
-// import { debugLevel } from "./levels/debugLevel";
-import { sampleLevelEmpty } from "./levels/sampleLevel";
-import { Level, LevelDefinition } from "./models";
+import { Entity, Level } from "./models";
 
-// const levelDefinitions: LevelDefinition[] = [debugLevel];
+let currentLevel: Level;
 
-// const levels = levelDefinitions.map((levelDefinition) => parseLevelDefinition(levelDefinition));
-
-// export default levels;
-
-let currentLevel = parseLevelDefinition(sampleLevelEmpty);
-
-export function loadLevel(levelDefinition: LevelDefinition): void {
-  currentLevel = parseLevelDefinition(levelDefinition);
+export function setCurrentLevel(level: Level): void {
+  currentLevel = level;
 }
 
 export function getCurrentLevel(): Level {
   return currentLevel;
+}
+
+export function spawnEntity(entity: Entity): void {
+  currentLevel.entities.push(entity);
+}
+
+export function despawnEntityByRef(entity: Entity): void {
+  currentLevel.entities = currentLevel.entities.filter((e) => e != entity);
 }
