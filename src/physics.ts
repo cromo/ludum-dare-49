@@ -1,4 +1,4 @@
-import { HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, Point, Vector } from "./models";
+import { HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, Point, Vector, ZoneMode } from "./models";
 import { TILE_HEIGHT, TILE_WIDTH } from "./models";
 
 // Any object which moves
@@ -51,20 +51,41 @@ export function stepPhysics(object: PhysicsObject): void {
 
 export type ColliderFunction = (tileX: number, tileY: number, level: Level) => boolean;
 
-export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level, colliderFn: ColliderFunction): boolean {
+// Guard: Returns true if these tile coordinates are within the level
+export function tileInBounds(pos: Point): boolean {
+  return pos.x >= 0 && pos.x < LEVEL_WIDTH && pos.y >= 0 && pos.y < LEVEL_HEIGHT;
+}
+
+export function tileCoordinates(pos: Point): Point {
+  return {
+    x: Math.floor(pos.x / TILE_WIDTH),
+    y: Math.floor(pos.y / TILE_HEIGHT),
+  };
+}
+
+export function sensorInZone(pos: Point, sensor: Point, level: Level): ZoneMode {
+  const sensorPos = { x: pos.x + sensor.x, y: pos.y + sensor.y };
+  const tilePos = tileCoordinates(sensorPos);
+  if (tileInBounds(tilePos)) {
+    return level.zoneModes[tilePos.y][tilePos.x];
+  }
+  return "normal";
+}
+
+export function hitboxOverlapsCollider(
+  pos: Point,
+  hitbox: HitBox,
+  level: Level,
+  colliderFn: ColliderFunction
+): boolean {
   const offsetHitbox = {
     corners: hitbox.corners.map((corner) => {
       return { x: corner.x + pos.x, y: corner.y + pos.y };
     }),
   };
   for (const corner of offsetHitbox.corners) {
-    // guard: is this corner actually within the level bounds?
-    const tileCorner = {
-      x: Math.floor(corner.x / TILE_WIDTH),
-      y: Math.floor(corner.y / TILE_HEIGHT),
-    };
-    // Guard: tiles outside of the level bounds have no collision for solid purposes
-    if (tileCorner.x >= 0 && tileCorner.x < LEVEL_WIDTH && tileCorner.y >= 0 && tileCorner.y < LEVEL_HEIGHT) {
+    const tileCorner = tileCoordinates(corner);
+    if (tileInBounds(tileCorner)) {
       if (colliderFn(tileCorner.x, tileCorner.y, level)) {
         return true;
       }
@@ -108,7 +129,7 @@ export function collideWithLevel(
         x: steppedPos.x + xAdjustment,
         y: steppedPos.y,
       };
-      if (overlapsSolid(checkedPosition, hitbox, level, colliderFn)) {
+      if (hitboxOverlapsCollider(checkedPosition, hitbox, level, colliderFn)) {
         // we would collide with a wall! cancel the move, and adjust our target on the X
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.x = steppedPos.x;
@@ -123,7 +144,7 @@ export function collideWithLevel(
         x: steppedPos.x,
         y: steppedPos.y + yAdjustment,
       };
-      if (overlapsSolid(checkedPosition, hitbox, level, colliderFn)) {
+      if (hitboxOverlapsCollider(checkedPosition, hitbox, level, colliderFn)) {
         // we would collide with a wall! cancel the move, and adjust our target on the Y
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.y = steppedPos.y;

@@ -31,7 +31,7 @@ import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
 import { HitBox, Point, Vector, VisibleEntity } from "./models";
-import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
+import { collideWithLevel, normalSolidCollider, sensorInZone, stepPhysics } from "./physics";
 
 export enum Facing {
   Left,
@@ -133,11 +133,14 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       );
       entity.pos = collidedPos;
 
+      const detectedZone = sensorInZone(entity.pos, entity.zoneSensor, level);
+
       print(entity, level); //stop complaining about unused variables
       print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
       print(`PlayerOverlapsSolid: ${hitX}, ${hitY}`);
+      print(`PlayerZone: ${detectedZone}`);
       return;
     },
     drawEffect: {},
