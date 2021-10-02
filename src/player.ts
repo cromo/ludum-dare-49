@@ -31,7 +31,7 @@ import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
 import { HitBox, Point, Vector, VisibleEntity } from "./models";
-import { stepPhysics } from "./physics";
+import { collideWithLevel, overlapsSolid, stepPhysics } from "./physics";
 
 export enum Facing {
   Left,
@@ -77,7 +77,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     vel: { x: 0, y: 0 },
     acc: { x: 0, y: 0 },
     speedCap: { x: 1, y: 1 },
-    friction: { x: 0.01, y: 0.01 },
+    friction: { x: 0.05, y: 0.05 },
     hitbox: {
       corners: [
         { x: 0, y: 0 },
@@ -97,6 +97,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       const level = getCurrentLevel();
       //@nick have fun with the level and entity
 
+      // NOTE: pretty much all of the below is ugly, ugly debug code. Once working, it should be
+      // folded into the various states, which can decide what physics properties to apply and how
+      // exactly to step / collide, as appropriate.
+
       // For testing I really want all compass directions, but we didn't do that, soooo we cheat
       const inputVel = {
         N: { x: 0, y: -1 },
@@ -112,12 +116,21 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
 
       // Quick debug test: input velocity becomes player accleeration.
       entity.acc = { x: inputVel.x * 0.1, y: inputVel.y * 0.1 };
-
+      const oldPos = { x: entity.pos.x, y: entity.pos.y };
       stepPhysics(entity);
+
+      // Check for tile overlap and, for now, print out if we're colliding with a solid
+      const colliding = overlapsSolid(entity.pos, entity.hitbox, level);
+
+      // ... apply those overlaps?
+      const collidedPos = collideWithLevel(oldPos, entity.pos, entity.hitbox, level);
+      entity.pos = collidedPos;
+
       print(entity, level); //stop complaining about unused variables
       print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
+      print(`PlayerOverlapsSolid: ${colliding}`);
       return;
     },
     drawEffect: {},

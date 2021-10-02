@@ -41,12 +41,12 @@ function applyFriction(object: PhysicsObject): void {
 }
 
 export function stepPhysics(object: PhysicsObject): void {
+  applyFriction(object);
   object.vel.x += object.acc.x;
   object.vel.y += object.acc.y;
   applySpeedCap(object);
   object.pos.x += object.vel.x;
   object.pos.y += object.vel.y;
-  applyFriction(object);
 }
 
 export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level): boolean {
@@ -69,4 +69,58 @@ export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level): boolean
     }
   }
   return false;
+}
+
+export function collideWithLevel(currentPos: Point, targetPos: Point, hitbox: HitBox, level: Level): Point {
+  // Strategy: moves 1px at a time, on one axis at a time.
+  // Collides the hitbox after each move. If a hit is registered,
+  // cancels the move and zeros position along that axis.
+  // Note here: uses the *integer* position in all cases, for pixel checks.
+  // The fractional component is only reset if a collision occurs, otherwise it is
+  // allowed to persist and accumulate subpixel movement between frames
+
+  const steppedPos = { x: Math.floor(currentPos.x), y: Math.floor(currentPos.y) };
+  const adjustedTarget = { x: Math.floor(targetPos.x), y: Math.floor(targetPos.y) };
+  const fractionalPos = { x: targetPos.x % 1.0, y: targetPos.y % 1.0 };
+
+  // While either axis has at least 1px left to go:
+  while (steppedPos.x != adjustedTarget.x || steppedPos.y != adjustedTarget.y) {
+    // Work out that distance in pixel units
+    const distance = {
+      x: adjustedTarget.x - steppedPos.x,
+      y: adjustedTarget.y - steppedPos.y,
+    };
+    // Favor the axis with the largest distance remaining
+    if (Math.abs(distance.x) > Math.abs(distance.y)) {
+      // Move 1 pixel towards the target, along the X axis
+      const xAdjustment = adjustedTarget.x > steppedPos.x ? 1 : -1;
+      const checkedPosition = { x: steppedPos.x + xAdjustment, y: steppedPos.y };
+      if (overlapsSolid(checkedPosition, hitbox, level)) {
+        // we would collide with a wall! cancel the move, and adjust our target on the X
+        // axis to the point we have reached, so we make no further moves on this axis
+        adjustedTarget.x = steppedPos.x;
+        fractionalPos.x = 0.0;
+      } else {
+        steppedPos.x = checkedPosition.x;
+      }
+    } else {
+      // Move 1 pixel towards the target, along the Y axis
+      const yAdjustment = adjustedTarget.y > steppedPos.y ? 1 : -1;
+      const checkedPosition = { x: steppedPos.x, y: steppedPos.y + yAdjustment };
+      if (overlapsSolid(checkedPosition, hitbox, level)) {
+        // we would collide with a wall! cancel the move, and adjust our target on the Y
+        // axis to the point we have reached, so we make no further moves on this axis
+        adjustedTarget.y = steppedPos.y;
+        fractionalPos.y = 0.0;
+      } else {
+        steppedPos.y = checkedPosition.y;
+      }
+    }
+  }
+
+  // To the stepped result, apply the fractional component of the original target
+  return {
+    x: steppedPos.x + fractionalPos.x,
+    y: steppedPos.y + fractionalPos.y,
+  };
 }
