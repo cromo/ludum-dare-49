@@ -19,6 +19,8 @@ export enum TileTypes {
 // x3 scale: 40 x 22(.5)
 // x4 scale: 30 x 16(.8)
 
+export const GAME_SCALE = 2;
+
 export const LEVEL_HEIGHT = 22;
 export const LEVEL_WIDTH = 40;
 export const TILE_SIZE_PIXELS = 16;
@@ -154,6 +156,11 @@ export interface LayoutLine {
 export interface TileDef {
   type: TileTypes;
   image: Image;
+  effect?: TileEffect;
+}
+
+export interface TileEffect {
+  glitchyLevel?: number;
 }
 
 export interface LevelDefinition {

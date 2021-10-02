@@ -1,7 +1,9 @@
-import { drawCurrentLevel, drawEntities, loadLevel, tick } from "./engine";
+import { drawEntities, drawLevel, loadLevel, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
+import { getCurrentLevel } from "./levels";
 import { debugLevel } from "./levels/debugLevel";
+import { GAME_SCALE } from "./models";
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
@@ -34,18 +36,12 @@ love.update = (dt) => {
 };
 
 love.draw = () => {
-  const { push, pop, translate } = love.graphics;
-
-  const currentInput = input.currentInput();
-  love.graphics.print(`Move direction: ${currentInput.moveDirection}
-Dash direction: ${currentInput.dashDirection}
-Want dash: ${currentInput.wantsToDash}
-Want jump: ${currentInput.wantsToJump}
-Want reset: ${currentInput.wantsToReset}`);
+  const { push, pop, scale } = love.graphics;
 
   push();
-  translate(0, 100);
-  drawCurrentLevel();
-  drawEntities();
+  scale(GAME_SCALE, GAME_SCALE);
+  const level = getCurrentLevel();
+  drawLevel(level);
+  drawEntities(level.entities);
   pop();
 };
