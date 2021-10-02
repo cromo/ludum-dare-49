@@ -103,6 +103,7 @@ export interface PlayerEntity extends VisibleEntity {
   footSensor: Point;
   zoneSensor: Point;
   entropy: number;
+  entropyPipOffsets: Vector[];
   stateMachine: PlayerStateMachine;
   grounded: boolean;
 }
