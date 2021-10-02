@@ -1,6 +1,6 @@
 import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel, setCurrentLevel } from "./levels";
-import { Level, LevelDefinition, TILE_SIZE_PIXELS } from "./models";
+import { Entity, Level, LevelDefinition, TILE_SIZE_PIXELS } from "./models";
 
 export function tick(): void {
   getCurrentLevel().entities = getCurrentLevel().entities.map((entity) => entity.update(entity));
