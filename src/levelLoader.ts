@@ -6,9 +6,7 @@ export interface LevelDefinition {
 }
 
 const DEFAULT_ANNO: LevelAnnotation = {
-  symbol: " ",
-  physicalMode: "solid",
-  glitchMode: "solid",
+  symbol: ".",
 };
 const FULL_SOLID_WALL_ANNO: LevelAnnotation = {
   symbol: "#",
@@ -18,11 +16,30 @@ const FULL_SOLID_WALL_ANNO: LevelAnnotation = {
 const GLITCHABLE_WALL_ANNO: LevelAnnotation = {
   symbol: "~",
   physicalMode: "solid",
-  glitchMode: "empty",
+  glitchMode: "glitch",
+};
+const SEMI_SOLID_ANNO: LevelAnnotation = {
+  symbol: "^",
+  physicalMode: "semisolid",
+};
+const DEAD_ZONE_ANNO: LevelAnnotation = {
+  symbol: "_",
+  zoneMode: "dead",
+};
+const HOT_ZONE_ANNO: LevelAnnotation = {
+  symbol: "!",
+  zoneMode: "hot",
 };
 
 // common collission stuff
-const commonAnnotations: LevelAnnotation[] = [DEFAULT_ANNO, FULL_SOLID_WALL_ANNO, GLITCHABLE_WALL_ANNO];
+const commonAnnotations: LevelAnnotation[] = [
+  DEFAULT_ANNO,
+  FULL_SOLID_WALL_ANNO,
+  GLITCHABLE_WALL_ANNO,
+  SEMI_SOLID_ANNO,
+  DEAD_ZONE_ANNO,
+  HOT_ZONE_ANNO,
+];
 
 interface LayoutLine {
   tiles: TileTypes[];
@@ -37,6 +54,8 @@ const TILE_CODE_TO_TYPE: { [key: string]: TileTypes } = {
   "*": TileTypes.WALL_BLOCK,
   "|": TileTypes.WALL_VERTICAL,
   "-": TileTypes.WALL_HORIZONTAL,
+  "^": TileTypes.SEMI_SOLID,
+  "~": TileTypes.GLITCH_WALL,
 };
 
 const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) => TileTypes = (tileCode, log) => {
