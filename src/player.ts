@@ -30,9 +30,9 @@
 import { Image } from "love.graphics";
 
 import { GlitchMode, glitchedDraw } from "./glitch";
-import { GameInput, HorizontalDirection } from "./input";
+import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
-import { GRAVITY, JUMP_VELOCITY, Level, Point, WALKING_ACCELERATION } from "./models";
+import { GRAVITY, JUMP_VELOCITY, Level, Point, Vector, WALKING_ACCELERATION } from "./models";
 import { Facing, PlayerEntity } from "./models";
 import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
 
@@ -49,6 +49,8 @@ function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
       player.grounded = true;
     }
     player.vel.y = 0.0;
+  } else {
+    player.grounded = false;
   }
   return player;
 }
@@ -77,9 +79,63 @@ function jumpInitState(player: PlayerEntity, level: Level, input: GameInput): Pl
   return walkingState(modifiedPlayer, level, input);
 }
 
+function dyingState(player: PlayerEntity): PlayerEntity {
+  return player;
+}
+
+function dashPrepState(player: PlayerEntity): PlayerEntity {
+  const modifiedPlayer = { ...player, grounded: false, vel: { x: 0, y: 0 }, acc: { x: 0, y: 0 } };
+  return modifiedPlayer;
+}
+
+function dashDiretionFrom(facing: Facing, dashInput: DashDirection): Vector {
+  if (dashInput == DashDirection.Forward) {
+    if (facing == Facing.Right) {
+      return { x: 1.0, y: 0.0 };
+    } else {
+      return { x: -1.0, y: 0.0 };
+    }
+  } else {
+    return {
+      N: { x: 0, y: -1 },
+      E: { x: 1, y: 0 },
+      S: { x: 0, y: 1 },
+      W: { x: -1, y: 0 },
+      NE: { x: 1, y: -1 },
+      SE: { x: 1, y: 1 },
+      SW: { x: -1, y: 1 },
+      NW: { x: -1, y: -1 },
+    }[dashInput];
+  }
+}
+
+// Important: this function does many things, and persists for just ONE frame. The entire dash happens
+// here, performing several sub-physics steps that will not be drawn directly. Later, we can add FX emitters
+// at each point along the dash
+function dashingState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  if (player.stateMachine.state.type != "DASHING") return player;
+  const dashDirection = dashDiretionFrom(player.stateMachine.facing, player.stateMachine.state.dashDirection);
+
+  // NOT THE REAL DASH CODE. Just to test the state transitions.
+  const modifiedPlayer = {
+    ...player,
+    grounded: false,
+    vel: { x: dashDirection.x * 10, y: dashDirection.y * 10 },
+    acc: { x: 0, y: 0 },
+  };
+  return walkingState(modifiedPlayer, level, input);
+
+  //const modifiedPlayer = { ...player, grounded: false, vel: { x: 0, y: 0 }, acc: { x: 0, y: 0 } };
+
+  return modifiedPlayer;
+}
+
 export function updateCurrentState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
   return {
+    ASPLODE: dyingState,
     ASCENDING: walkingState,
+    DASH_PREP: dashPrepState,
+    DASHING: dashingState,
     DESCENDING: walkingState,
     JUMP_PREP: jumpInitState,
     STANDING: standingState,
@@ -108,7 +164,7 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING" },
+        state: { type: "STANDING", coyoteTime: 5 },
       },
     };
   }
@@ -126,13 +182,45 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
+  } else if (input.wantsToDash) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+      },
+    };
   } else if (input.moveDirection !== HorizontalDirection.Neutral) {
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
         facing: input.moveDirection === HorizontalDirection.Left ? Facing.Left : Facing.Right,
-        state: { type: "WALKING" },
+        state: { type: "WALKING", coyoteTime: state.coyoteTime },
+      },
+    };
+  } else if (player.grounded) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING", coyoteTime: 5 },
+      },
+    };
+  } else if (!player.grounded && 0 < state.coyoteTime) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING", coyoteTime: state.coyoteTime - 1 },
+      },
+    };
+  } else if (!player.grounded && state.coyoteTime == 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DESCENDING" },
       },
     };
   }
@@ -148,6 +236,46 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       stateMachine: {
         ...player.stateMachine,
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
+      },
+    };
+  } else if (input.wantsToDash) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+      },
+    };
+  } else if (input.moveDirection === HorizontalDirection.Neutral) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING", coyoteTime: state.coyoteTime },
+      },
+    };
+  } else if (player.grounded) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "WALKING", coyoteTime: 5 },
+      },
+    };
+  } else if (!player.grounded && 0 < state.coyoteTime) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "WALKING", coyoteTime: state.coyoteTime - 1 },
+      },
+    };
+  } else if (!player.grounded && state.coyoteTime == 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DESCENDING" },
       },
     };
   }
@@ -180,10 +308,18 @@ function updateStateJumpPrep(player: PlayerEntity): PlayerEntity {
   return player;
 }
 
-function updateStateAscending(player: PlayerEntity): PlayerEntity {
+function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "ASCENDING") return player;
-  if (player.vel.y >= 0) {
+  if (input.wantsToDash) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+      },
+    };
+  } else if (player.vel.y >= 0) {
     return {
       ...player,
       stateMachine: {
@@ -195,10 +331,18 @@ function updateStateAscending(player: PlayerEntity): PlayerEntity {
   return player;
 }
 
-function updateStateDescending(player: PlayerEntity): PlayerEntity {
+function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "DESCENDING") return player;
-  if (player.grounded) {
+  if (input.wantsToDash) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+      },
+    };
+  } else if (player.grounded) {
     return {
       ...player,
       stateMachine: {
@@ -210,10 +354,27 @@ function updateStateDescending(player: PlayerEntity): PlayerEntity {
   return player;
 }
 
-function updateStateLanding(player: PlayerEntity): PlayerEntity {
+function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "LANDING") return player;
-  if (0 < state.ticksRemainingBeforeStanding) {
+  if (input.wantsToDash) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+      },
+    };
+  } else if (input.moveDirection !== HorizontalDirection.Neutral) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        facing: input.moveDirection === HorizontalDirection.Left ? Facing.Left : Facing.Right,
+        state: { type: "WALKING", coyoteTime: 5 },
+      },
+    };
+  } else if (0 < state.ticksRemainingBeforeStanding) {
     return {
       ...player,
       stateMachine: {
@@ -229,10 +390,67 @@ function updateStateLanding(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING" },
+        state: { type: "STANDING", coyoteTime: 5 },
       },
     };
   }
+  return player;
+}
+
+function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "DASH_PREP") return player;
+  if (0 < state.ticksBeforeGlitchOff) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "DASH_PREP",
+          ticksBeforeGlitchOff: state.ticksBeforeGlitchOff - 1,
+        },
+      },
+    };
+  } else if (state.ticksBeforeGlitchOff === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DASHING", dashDirection: input.dashDirection },
+      },
+    };
+  }
+  return player;
+}
+
+// Note: lasts for just *one* frame
+function updateStateDashing(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "DASHING") return player;
+  if (player.vel.y > 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "ASCENDING" },
+      },
+    };
+  } else {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DESCENDING" },
+      },
+    };
+  }
+  return player;
+}
+
+function updateStateDying(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "ASPLODE") return player;
+  // Do nothing! We are dead. Be one with chaos.
   return player;
 }
 
@@ -240,7 +458,10 @@ function updateStateLanding(player: PlayerEntity): PlayerEntity {
 // starting point.
 export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
   return {
+    ASPLODE: updateStateDying,
     ASCENDING: updateStateAscending,
+    DASH_PREP: updateStateDashPrep,
+    DASHING: updateStateDashing,
     DESCENDING: updateStateDescending,
     JUMP_PREP: updateStateJumpPrep,
     STANDING: updateStateStanding,
@@ -280,7 +501,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     stateMachine: {
       facing: Facing.Right,
       entropy: 0,
-      state: { type: "STANDING" },
+      state: { type: "STANDING", coyoteTime: 5 },
     },
     grounded: false,
     draw: (level, entity) => {

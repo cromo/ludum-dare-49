@@ -1,5 +1,7 @@
 import { Image } from "love.graphics";
 
+import { DashDirection } from "./input";
+
 export enum TileTypes {
   AIR = " ",
   WALL_VERTICAL = "|",
@@ -117,10 +119,12 @@ export interface OutOfEntropy {
 
 export interface Standing {
   type: "STANDING";
+  coyoteTime: number;
 }
 
 export interface Walking {
   type: "WALKING";
+  coyoteTime: number;
 }
 
 export interface JumpPrep {
@@ -141,10 +145,25 @@ export interface Landing {
   ticksRemainingBeforeStanding: number;
 }
 
+export interface DashPrep {
+  type: "DASH_PREP";
+  ticksBeforeGlitchOff: number;
+}
+
+export interface Dashing {
+  // muy guapo, no?
+  type: "DASHING";
+  dashDirection: DashDirection;
+}
+
+export interface Asplode {
+  type: "ASPLODE";
+}
+
 export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
-  state: OutOfEntropy | Standing | Walking | JumpPrep | Ascending | Descending | Landing;
+  state: OutOfEntropy | Standing | Walking | JumpPrep | Ascending | Descending | Landing | DashPrep | Dashing | Asplode;
 }
 
 export interface LayoutLine {
