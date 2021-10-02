@@ -30,13 +30,9 @@
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
-import { GRAVITY, HitBox, Level, Point, Vector, VisibleEntity, WALKING_ACCELERATION } from "./models";
+import { GRAVITY, Level, Point, WALKING_ACCELERATION } from "./models";
+import { Facing, PlayerEntity } from "./models";
 import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
-
-export enum Facing {
-  Left,
-  Right,
-}
 
 export interface OutOfEntropy {
   type: "OUT_OF_ENTROPY";
@@ -55,21 +51,6 @@ export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
   state: OutOfEntropy | Standing | Walking;
-}
-
-//@nick give this position and everything else for physics and fun
-export interface PlayerEntity extends VisibleEntity {
-  type: "playerEntity";
-  pos: Point;
-  vel: Vector;
-  acc: Vector;
-  speedCap: Vector;
-  friction: Vector;
-  hitbox: HitBox;
-  footSensor: Point;
-  zoneSensor: Point;
-  entropy: number;
-  stateMachine: PlayerStateMachine;
 }
 
 function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
@@ -171,6 +152,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       state: { type: "STANDING" },
     },
     draw: (entity) => {
+      love.graphics.setColor(0, 0, 0);
       love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
       return;
     },

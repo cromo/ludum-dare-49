@@ -1,4 +1,4 @@
-import { PlayerEntity } from "./player";
+import { Image } from "love.graphics";
 
 export enum TileTypes {
   AIR = " ",
@@ -21,8 +21,9 @@ export enum TileTypes {
 
 export const LEVEL_HEIGHT = 22;
 export const LEVEL_WIDTH = 40;
-export const TILE_HEIGHT = 16;
-export const TILE_WIDTH = 16;
+export const TILE_SIZE_PIXELS = 16;
+export const TILE_HEIGHT = TILE_SIZE_PIXELS;
+export const TILE_WIDTH = TILE_SIZE_PIXELS;
 export const TERMINAL_HEIGHT = 6;
 export const TERMINAL_WIDTH = 9;
 
@@ -38,7 +39,7 @@ export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
 export type ZoneMode = "normal" | "dead" | "hot";
 
 export interface Level {
-  tiles: TileTypes[][];
+  tiles: TileDef[][];
   physicalModes: PhysicalMode[][];
   glitchModes: GlitchMode[][];
   zoneModes: ZoneMode[][];
@@ -84,3 +85,76 @@ export interface PlayerSpawnEntity extends BaseEntity {
   type: "playerSpawnEntity";
   pos: Point;
 }
+
+export interface PlayerEntity extends VisibleEntity {
+  type: "playerEntity";
+  pos: Point;
+  vel: Vector;
+  acc: Vector;
+  speedCap: Vector;
+  friction: Vector;
+  hitbox: HitBox;
+  footSensor: Point;
+  zoneSensor: Point;
+  entropy: number;
+  stateMachine: PlayerStateMachine;
+}
+
+export enum Facing {
+  Left,
+  Right,
+}
+
+export interface OutOfEntropy {
+  type: "OUT_OF_ENTROPY";
+  ticksRemainingBeforeRechargeStarts: number;
+}
+
+export interface Standing {
+  type: "STANDING";
+}
+
+export interface Walking {
+  type: "WALKING";
+}
+
+export interface PlayerStateMachine {
+  facing: Facing;
+  entropy: number;
+  state: OutOfEntropy | Standing | Walking;
+}
+
+export interface LayoutLine {
+  tiles: TileDef[];
+  physicalModes: PhysicalMode[];
+  glitchModes: GlitchMode[];
+  zoneModes: ZoneMode[];
+  entities: Entity[];
+}
+
+export interface TileDef {
+  type: TileTypes;
+  image: Image;
+}
+
+export interface LevelDefinition {
+  layout: string[];
+  annotations: LevelAnnotation[];
+}
+
+export enum LevelAnnotationFlag {
+  "spawn_player",
+}
+
+export interface LevelAnnotation {
+  symbol: string;
+  physicalMode?: PhysicalMode;
+  glitchMode?: GlitchMode;
+  zoneMode?: ZoneMode;
+  // For adding entities and other special stuff:
+  flags?: LevelAnnotationFlag[];
+  data?: { [key: string]: string | number };
+}
+
+//Stop, don't add your code in here.
+//interfaces, enums, and constants only
