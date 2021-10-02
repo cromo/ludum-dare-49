@@ -31,7 +31,7 @@ import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
 import { HitBox, Point, Vector, VisibleEntity } from "./models";
-import { collideWithLevel, overlapsSolid, stepPhysics } from "./physics";
+import { collideWithLevel, stepPhysics } from "./physics";
 
 export enum Facing {
   Left,
@@ -66,6 +66,8 @@ export interface PlayerEntity extends VisibleEntity {
   speedCap: Vector;
   friction: Vector;
   hitbox: HitBox;
+  footSensor: Point;
+  zoneSensor: Point;
   entropy: number;
 }
 
@@ -86,9 +88,11 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         { x: 15, y: 15 },
       ],
     },
+    footSensor: { x: 8.0, y: 16 },
+    zoneSensor: { x: 8.0, y: 8.0 },
     entropy: 50,
     draw: (entity) => {
-      love.graphics.print(`P`, entity.pos.x, entity.pos.y);
+      love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
       return;
     },
     update: (entity) => {
@@ -119,18 +123,15 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       const oldPos = { x: entity.pos.x, y: entity.pos.y };
       stepPhysics(entity);
 
-      // Check for tile overlap and, for now, print out if we're colliding with a solid
-      const colliding = overlapsSolid(entity.pos, entity.hitbox, level);
-
       // ... apply those overlaps?
-      const collidedPos = collideWithLevel(oldPos, entity.pos, entity.hitbox, level);
+      const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, entity.pos, entity.hitbox, level);
       entity.pos = collidedPos;
 
       print(entity, level); //stop complaining about unused variables
       print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
-      print(`PlayerOverlapsSolid: ${colliding}`);
+      print(`PlayerOverlapsSolid: ${hitX}, ${hitY}`);
       return;
     },
     drawEffect: {},

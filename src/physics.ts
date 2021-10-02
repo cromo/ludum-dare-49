@@ -71,7 +71,12 @@ export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level): boolean
   return false;
 }
 
-export function collideWithLevel(currentPos: Point, targetPos: Point, hitbox: HitBox, level: Level): Point {
+export function collideWithLevel(
+  currentPos: Point,
+  targetPos: Point,
+  hitbox: HitBox,
+  level: Level
+): { collidedPos: Point; hitX: boolean; hitY: boolean } {
   // Strategy: moves 1px at a time, on one axis at a time.
   // Collides the hitbox after each move. If a hit is registered,
   // cancels the move and zeros position along that axis.
@@ -82,6 +87,8 @@ export function collideWithLevel(currentPos: Point, targetPos: Point, hitbox: Hi
   const steppedPos = { x: Math.floor(currentPos.x), y: Math.floor(currentPos.y) };
   const adjustedTarget = { x: Math.floor(targetPos.x), y: Math.floor(targetPos.y) };
   const fractionalPos = { x: targetPos.x % 1.0, y: targetPos.y % 1.0 };
+  let hitX = false;
+  let hitY = false;
 
   // While either axis has at least 1px left to go:
   while (steppedPos.x != adjustedTarget.x || steppedPos.y != adjustedTarget.y) {
@@ -94,24 +101,30 @@ export function collideWithLevel(currentPos: Point, targetPos: Point, hitbox: Hi
     if (Math.abs(distance.x) > Math.abs(distance.y)) {
       // Move 1 pixel towards the target, along the X axis
       const xAdjustment = adjustedTarget.x > steppedPos.x ? 1 : -1;
-      const checkedPosition = { x: steppedPos.x + xAdjustment, y: steppedPos.y };
+      const checkedPosition = {
+        x: steppedPos.x + xAdjustment,
+        y: steppedPos.y,
+      };
       if (overlapsSolid(checkedPosition, hitbox, level)) {
         // we would collide with a wall! cancel the move, and adjust our target on the X
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.x = steppedPos.x;
-        fractionalPos.x = 0.0;
+        hitX = true;
       } else {
         steppedPos.x = checkedPosition.x;
       }
     } else {
       // Move 1 pixel towards the target, along the Y axis
       const yAdjustment = adjustedTarget.y > steppedPos.y ? 1 : -1;
-      const checkedPosition = { x: steppedPos.x, y: steppedPos.y + yAdjustment };
+      const checkedPosition = {
+        x: steppedPos.x,
+        y: steppedPos.y + yAdjustment,
+      };
       if (overlapsSolid(checkedPosition, hitbox, level)) {
         // we would collide with a wall! cancel the move, and adjust our target on the Y
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.y = steppedPos.y;
-        fractionalPos.y = 0.0;
+        hitY = true;
       } else {
         steppedPos.y = checkedPosition.y;
       }
@@ -119,8 +132,9 @@ export function collideWithLevel(currentPos: Point, targetPos: Point, hitbox: Hi
   }
 
   // To the stepped result, apply the fractional component of the original target
-  return {
+  const collidedPos = {
     x: steppedPos.x + fractionalPos.x,
     y: steppedPos.y + fractionalPos.y,
   };
+  return { collidedPos: collidedPos, hitX: hitX, hitY: hitY };
 }
