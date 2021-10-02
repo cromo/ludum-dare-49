@@ -1,19 +1,8 @@
-import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
 import { Level } from "./models";
-import { Facing, PlayerState, createPlayerEntity, updateStateMachine } from "./player";
-
-let player: PlayerState = {
-  facing: Facing.Left,
-  entropy: 0,
-  state: { type: "OUT_OF_ENTROPY", ticksRemainingBeforeRechargeStarts: 5 * 60 },
-};
+import { createPlayerEntity } from "./player";
 
 export function tick(): void {
-  // Example of pumping update data to player.
-  player = updateStateMachine(player, currentInput());
-  //state machine stuff up there^ but needs to be moved into the player entity interface & update event
-
   //entity stuff down here
   getCurrentLevel().entities.forEach((entity) => {
     entity.update(entity);
