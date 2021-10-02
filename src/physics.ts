@@ -49,7 +49,9 @@ export function stepPhysics(object: PhysicsObject): void {
   object.pos.y += object.vel.y;
 }
 
-export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level): boolean {
+export type ColliderFunction = (tileX: number, tileY: number, level: Level) => boolean;
+
+export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level, colliderFn: ColliderFunction): boolean {
   const offsetHitbox = {
     corners: hitbox.corners.map((corner) => {
       return { x: corner.x + pos.x, y: corner.y + pos.y };
@@ -63,7 +65,7 @@ export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level): boolean
     };
     // Guard: tiles outside of the level bounds have no collision for solid purposes
     if (tileCorner.x >= 0 && tileCorner.x < LEVEL_WIDTH && tileCorner.y >= 0 && tileCorner.y < LEVEL_HEIGHT) {
-      if (level.physicalModes[tileCorner.y][tileCorner.x] == "solid") {
+      if (colliderFn(tileCorner.x, tileCorner.y, level)) {
         return true;
       }
     }
@@ -75,7 +77,8 @@ export function collideWithLevel(
   currentPos: Point,
   targetPos: Point,
   hitbox: HitBox,
-  level: Level
+  level: Level,
+  colliderFn: ColliderFunction
 ): { collidedPos: Point; hitX: boolean; hitY: boolean } {
   // Strategy: moves 1px at a time, on one axis at a time.
   // Collides the hitbox after each move. If a hit is registered,
@@ -105,7 +108,7 @@ export function collideWithLevel(
         x: steppedPos.x + xAdjustment,
         y: steppedPos.y,
       };
-      if (overlapsSolid(checkedPosition, hitbox, level)) {
+      if (overlapsSolid(checkedPosition, hitbox, level, colliderFn)) {
         // we would collide with a wall! cancel the move, and adjust our target on the X
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.x = steppedPos.x;
@@ -120,7 +123,7 @@ export function collideWithLevel(
         x: steppedPos.x,
         y: steppedPos.y + yAdjustment,
       };
-      if (overlapsSolid(checkedPosition, hitbox, level)) {
+      if (overlapsSolid(checkedPosition, hitbox, level, colliderFn)) {
         // we would collide with a wall! cancel the move, and adjust our target on the Y
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.y = steppedPos.y;
@@ -137,4 +140,8 @@ export function collideWithLevel(
     y: steppedPos.y + fractionalPos.y,
   };
   return { collidedPos: collidedPos, hitX: hitX, hitY: hitY };
+}
+
+export function normalSolidCollider(tileX: number, tileY: number, level: Level): boolean {
+  return level.physicalModes[tileY][tileX] == "solid";
 }

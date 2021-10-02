@@ -31,7 +31,7 @@ import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
 import { HitBox, Point, Vector, VisibleEntity } from "./models";
-import { collideWithLevel, stepPhysics } from "./physics";
+import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
 
 export enum Facing {
   Left,
@@ -124,7 +124,13 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       stepPhysics(entity);
 
       // ... apply those overlaps?
-      const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, entity.pos, entity.hitbox, level);
+      const { collidedPos, hitX, hitY } = collideWithLevel(
+        oldPos,
+        entity.pos,
+        entity.hitbox,
+        level,
+        normalSolidCollider
+      );
       entity.pos = collidedPos;
 
       print(entity, level); //stop complaining about unused variables
