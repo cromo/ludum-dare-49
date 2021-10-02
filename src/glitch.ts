@@ -31,43 +31,50 @@ function splitRange(lower: number, upper: number, split: number): number[][] {
   return [[lower, upper]];
 }
 
+export enum GlitchMode {
+  Progressive,
+  GlitchOnly,
+}
+
 export function glitchedDraw(
   drawable: Texture,
   x: number,
   y: number,
-  options?: { glitchRate?: number; overdraw?: true; spread?: number }
+  options?: { glitchRate?: number; mode?: GlitchMode; spread?: number; flipHorizontally?: boolean }
 ): void {
-  const overdraw = options?.overdraw ?? false;
+  const mode = options?.mode ?? GlitchMode.GlitchOnly;
   const requestedGlitchRate = options?.glitchRate ?? 0;
   const glitchRate = requestedGlitchRate < 0 ? 0 : 1 < requestedGlitchRate ? 1 : requestedGlitchRate;
   const spread = options?.spread ?? 10;
+  const flipHorizontally = options?.flipHorizontally ?? false;
+
+  const scale = flipHorizontally ? -1 : 1;
+  const xOffset = flipHorizontally ? 16 : 0;
+  const xAdjusted = x + xOffset;
 
   const { draw } = love.graphics;
   const { random } = love.math;
 
   if (glitchRate === 0) {
-    draw(drawable, x, y);
+    draw(drawable, xAdjusted, y, undefined, scale, 1);
     return;
   }
 
-  if (overdraw) {
-    draw(drawable, x, y);
-  }
   shuffleInPlace(lines);
   let spansToDrawNormally: number[][] = [[0, 15]];
   const scanlinesToOffsetCount = Math.floor(glitchRate * lines.length);
   for (let offsetScanline = 0; offsetScanline < scanlinesToOffsetCount; ++offsetScanline) {
     const scanline = lines[offsetScanline];
-    if (!overdraw) {
+    if (mode === GlitchMode.Progressive) {
       spansToDrawNormally = spansToDrawNormally.flatMap(([lower, upper]) => splitRange(lower, upper, scanline));
     }
     window.setViewport(0, scanline, 16, 1);
-    draw(drawable, window, x + Math.floor((random() - 0.5) * spread), y + scanline);
+    draw(drawable, window, xAdjusted + Math.round((random() - 0.5) * spread), y + scanline, undefined, scale, 1);
   }
-  if (!overdraw) {
+  if (mode === GlitchMode.Progressive) {
     spansToDrawNormally.forEach(([start, end]) => {
       window.setViewport(0, start, 16, end - start + 1);
-      draw(drawable, window, x, y + start);
+      draw(drawable, window, xAdjusted, y + start, undefined, scale, 1);
     });
   }
 }
