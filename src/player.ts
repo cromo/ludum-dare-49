@@ -552,6 +552,7 @@ const sprites: Record<string, Image> = {};
 export function loadPlayerSprites(): void {
   const { newImage } = love.graphics;
   sprites.standing = newImage("res/player-standing.png");
+  sprites.entropyPip = newImage("res/player-entropy-pip.png");
 }
 
 export function createPlayerEntity(pos: Point): PlayerEntity {
@@ -572,7 +573,14 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     footSensor: { x: 8.0, y: 16 },
     zoneSensor: { x: 8.0, y: 8.0 },
-    entropy: 50,
+    entropy: 22,
+    entropyPipOffsets: [
+      { x: 0, y: -20 },
+      { x: 10, y: -20 },
+      { x: -10, y: -20 },
+      { x: 20, y: -20 },
+      { x: -20, y: -20 },
+    ],
     stateMachine: {
       facing: Facing.Right,
       entropy: 0,
@@ -581,6 +589,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     grounded: false,
     isDead: false,
     draw: (level, entity) => {
+      if (entity.type !== "playerEntity") return;
       love.graphics.setColor(255, 255, 255);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
         glitchRate: 0.3,
@@ -588,7 +597,13 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         mode: GlitchMode.Progressive,
         flipHorizontally: false,
       });
-      return;
+
+      // Draw pips
+      const pipCountToDraw = Math.floor(entity.entropy / 20);
+      const center = { x: Math.floor(entity.pos.x) + 16 / 2 - 2, y: Math.floor(entity.pos.y) + 16 / 2 };
+      entity.entropyPipOffsets.slice(0, pipCountToDraw).forEach(({ x, y }) => {
+        glitchedDraw(sprites.entropyPip, center.x + x, center.y + y, { glitchRate: 0 });
+      });
     },
     update: (level, entity) => {
       if (entity.type != "playerEntity") return entity;
