@@ -1,3 +1,5 @@
+import { Image } from "love.graphics";
+
 import { Entity, GlitchMode, LEVEL_HEIGHT, LEVEL_WIDTH, Level, PhysicalMode, TileTypes, ZoneMode } from "./models";
 
 export interface LevelDefinition {
@@ -65,30 +67,34 @@ const commonAnnotations: LevelAnnotation[] = [
 ];
 
 interface LayoutLine {
-  tiles: TileTypes[];
+  tiles: TileDef[];
   physicalModes: PhysicalMode[];
   glitchModes: GlitchMode[];
   zoneModes: ZoneMode[];
   entities: Entity[];
 }
 
-const TILE_CODE_TO_TYPE: { [key: string]: TileTypes } = {
-  " ": TileTypes.AIR,
-  "*": TileTypes.WALL_BLOCK,
-  "|": TileTypes.WALL_VERTICAL,
-  "-": TileTypes.WALL_HORIZONTAL,
-  "^": TileTypes.SEMI_SOLID,
-  "~": TileTypes.GLITCH_WALL,
-  S: TileTypes.ENTRANCE_CONDUIT,
-  F: TileTypes.EXIT_CONDUIT,
-  "1": TileTypes.ONCE_WALL,
-  K: TileTypes.KILL_PLANE,
+export interface TileDef {
+  type: TileTypes;
+  image: Image;
+}
+const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {
+  " ": { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") },
+  "*": { type: TileTypes.WALL_BLOCK, image: love.graphics.newImage("res/air.png") },
+  "|": { type: TileTypes.WALL_VERTICAL, image: love.graphics.newImage("res/air.png") },
+  "-": { type: TileTypes.WALL_HORIZONTAL, image: love.graphics.newImage("res/air.png") },
+  "^": { type: TileTypes.SEMI_SOLID, image: love.graphics.newImage("res/air.png") },
+  "~": { type: TileTypes.GLITCH_WALL, image: love.graphics.newImage("res/air.png") },
+  S: { type: TileTypes.ENTRANCE_CONDUIT, image: love.graphics.newImage("res/air.png") },
+  F: { type: TileTypes.EXIT_CONDUIT, image: love.graphics.newImage("res/air.png") },
+  "1": { type: TileTypes.ONCE_WALL, image: love.graphics.newImage("res/air.png") },
+  K: { type: TileTypes.KILL_PLANE, image: love.graphics.newImage("res/air.png") },
 };
 
-const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) => TileTypes = (tileCode, log) => {
+const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) => TileDef = (tileCode, log) => {
   if (TILE_CODE_TO_TYPE[tileCode]) return TILE_CODE_TO_TYPE[tileCode];
   log(`unknown tile code \"${tileCode}\"`);
-  return TileTypes.AIR;
+  return TILE_CODE_TO_TYPE[TileTypes.AIR];
 };
 
 const lineToPairs = (line: string): { tile: string; annotationKey: string }[] => {

@@ -1,3 +1,4 @@
+import { TileDef } from "./levelLoader";
 import { PlayerEntity } from "./player";
 
 export enum TileTypes {
@@ -31,7 +32,7 @@ export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
 export type ZoneMode = "normal" | "dead" | "hot";
 
 export interface Level {
-  tiles: TileTypes[][];
+  tiles: TileDef[][];
   physicalModes: PhysicalMode[][];
   glitchModes: GlitchMode[][];
   zoneModes: ZoneMode[][];

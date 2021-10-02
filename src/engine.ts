@@ -32,8 +32,8 @@ function drawLevel({ tiles }: Level): void {
   for (let y = 0; y < tiles.length; ++y) {
     push();
     for (let x = 0; x < tiles[y].length; ++x) {
-      const tileType = tiles[y][x];
-      love.graphics.print(`${tileType}`);
+      const tile = tiles[y][x];
+      love.graphics.print(`${tile.type}`);
       translate(TILE_SIZE_PIXELS, 0);
     }
     pop();
