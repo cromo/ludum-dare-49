@@ -19,8 +19,7 @@ export function drawLevel({ tiles }: Level): void {
     push();
     for (let x = 0; x < tiles[y].length; ++x) {
       const tile = tiles[y][x];
-      const glitchoff = tile.effect?.glitchyLevel || 0;
-      draw(tile.image, math.floor(Math.random() * glitchoff * 2 - glitchoff), 0);
+      draw(tile.image);
       translate(TILE_SIZE_PIXELS, 0);
     }
     pop();
