@@ -87,11 +87,10 @@ export function updateCurrentState(player: PlayerEntity, level: Level, input: Ga
   }[player.stateMachine.state.type](player, level, input);
 }
 
-// Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
-// starting point.
-export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
+function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
   const { state } = player.stateMachine;
-  if (state.type === "OUT_OF_ENTROPY" && 0 < state.ticksRemainingBeforeRechargeStarts) {
+  if (state.type !== "OUT_OF_ENTROPY") return player;
+  if (0 < state.ticksRemainingBeforeRechargeStarts) {
     return {
       ...player,
       stateMachine: {
@@ -102,7 +101,7 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         },
       },
     };
-  } else if (state.type === "OUT_OF_ENTROPY" && state.ticksRemainingBeforeRechargeStarts === 0) {
+  } else if (state.ticksRemainingBeforeRechargeStarts === 0) {
     return {
       ...player,
       stateMachine: {
@@ -110,7 +109,22 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "STANDING" },
       },
     };
-  } else if (state.type === "STANDING" && input.moveDirection !== HorizontalDirection.Neutral) {
+  }
+  return player;
+}
+
+function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "STANDING") return player;
+  if (input.wantsToJump) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
+      },
+    };
+  } else if (input.moveDirection !== HorizontalDirection.Neutral) {
     return {
       ...player,
       stateMachine: {
@@ -119,7 +133,14 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "WALKING" },
       },
     };
-  } else if ((state.type === "STANDING" || state.type === "WALKING") && input.wantsToJump) {
+  }
+  return player;
+}
+
+function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "WALKING") return player;
+  if (input.wantsToJump) {
     return {
       ...player,
       stateMachine: {
@@ -127,7 +148,14 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
-  } else if (state.type === "JUMP_PREP" && 0 < state.ticksRemainingBeforeAscent) {
+  }
+  return player;
+}
+
+function updateStateJumpPrep(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "JUMP_PREP") return player;
+  if (0 < state.ticksRemainingBeforeAscent) {
     return {
       ...player,
       stateMachine: {
@@ -138,7 +166,7 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         },
       },
     };
-  } else if (state.type === "JUMP_PREP" && state.ticksRemainingBeforeAscent === 0) {
+  } else if (state.ticksRemainingBeforeAscent === 0) {
     return {
       ...player,
       stateMachine: {
@@ -146,7 +174,14 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "ASCENDING" },
       },
     };
-  } else if (state.type === "ASCENDING" && player.vel.y >= 0) {
+  }
+  return player;
+}
+
+function updateStateAscending(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "ASCENDING") return player;
+  if (player.vel.y >= 0) {
     return {
       ...player,
       stateMachine: {
@@ -154,7 +189,14 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "DESCENDING" },
       },
     };
-  } else if (state.type === "DESCENDING" && player.grounded) {
+  }
+  return player;
+}
+
+function updateStateDescending(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "DESCENDING") return player;
+  if (player.grounded) {
     return {
       ...player,
       stateMachine: {
@@ -162,7 +204,14 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "LANDING", ticksRemainingBeforeStanding: 10 },
       },
     };
-  } else if (state.type === "LANDING" && 0 < state.ticksRemainingBeforeStanding) {
+  }
+  return player;
+}
+
+function updateStateLanding(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "LANDING") return player;
+  if (0 < state.ticksRemainingBeforeStanding) {
     return {
       ...player,
       stateMachine: {
@@ -173,7 +222,7 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         },
       },
     };
-  } else if (state.type === "LANDING" && state.ticksRemainingBeforeStanding === 0) {
+  } else if (state.ticksRemainingBeforeStanding === 0) {
     return {
       ...player,
       stateMachine: {
@@ -182,7 +231,21 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
       },
     };
   }
+  return player;
+}
 
+// Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
+// starting point.
+export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
+  return {
+    ASCENDING: updateStateAscending,
+    DESCENDING: updateStateDescending,
+    JUMP_PREP: updateStateJumpPrep,
+    STANDING: updateStateStanding,
+    LANDING: updateStateLanding,
+    OUT_OF_ENTROPY: updateStateOutOfEntropy,
+    WALKING: updateStateWalking,
+  }[player.stateMachine.state.type](player, input);
   return player;
 }
 
@@ -218,10 +281,8 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       return;
     },
     update: (entity) => {
-      print("PLAYER IS HERE");
       if (entity.type != "playerEntity") return entity;
       const level = getCurrentLevel();
-      //@nick have fun with the level and entity
 
       const input = currentInput();
       entity = updateStateMachine(entity, input);
