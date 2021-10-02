@@ -117,10 +117,12 @@ export interface OutOfEntropy {
 
 export interface Standing {
   type: "STANDING";
+  coyoteTime: number;
 }
 
 export interface Walking {
   type: "WALKING";
+  coyoteTime: number;
 }
 
 export interface JumpPrep {

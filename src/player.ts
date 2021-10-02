@@ -46,6 +46,8 @@ function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
       player.grounded = true;
     }
     player.vel.y = 0.0;
+  } else {
+    player.grounded = false;
   }
   return player;
 }
@@ -105,7 +107,7 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING" },
+        state: { type: "STANDING", coyoteTime: 5 },
       },
     };
   }
@@ -129,7 +131,31 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
       stateMachine: {
         ...player.stateMachine,
         facing: input.moveDirection === HorizontalDirection.Left ? Facing.Left : Facing.Right,
-        state: { type: "WALKING" },
+        state: { type: "WALKING", coyoteTime: state.coyoteTime },
+      },
+    };
+  } else if (player.grounded) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING", coyoteTime: 5 },
+      },
+    };
+  } else if (!player.grounded && 0 < state.coyoteTime) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING", coyoteTime: state.coyoteTime - 1 },
+      },
+    };
+  } else if (!player.grounded && state.coyoteTime == 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DESCENDING" },
       },
     };
   }
@@ -145,6 +171,38 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       stateMachine: {
         ...player.stateMachine,
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
+      },
+    };
+  } else if (input.moveDirection === HorizontalDirection.Neutral) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING", coyoteTime: state.coyoteTime },
+      },
+    };
+  } else if (player.grounded) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "WALKING", coyoteTime: 5 },
+      },
+    };
+  } else if (!player.grounded && 0 < state.coyoteTime) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "WALKING", coyoteTime: state.coyoteTime - 1 },
+      },
+    };
+  } else if (!player.grounded && state.coyoteTime == 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DESCENDING" },
       },
     };
   }
@@ -226,7 +284,7 @@ function updateStateLanding(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING" },
+        state: { type: "STANDING", coyoteTime: 5 },
       },
     };
   }
@@ -271,7 +329,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     stateMachine: {
       facing: Facing.Right,
       entropy: 0,
-      state: { type: "STANDING" },
+      state: { type: "STANDING", coyoteTime: 5 },
     },
     grounded: false,
     draw: (level, entity) => {
