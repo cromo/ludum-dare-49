@@ -1,6 +1,8 @@
 export enum TileTypes {
   AIR,
-  WALL,
+  WALL_VERTICAL,
+  WALL_HORIZONTAL,
+  WALL_BLOCK,
 }
 
 export const LEVEL_HEIGHT = 100;

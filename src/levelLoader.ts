@@ -56,9 +56,9 @@ interface LayoutLine {
 }
 
 const TILE_CODE_TO_TYPE: { [key: string]: TileTypes } = {
-  "*": TileTypes.WALL,
-  "|": TileTypes.WALL,
-  "-": TileTypes.WALL,
+  "*": TileTypes.WALL_BLOCK,
+  "|": TileTypes.WALL_VERTICAL,
+  "-": TileTypes.WALL_HORIZONTAL,
 };
 
 const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) => TileTypes = (tileCode, log) => {
