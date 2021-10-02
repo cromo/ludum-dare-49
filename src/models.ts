@@ -29,12 +29,12 @@ export const TILE_WIDTH = TILE_SIZE_PIXELS;
 export const TERMINAL_HEIGHT = 6;
 export const TERMINAL_WIDTH = 9;
 
-export const GRAVITY = 0.1;
+export const GRAVITY = 0.18;
 export const WALKING_ACCELERATION = 0.2;
 export const GROUND_FRICTION = 0.1;
 export const AIR_FRICTION = 0.1;
-export const JUMP_VELOCITY = 2.0;
-export const DOUBLE_JUMP_VELOCITY = 2.0;
+export const JUMP_VELOCITY = 3.5;
+export const DOUBLE_JUMP_VELOCITY = 3.5;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";

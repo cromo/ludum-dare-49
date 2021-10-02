@@ -256,7 +256,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     pos: pos,
     vel: { x: 0, y: 0 },
     acc: { x: 0, y: 0 },
-    speedCap: { x: 1, y: 1 },
+    speedCap: { x: 2, y: 10 },
     friction: { x: 0.05, y: 0.05 },
     hitbox: {
       corners: [
