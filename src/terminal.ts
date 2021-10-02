@@ -55,7 +55,7 @@ function drawTerminalEntity(level: Level, terminal: TerminalEntity): void {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function updateTerminalEntity(_level: Level, _terminal: TerminalEntity): void {
+function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalEntity {
   // spends most of its time waiting for triggers
   //  no player input for too long (*)
   //  amount of time in a zone (*)
@@ -68,7 +68,7 @@ function updateTerminalEntity(_level: Level, _terminal: TerminalEntity): void {
   // any message in the terminal starts a cooldown before time-based triggers are met
   //  instantly respond to important triggers like death or reaching zones
   //  but don't spam with filler-text (marked *)
-  return;
+  return terminal;
 }
 
 export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnnotation): TerminalEntity {

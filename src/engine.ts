@@ -1,11 +1,9 @@
 import { parseLevelDefinition } from "./levelLoader";
-import { getCurrentLevel, setCurrentLevel } from "./levels";
+import { setCurrentLevel } from "./levels";
 import { Level, LevelDefinition, TILE_SIZE_PIXELS } from "./models";
 
 export function tick(level: Level): void {
-  getCurrentLevel().entities.forEach((entity) => {
-    entity.update(level, entity);
-  });
+  level.entities = level.entities.map((entity) => entity.update(level, entity));
 }
 
 export function loadLevel(levelDefinition: LevelDefinition): void {

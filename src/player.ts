@@ -29,8 +29,62 @@
 
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
-import { Facing, PlayerEntity, Point } from "./models";
-import { collideWithLevel, normalSolidCollider, sensorInZone, stepPhysics } from "./physics";
+import { GRAVITY, JUMP_VELOCITY, Level, Point, WALKING_ACCELERATION } from "./models";
+import { Facing, PlayerEntity } from "./models";
+import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
+
+function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
+  const oldPos = { x: player.pos.x, y: player.pos.y };
+  stepPhysics(player);
+  const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, normalSolidCollider);
+  player.pos = collidedPos;
+  if (hitX) {
+    player.vel.x = 0.0;
+  }
+  if (hitY) {
+    if (player.vel.y > 0.0) {
+      player.grounded = true;
+    }
+    player.vel.y = 0.0;
+  }
+  return player;
+}
+
+function standingState(player: PlayerEntity, level: Level): PlayerEntity {
+  let modifiedPlayer = { ...player, acc: { x: 0.0, y: GRAVITY } };
+  modifiedPlayer = applyNormalMovement(modifiedPlayer, level);
+  return modifiedPlayer;
+}
+
+function walkingState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  let directionalInfluenceX = 0.0;
+  if (input.moveDirection === HorizontalDirection.Left) {
+    directionalInfluenceX = -WALKING_ACCELERATION;
+  }
+  if (input.moveDirection === HorizontalDirection.Right) {
+    directionalInfluenceX = WALKING_ACCELERATION;
+  }
+  let modifiedPlayer = { ...player, acc: { x: directionalInfluenceX, y: GRAVITY } };
+  modifiedPlayer = applyNormalMovement(modifiedPlayer, level);
+  return modifiedPlayer;
+}
+
+function jumpInitState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  const modifiedPlayer = { ...player, grounded: false, vel: { x: player.vel.x, y: -JUMP_VELOCITY } };
+  return walkingState(modifiedPlayer, level, input);
+}
+
+export function updateCurrentState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  return {
+    ASCENDING: walkingState,
+    DESCENDING: walkingState,
+    JUMP_PREP: jumpInitState,
+    STANDING: standingState,
+    LANDING: walkingState,
+    OUT_OF_ENTROPY: standingState,
+    WALKING: walkingState,
+  }[player.stateMachine.state.type](player, level, input);
+}
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
 // starting point.
@@ -64,7 +118,70 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "WALKING" },
       },
     };
+  } else if ((state.type === "STANDING" || state.type === "WALKING") && input.wantsToJump) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
+      },
+    };
+  } else if (state.type === "JUMP_PREP" && 0 < state.ticksRemainingBeforeAscent) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "JUMP_PREP",
+          ticksRemainingBeforeAscent: state.ticksRemainingBeforeAscent - 1,
+        },
+      },
+    };
+  } else if (state.type === "JUMP_PREP" && state.ticksRemainingBeforeAscent === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "ASCENDING" },
+      },
+    };
+  } else if (state.type === "ASCENDING" && player.vel.y >= 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DESCENDING" },
+      },
+    };
+  } else if (state.type === "DESCENDING" && player.grounded) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "LANDING", ticksRemainingBeforeStanding: 10 },
+      },
+    };
+  } else if (state.type === "LANDING" && 0 < state.ticksRemainingBeforeStanding) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "LANDING",
+          ticksRemainingBeforeStanding: state.ticksRemainingBeforeStanding - 1,
+        },
+      },
+    };
+  } else if (state.type === "LANDING" && state.ticksRemainingBeforeStanding === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING" },
+      },
+    };
   }
+
   return player;
 }
 
@@ -93,6 +210,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       entropy: 0,
       state: { type: "STANDING" },
     },
+    grounded: false,
     draw: (level, entity) => {
       love.graphics.setColor(0, 0, 0);
       love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
@@ -100,60 +218,19 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     update: (level, entity) => {
       print("PLAYER IS HERE");
-      if (entity.type != "playerEntity") return;
+      if (entity.type != "playerEntity") return entity;
       //@nick have fun with the level and entity
 
-      // NOTE: pretty much all of the below is ugly, ugly debug code. Once working, it should be
-      // folded into the various states, which can decide what physics properties to apply and how
-      // exactly to step / collide, as appropriate.
-
-      // For testing I really want all compass directions, but we didn't do that, soooo we cheat
-      const inputVel = {
-        N: { x: 0, y: -1 },
-        E: { x: 1, y: 0 },
-        S: { x: 0, y: 1 },
-        W: { x: -1, y: 0 },
-        NE: { x: 1, y: -1 },
-        SE: { x: 1, y: 1 },
-        SW: { x: -1, y: 1 },
-        NW: { x: -1, y: -1 },
-        Forward: { x: 0, y: 0 },
-      }[currentInput().dashDirection];
-
-      // Quick debug test: input velocity becomes player accleeration.
-      entity.acc = { x: inputVel.x * 0.1, y: inputVel.y * 0.1 };
-      const oldPos = { x: entity.pos.x, y: entity.pos.y };
-      stepPhysics(entity);
-
-      // ... apply those overlaps?
-      const { collidedPos, hitX, hitY } = collideWithLevel(
-        oldPos,
-        entity.pos,
-        entity.hitbox,
-        level,
-        normalSolidCollider
-      );
-      entity.pos = collidedPos;
-      if (hitX) {
-        entity.vel.x = 0.0;
-      }
-      if (hitY) {
-        entity.vel.y = 0.0;
-      }
-
-      const detectedZone = sensorInZone(entity.pos, entity.zoneSensor, level);
+      const input = currentInput();
+      entity = updateStateMachine(entity, input);
+      entity = updateCurrentState(entity, level, input);
 
       print(entity, level); //stop complaining about unused variables
       print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
-      print(`PlayerOverlapsSolid: ${hitX}, ${hitY}`);
-      print(`PlayerZone: ${detectedZone}`);
-
-      entity = updateStateMachine(entity, currentInput());
-
       print(`PlayerState ${entity.stateMachine.state.type}`);
-      return;
+      return entity;
     },
     drawEffect: {},
     spritesheetlocation: {},

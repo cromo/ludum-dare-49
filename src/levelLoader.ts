@@ -16,6 +16,7 @@ import {
 import { createPlayerEntity } from "./player";
 import { createTerminalEntity } from "./terminal";
 
+love.graphics.setDefaultFilter("nearest");
 const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {
   " ": { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") },
   "*": { type: TileTypes.WALL_BLOCK, image: love.graphics.newImage("res/wall.png") },

@@ -19,14 +19,22 @@ export enum TileTypes {
 // x3 scale: 40 x 22(.5)
 // x4 scale: 30 x 16(.8)
 
+export const GAME_SCALE = 2;
+
 export const LEVEL_HEIGHT = 22;
 export const LEVEL_WIDTH = 40;
-export const TILE_HEIGHT = 16;
-export const TILE_WIDTH = 16;
+export const TILE_SIZE_PIXELS = 16;
+export const TILE_HEIGHT = TILE_SIZE_PIXELS;
+export const TILE_WIDTH = TILE_SIZE_PIXELS;
 export const TERMINAL_HEIGHT = 7;
 export const TERMINAL_WIDTH = 14;
 
-export const TILE_SIZE_PIXELS = 16;
+export const GRAVITY = 0.1;
+export const WALKING_ACCELERATION = 0.2;
+export const GROUND_FRICTION = 0.1;
+export const AIR_FRICTION = 0.1;
+export const JUMP_VELOCITY = 2.0;
+export const DOUBLE_JUMP_VELOCITY = 2.0;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
@@ -67,7 +75,7 @@ export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity;
 export type EntityTypes = "playerEntity" | "playerSpawnEntity" | "terminalEntity";
 export interface BaseEntity {
   type: EntityTypes;
-  update: (level: Level, entity: Entity) => void;
+  update: (level: Level, entity: Entity) => Entity;
   draw: (level: Level, entity: Entity) => void;
 }
 
@@ -94,6 +102,7 @@ export interface PlayerEntity extends VisibleEntity {
   zoneSensor: Point;
   entropy: number;
   stateMachine: PlayerStateMachine;
+  grounded: boolean;
 }
 
 export enum Facing {
@@ -114,10 +123,28 @@ export interface Walking {
   type: "WALKING";
 }
 
+export interface JumpPrep {
+  type: "JUMP_PREP";
+  ticksRemainingBeforeAscent: number;
+}
+
+export interface Ascending {
+  type: "ASCENDING";
+}
+
+export interface Descending {
+  type: "DESCENDING";
+}
+
+export interface Landing {
+  type: "LANDING";
+  ticksRemainingBeforeStanding: number;
+}
+
 export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
-  state: OutOfEntropy | Standing | Walking;
+  state: OutOfEntropy | Standing | Walking | JumpPrep | Ascending | Descending | Landing;
 }
 
 export interface LayoutLine {
