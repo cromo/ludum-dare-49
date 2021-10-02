@@ -29,7 +29,7 @@
 
 import { GameInput, HorizontalDirection } from "./input";
 import { getCurrentLevel } from "./levels";
-import { Point, VisibleEntity } from "./models";
+import { HitBox, Point, Vector, VisibleEntity } from "./models";
 
 export enum Facing {
   Left,
@@ -59,6 +59,10 @@ export interface PlayerState {
 export interface PlayerEntity extends VisibleEntity {
   type: "playerEntity";
   pos: Point;
+  vel: Vector;
+  acc: Vector;
+  speedCap: Vector;
+  hitbox: HitBox;
   entropy: number;
 }
 
@@ -67,6 +71,17 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
   return {
     type: "playerEntity",
     pos: pos,
+    vel: { x: 0, y: 0 },
+    acc: { x: 0, y: 0 },
+    speedCap: { x: 0, y: 0 },
+    hitbox: {
+      corners: [
+        { x: 0, y: 0 },
+        { x: 0, y: 15 },
+        { x: 15, y: 0 },
+        { x: 15, y: 15 },
+      ],
+    },
     entropy: 50,
     draw: (entity) => {
       love.graphics.print(`P`, entity.pos.x, entity.pos.y);

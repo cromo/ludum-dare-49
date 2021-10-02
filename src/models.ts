@@ -42,6 +42,15 @@ export interface Point {
   y: number;
 }
 
+export interface Vector {
+  x: number;
+  y: number;
+}
+
+export interface HitBox {
+  corners: Point[];
+}
+
 export interface TerminalEntity extends BaseEntity {
   type: "terminalEntity";
   pos: Point;
