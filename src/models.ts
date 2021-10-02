@@ -26,8 +26,8 @@ export const LEVEL_WIDTH = 40;
 export const TILE_SIZE_PIXELS = 16;
 export const TILE_HEIGHT = TILE_SIZE_PIXELS;
 export const TILE_WIDTH = TILE_SIZE_PIXELS;
-export const TERMINAL_HEIGHT = 6;
-export const TERMINAL_WIDTH = 9;
+export const TERMINAL_HEIGHT = 7;
+export const TERMINAL_WIDTH = 14;
 
 export const GRAVITY = 0.18;
 export const WALKING_ACCELERATION = 0.2;
@@ -66,6 +66,8 @@ export interface HitBox {
 export interface TerminalEntity extends BaseEntity {
   type: "terminalEntity";
   pos: Point;
+  terminalAnotation: TerminalAnnotation;
+  lines: TerminalMessage[];
 }
 
 export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity;
@@ -73,8 +75,8 @@ export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity;
 export type EntityTypes = "playerEntity" | "playerSpawnEntity" | "terminalEntity";
 export interface BaseEntity {
   type: EntityTypes;
-  update: (entity: Entity) => Entity;
-  draw: (entity: Entity) => void;
+  update: (level: Level, entity: Entity) => Entity;
+  draw: (level: Level, entity: Entity) => void;
 }
 
 export interface VisibleEntity extends BaseEntity {
@@ -170,6 +172,7 @@ export interface LevelDefinition {
 
 export enum LevelAnnotationFlag {
   "spawn_player",
+  "terminal",
 }
 
 export interface LevelAnnotation {
@@ -180,6 +183,26 @@ export interface LevelAnnotation {
   // For adding entities and other special stuff:
   flags?: LevelAnnotationFlag[];
   data?: { [key: string]: string | number };
+  terminal?: TerminalAnnotation;
+}
+
+export interface TerminalAnnotation {
+  entrance: TerminalMessage[];
+}
+
+export interface TerminalMessage {
+  text: string;
+  tone: TerminalTone;
+}
+
+export enum TerminalTone {
+  emptyLine,
+  angry,
+  frustrated,
+  glitchy,
+  tease,
+  serious,
+  teach,
 }
 
 //Stop, don't add your code in here.

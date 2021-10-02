@@ -29,7 +29,6 @@
 
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
-import { getCurrentLevel } from "./levels";
 import { GRAVITY, JUMP_VELOCITY, Level, Point, WALKING_ACCELERATION } from "./models";
 import { Facing, PlayerEntity } from "./models";
 import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
@@ -275,14 +274,14 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       state: { type: "STANDING" },
     },
     grounded: false,
-    draw: (entity) => {
+    draw: (level, entity) => {
       love.graphics.setColor(0, 0, 0);
       love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
       return;
     },
-    update: (entity) => {
+    update: (level, entity) => {
       if (entity.type != "playerEntity") return entity;
-      const level = getCurrentLevel();
+      //@nick have fun with the level and entity
 
       const input = currentInput();
       entity = updateStateMachine(entity, input);
