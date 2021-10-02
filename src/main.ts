@@ -1,4 +1,4 @@
-import { tick } from "./engine";
+import { drawCurrentLevel, tick } from "./engine";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
 import { debugLevel } from "./levels/debugLevel";
@@ -33,12 +33,17 @@ love.update = (dt) => {
 };
 
 love.draw = () => {
-  love.graphics.print("Hello World!", 400, 300);
-  love.graphics.line(1, 1, 40, 70, 70, 20);
+  const { push, pop, translate } = love.graphics;
+
   const currentInput = input.currentInput();
   love.graphics.print(`Move direction: ${currentInput.moveDirection}
 Dash direction: ${currentInput.dashDirection}
 Want dash: ${currentInput.wantsToDash}
 Want jump: ${currentInput.wantsToJump}
 Want reset: ${currentInput.wantsToReset}`);
+
+  push();
+  translate(0, 100);
+  drawCurrentLevel();
+  pop();
 };
