@@ -71,7 +71,7 @@ export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity;
 export type EntityTypes = "playerEntity" | "playerSpawnEntity" | "terminalEntity";
 export interface BaseEntity {
   type: EntityTypes;
-  update: (entity: Entity) => void;
+  update: (entity: Entity) => Entity;
   draw: (entity: Entity) => void;
 }
 
@@ -98,6 +98,7 @@ export interface PlayerEntity extends VisibleEntity {
   zoneSensor: Point;
   entropy: number;
   stateMachine: PlayerStateMachine;
+  grounded: boolean;
 }
 
 export enum Facing {
@@ -118,10 +119,28 @@ export interface Walking {
   type: "WALKING";
 }
 
+export interface JumpPrep {
+  type: "JUMP_PREP";
+  ticksRemainingBeforeAscent: number;
+}
+
+export interface Ascending {
+  type: "ASCENDING";
+}
+
+export interface Descending {
+  type: "DESCENDING";
+}
+
+export interface Landing {
+  type: "LANDING";
+  ticksRemainingBeforeStanding: number;
+}
+
 export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
-  state: OutOfEntropy | Standing | Walking;
+  state: OutOfEntropy | Standing | Walking | JumpPrep | Ascending | Descending | Landing;
 }
 
 export interface LayoutLine {

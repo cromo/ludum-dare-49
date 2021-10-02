@@ -30,39 +30,22 @@
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
-import { GRAVITY, Level, Point, WALKING_ACCELERATION } from "./models";
+import { GRAVITY, JUMP_VELOCITY, Level, Point, WALKING_ACCELERATION } from "./models";
 import { Facing, PlayerEntity } from "./models";
 import { collideWithLevel, normalSolidCollider, stepPhysics } from "./physics";
-
-export interface OutOfEntropy {
-  type: "OUT_OF_ENTROPY";
-  ticksRemainingBeforeRechargeStarts: number;
-}
-
-export interface Standing {
-  type: "STANDING";
-}
-
-export interface Walking {
-  type: "WALKING";
-}
-
-export interface PlayerStateMachine {
-  facing: Facing;
-  entropy: number;
-  state: OutOfEntropy | Standing | Walking;
-}
 
 function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
   stepPhysics(player);
   const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, normalSolidCollider);
-  player.pos.x = collidedPos.x;
-  player.pos.y = collidedPos.y;
+  player.pos = collidedPos;
   if (hitX) {
     player.vel.x = 0.0;
   }
   if (hitY) {
+    if (player.vel.y > 0.0) {
+      player.grounded = true;
+    }
     player.vel.y = 0.0;
   }
   return player;
@@ -74,20 +57,34 @@ function standingState(player: PlayerEntity, level: Level): PlayerEntity {
   return modifiedPlayer;
 }
 
-function walkingState(player: PlayerEntity, level: Level): PlayerEntity {
-  const directionalInfluenceX =
-    player.stateMachine.facing == Facing.Left ? -WALKING_ACCELERATION : WALKING_ACCELERATION;
+function walkingState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  let directionalInfluenceX = 0.0;
+  if (input.moveDirection === HorizontalDirection.Left) {
+    directionalInfluenceX = -WALKING_ACCELERATION;
+  }
+  if (input.moveDirection === HorizontalDirection.Right) {
+    directionalInfluenceX = WALKING_ACCELERATION;
+  }
   let modifiedPlayer = { ...player, acc: { x: directionalInfluenceX, y: GRAVITY } };
   modifiedPlayer = applyNormalMovement(modifiedPlayer, level);
   return modifiedPlayer;
 }
 
-export function updateCurrentState(player: PlayerEntity, level: Level): PlayerEntity {
+function jumpInitState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  const modifiedPlayer = { ...player, grounded: false, vel: { x: player.vel.x, y: -JUMP_VELOCITY } };
+  return walkingState(modifiedPlayer, level, input);
+}
+
+export function updateCurrentState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
   return {
+    ASCENDING: walkingState,
+    DESCENDING: walkingState,
+    JUMP_PREP: jumpInitState,
     STANDING: standingState,
+    LANDING: walkingState,
     OUT_OF_ENTROPY: standingState,
     WALKING: walkingState,
-  }[player.stateMachine.state.type](player, level);
+  }[player.stateMachine.state.type](player, level, input);
 }
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
@@ -122,7 +119,70 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
         state: { type: "WALKING" },
       },
     };
+  } else if ((state.type === "STANDING" || state.type === "WALKING") && input.wantsToJump) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
+      },
+    };
+  } else if (state.type === "JUMP_PREP" && 0 < state.ticksRemainingBeforeAscent) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "JUMP_PREP",
+          ticksRemainingBeforeAscent: state.ticksRemainingBeforeAscent - 1,
+        },
+      },
+    };
+  } else if (state.type === "JUMP_PREP" && state.ticksRemainingBeforeAscent === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "ASCENDING" },
+      },
+    };
+  } else if (state.type === "ASCENDING" && player.vel.y >= 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DESCENDING" },
+      },
+    };
+  } else if (state.type === "DESCENDING" && player.grounded) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "LANDING", ticksRemainingBeforeStanding: 10 },
+      },
+    };
+  } else if (state.type === "LANDING" && 0 < state.ticksRemainingBeforeStanding) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "LANDING",
+          ticksRemainingBeforeStanding: state.ticksRemainingBeforeStanding - 1,
+        },
+      },
+    };
+  } else if (state.type === "LANDING" && state.ticksRemainingBeforeStanding === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "STANDING" },
+      },
+    };
   }
+
   return player;
 }
 
@@ -151,6 +211,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       entropy: 0,
       state: { type: "STANDING" },
     },
+    grounded: false,
     draw: (entity) => {
       love.graphics.setColor(0, 0, 0);
       love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
@@ -158,19 +219,20 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     update: (entity) => {
       print("PLAYER IS HERE");
-      if (entity.type != "playerEntity") return;
+      if (entity.type != "playerEntity") return entity;
       const level = getCurrentLevel();
       //@nick have fun with the level and entity
 
-      entity = updateStateMachine(entity, currentInput());
-      entity = updateCurrentState(entity, level);
+      const input = currentInput();
+      entity = updateStateMachine(entity, input);
+      entity = updateCurrentState(entity, level, input);
 
       print(entity, level); //stop complaining about unused variables
       print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
       print(`PlayerState ${entity.stateMachine.state.type}`);
-      return;
+      return entity;
     },
     drawEffect: {},
     spritesheetlocation: {},
