@@ -8,6 +8,7 @@ import {
   TerminalTone,
 } from "./models";
 
+love.graphics.setDefaultFilter("nearest");
 const TERMINAL_IMAGE = love.graphics.newImage("res/terminal.png");
 const LINE_LEFT_MARGIN = 2;
 const LINE_TOP_MARGIN = 2;
