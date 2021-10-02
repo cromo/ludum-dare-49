@@ -27,6 +27,9 @@
 //
 // Also need a facing for all of these
 
+import { Image } from "love.graphics";
+
+import { glitchedDraw } from "./glitch";
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { GRAVITY, JUMP_VELOCITY, Level, Point, WALKING_ACCELERATION } from "./models";
@@ -306,6 +309,13 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
   return player;
 }
 
+const sprites: Record<string, Image> = {};
+
+export function loadPlayerSprites(): void {
+  const { newImage } = love.graphics;
+  sprites.standing = newImage("res/player-standing.png");
+}
+
 //@nick this makes a brand new player entity
 export function createPlayerEntity(pos: Point): PlayerEntity {
   return {
@@ -333,8 +343,11 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     grounded: false,
     draw: (level, entity) => {
-      love.graphics.setColor(0, 0, 0);
-      love.graphics.print(`P`, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
+      love.graphics.setColor(255, 255, 255);
+      glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
+        glitchRate: 0.8,
+        spread: 3,
+      });
       return;
     },
     update: (level, entity) => {
