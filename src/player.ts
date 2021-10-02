@@ -29,7 +29,7 @@
 
 import { Image } from "love.graphics";
 
-import { glitchedDraw } from "./glitch";
+import { GlitchMode, glitchedDraw } from "./glitch";
 import { GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import { GRAVITY, JUMP_VELOCITY, Level, Point, WALKING_ACCELERATION } from "./models";
@@ -286,8 +286,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     draw: (level, entity) => {
       love.graphics.setColor(255, 255, 255);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
-        glitchRate: 0.8,
+        glitchRate: 0.3,
         spread: 3,
+        mode: GlitchMode.Progressive,
+        flipHorizontally: false,
       });
       return;
     },

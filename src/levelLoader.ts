@@ -26,19 +26,23 @@ const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {
   "~": {
     type: TileTypes.GLITCH_WALL,
     image: love.graphics.newImage("res/wall-glitch.png"),
-    effect: { glitchyLevel: 5 },
+    effect: { glitchyLevel: 2 / 16 },
   },
   S: {
     type: TileTypes.ENTRANCE_CONDUIT,
     image: love.graphics.newImage("res/conduit-entrance.png"),
-    effect: { glitchyLevel: 3 },
+    effect: { glitchyLevel: 1 / 16 },
   },
   F: {
     type: TileTypes.EXIT_CONDUIT,
     image: love.graphics.newImage("res/conduit-exit.png"),
-    effect: { glitchyLevel: 3 },
+    effect: { glitchyLevel: 1 / 16 },
   },
-  "1": { type: TileTypes.ONCE_WALL, image: love.graphics.newImage("res/wall-once.png"), effect: { glitchyLevel: 3 } },
+  "1": {
+    type: TileTypes.ONCE_WALL,
+    image: love.graphics.newImage("res/wall-once.png"),
+    effect: { glitchyLevel: 1 / 16 },
+  },
   K: { type: TileTypes.KILL_PLANE, image: love.graphics.newImage("res/kill.png") },
 };
 
