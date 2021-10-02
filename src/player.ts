@@ -28,8 +28,10 @@
 // Also need a facing for all of these
 
 import { GameInput, HorizontalDirection } from "./input";
+import { currentInput } from "./input";
 import { getCurrentLevel } from "./levels";
 import { HitBox, Point, Vector, VisibleEntity } from "./models";
+import { stepPhysics } from "./physics";
 
 export enum Facing {
   Left,
@@ -62,6 +64,7 @@ export interface PlayerEntity extends VisibleEntity {
   vel: Vector;
   acc: Vector;
   speedCap: Vector;
+  friction: Vector;
   hitbox: HitBox;
   entropy: number;
 }
@@ -73,7 +76,8 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     pos: pos,
     vel: { x: 0, y: 0 },
     acc: { x: 0, y: 0 },
-    speedCap: { x: 0, y: 0 },
+    speedCap: { x: 1, y: 1 },
+    friction: { x: 0.01, y: 0.01 },
     hitbox: {
       corners: [
         { x: 0, y: 0 },
@@ -93,8 +97,27 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       const level = getCurrentLevel();
       //@nick have fun with the level and entity
 
+      // For testing I really want all compass directions, but we didn't do that, soooo we cheat
+      const inputVel = {
+        N: { x: 0, y: -1 },
+        E: { x: 1, y: 0 },
+        S: { x: 0, y: 1 },
+        W: { x: -1, y: 0 },
+        NE: { x: 1, y: -1 },
+        SE: { x: 1, y: 1 },
+        SW: { x: -1, y: 1 },
+        NW: { x: -1, y: -1 },
+        Forward: { x: 0, y: 0 },
+      }[currentInput().dashDirection];
+
+      // Quick debug test: input velocity becomes player accleeration.
+      entity.acc = { x: inputVel.x * 0.1, y: inputVel.y * 0.1 };
+
+      stepPhysics(entity);
       print(entity, level); //stop complaining about unused variables
-      print(entity.pos); //player position n stuff
+      print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
+      print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
+      print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
       return;
     },
     drawEffect: {},

@@ -7,6 +7,7 @@ export interface PhysicsObject {
   vel: Vector;
   acc: Vector;
   speedCap: Vector;
+  friction: Vector;
 }
 
 function applySpeedCap(object: PhysicsObject): void {
@@ -26,12 +27,26 @@ function applySpeedCap(object: PhysicsObject): void {
   }
 }
 
+function applyFriction(object: PhysicsObject): void {
+  object.vel.x = object.vel.x * (1.0 - object.friction.x);
+  object.vel.y = object.vel.y * (1.0 - object.friction.y);
+  // Prevent continuously applied friction from dropping our speed to some ridiculously tiny
+  // value; after a point, bring the object to a complete stop.
+  if (Math.abs(object.vel.x) < 0.001) {
+    object.vel.x = 0.0;
+  }
+  if (Math.abs(object.vel.y) < 0.001) {
+    object.vel.y = 0.0;
+  }
+}
+
 export function stepPhysics(object: PhysicsObject): void {
   object.vel.x += object.acc.x;
   object.vel.y += object.acc.y;
   applySpeedCap(object);
   object.pos.x += object.vel.x;
   object.pos.y += object.vel.y;
+  applyFriction(object);
 }
 
 export function overlapsSolid(pos: Point, hitbox: HitBox, level: Level): boolean {
