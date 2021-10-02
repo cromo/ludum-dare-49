@@ -21,6 +21,8 @@ export enum TileTypes {
 
 export const LEVEL_HEIGHT = 22;
 export const LEVEL_WIDTH = 40;
+export const TILE_HEIGHT = 16;
+export const TILE_WIDTH = 16;
 export const TERMINAL_HEIGHT = 6;
 export const TERMINAL_WIDTH = 9;
 
