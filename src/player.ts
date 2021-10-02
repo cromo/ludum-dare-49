@@ -104,7 +104,11 @@ function jumpInitState(player: PlayerEntity, level: Level, input: GameInput): Pl
   return walkingState(modifiedPlayer, level, input);
 }
 
-function dyingState(player: PlayerEntity): PlayerEntity {
+function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
+  if (player.stateMachine.state.type != "ASPLODE") return player;
+  if (player.stateMachine.state.framesDead >= 60) {
+    level.doRestart = true;
+  }
   return player;
 }
 
@@ -489,7 +493,7 @@ function updateStateDashing(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "ASPLODE" },
+        state: { type: "ASPLODE", framesDead: 20 },
       },
     };
   } else if (player.vel.y > 0) {
@@ -516,7 +520,13 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "ASPLODE") return player;
   // Do nothing! We are dead. Be one with chaos.
-  return player;
+  return {
+    ...player,
+    stateMachine: {
+      ...player.stateMachine,
+      state: { type: "ASPLODE", framesDead: state.framesDead + 1 },
+    },
+  };
 }
 
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a

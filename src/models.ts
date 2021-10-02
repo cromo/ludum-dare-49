@@ -163,6 +163,7 @@ export interface Dashing {
 
 export interface Asplode {
   type: "ASPLODE";
+  framesDead: number;
 }
 
 export interface PlayerStateMachine {
