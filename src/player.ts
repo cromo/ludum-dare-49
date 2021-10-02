@@ -287,9 +287,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     draw: (level, entity) => {
       love.graphics.setColor(255, 255, 255);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
-        glitchRate: 0.2,
+        glitchRate: 0.3,
         spread: 3,
         mode: GlitchMode.Progressive,
+        flipHorizontally: false,
       });
       return;
     },
