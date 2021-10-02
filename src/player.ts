@@ -286,7 +286,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     grounded: false,
     draw: (level, entity) => {
       love.graphics.setColor(255, 255, 255);
-      glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y));
+      glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
+        glitchRate: 0.8,
+        spread: 3,
+      });
       return;
     },
     update: (level, entity) => {
