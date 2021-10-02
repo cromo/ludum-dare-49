@@ -5,8 +5,16 @@ export enum TileTypes {
   WALL_BLOCK,
 }
 
-export const LEVEL_HEIGHT = 100;
-export const LEVEL_WIDTH = 100;
+// 1920 x 1080
+// 16 x 16 tiles (and character?)
+// x2 scale: 60 x 33(.75)
+// x3 scale: 40 x 22(.5)
+// x4 scale: 30 x 16(.8)
+
+export const LEVEL_HEIGHT = 40;
+export const LEVEL_WIDTH = 22;
+export const TERMINAL_HEIGHT = 6;
+export const TERMINAL_WIDTH = 9;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit";
 export type GlitchMode = "empty" | "solid" | "glitch";
@@ -18,17 +26,25 @@ export interface Level {
   glitchModes: GlitchMode[][];
   zoneModes: ZoneMode[][];
   entities: Entity[];
+  // terminal: Terminal;
+}
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface TerminalEntity extends Entity {
+  pos: Point;
 }
 
 export interface Entity {
   update: (entity: Entity) => void;
+  draw: (entity: Entity) => void;
 }
 
 export interface VisibleEntity extends Entity {
-  pos: {
-    x: number;
-    y: number;
-  };
+  pos: Point;
   drawEffect: {};
   spritesheetlocation: {};
 }
