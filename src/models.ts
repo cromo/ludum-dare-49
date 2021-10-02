@@ -49,6 +49,10 @@ export interface Level {
   zoneModes: ZoneMode[][];
   entities: Entity[];
   // terminal: Terminal;
+  levelDef: LevelDefinition;
+  doRestart?: true; // true = reload this level (when you die)
+  nextLevel?: true; // true = go to the next level in the level sequence (normal)
+  gotoLevel?: LevelDefinition; // go to a specific level (storytelling)
 }
 
 export interface Point {

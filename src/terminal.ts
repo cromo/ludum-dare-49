@@ -108,6 +108,9 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
   // any message in the terminal starts a cooldown before time-based triggers are met
   //  instantly respond to important triggers like death or reaching zones
   //  but don't spam with filler-text (marked *)
+  // if (Math.random() < 0.05) {
+  //   level.nextLevel = true;
+  // }
   return terminal;
 }
 

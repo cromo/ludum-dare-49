@@ -106,8 +106,8 @@ const parseLayoutLine = (
 };
 
 // constructs a new playable level from a level definition, but doesn't activate it yet
-export function parseLevelDefinition(ld: LevelDefinition): Level {
-  const { annotations: extraAnnotations, layout } = ld;
+export function parseLevelDefinition(levelDef: LevelDefinition): Level {
+  const { annotations: extraAnnotations, layout } = levelDef;
   const levelAnnotations = [...COMMON_ANNOTATIONS, ...extraAnnotations];
   const logLines: string[] = [];
   const log = (...foo: string[]): number => logLines.push(...foo);
@@ -147,5 +147,6 @@ export function parseLevelDefinition(ld: LevelDefinition): Level {
     glitchModes,
     zoneModes,
     entities,
+    levelDef,
   };
 }
