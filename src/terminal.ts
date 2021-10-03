@@ -202,7 +202,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
       generalMessagesProgress: 0,
     },
   };
-  (terminalAnotation.onSpawn || []).forEach((em) => pushTerminalMessage(terminalEntity, em));
+  // (terminalAnotation.onSpawn || []).forEach((em) => pushTerminalMessage(terminalEntity, em));
   // pushTerminalMessage(terminalEntity, terminalAnotation.entrance[0]);
   // pushTerminalMessage(terminalEntity, terminalAnotation.entrance[1]);
   return terminalEntity;
