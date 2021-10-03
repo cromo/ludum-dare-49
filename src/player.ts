@@ -45,6 +45,7 @@ import {
   ENTROPY_HOT_RATE,
   ENTROPY_LIMIT,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
+  EXTENDED_DASH_SAFETY_LIMIT,
   GRAVITY,
   HitBox,
   JUMP_VELOCITY,
@@ -107,7 +108,10 @@ function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): Player
   const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
   player.pos = collidedPos;
   if (hitX || hitY) {
+    /* Telesplat(tm) */
     player.isDead = true;
+    // TODO(@zach): The player crashed into a wall, while still inside glitch tiles. We can't put them somewhere
+    // safe, so they die instantly. We probably have a million lawsuits pending...
   }
   return player;
 }
@@ -242,17 +246,14 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   // Iterate the physics step 4 times, moving the player approximately 2 tiles in the dash direction instantly
   for (let i = 0; i < DASH_LENGTH; i++) {
     modifiedPlayer = applyGlitchMovement(modifiedPlayer, level);
-    const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, modifiedPlayer.tileSensor, level);
-    if (glitchMode == "glitch_once") {
-      onceGlitchTilesTouched.push(tileCoordinates(modifiedPlayer.pos));
+    for (const corner of modifiedPlayer.hitbox.corners) {
+      const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, corner, level);
+      if (glitchMode == "glitch_once") {
+        onceGlitchTilesTouched.push(
+          tileCoordinates({ x: modifiedPlayer.pos.x + corner.x, y: modifiedPlayer.pos.y + corner.y })
+        );
+      }
     }
-  }
-
-  for (const onceGlitchTile of onceGlitchTilesTouched) {
-    const replacementTileDef = TILE_CODE_TO_TYPE["*"];
-    const sourceTileType = TILE_CODE_TO_TYPE["1"].type;
-    floodFill(onceGlitchTile, sourceTileType, replacementTileDef, "solid", level);
-    level.requestBackgroundRedraw = true;
   }
 
   // Here, if we are currently in a glitch tile, continue to iterate until one of several things happens:
@@ -263,10 +264,32 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   while (
     !modifiedPlayer.isDead &&
     hitboxOverlapsGlitchTile(modifiedPlayer.pos, modifiedPlayer.hitbox, level) &&
-    safetyCounter < 16
+    safetyCounter < EXTENDED_DASH_SAFETY_LIMIT
   ) {
     modifiedPlayer = applyExtendedGlitchMovement(modifiedPlayer, level);
     safetyCounter += 1;
+    for (const corner of modifiedPlayer.hitbox.corners) {
+      const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, corner, level);
+      if (glitchMode == "glitch_once") {
+        onceGlitchTilesTouched.push(
+          tileCoordinates({ x: modifiedPlayer.pos.x + corner.x, y: modifiedPlayer.pos.y + corner.y })
+        );
+      }
+    }
+  }
+
+  if (safetyCounter == EXTENDED_DASH_SAFETY_LIMIT) {
+    /* Force a Telesplat. The employee safety handbook was *very* clear. */
+    modifiedPlayer.entropy = ENTROPY_LIMIT;
+    // TODO(@zach): This shouldn't be possible to reach in normal gameplay. If it occurs, the terminal
+    // should probably treat it like an ordinary Telesplat
+  }
+
+  for (const onceGlitchTile of onceGlitchTilesTouched) {
+    const replacementTileDef = TILE_CODE_TO_TYPE["*"];
+    const sourceTileType = TILE_CODE_TO_TYPE["1"].type;
+    floodFill(onceGlitchTile, sourceTileType, replacementTileDef, "solid", level);
+    level.requestBackgroundRedraw = true;
   }
 
   // At this point we have either exited the dash on the other side of a glitch wall or died trying. Reset our speed cap
@@ -708,6 +731,7 @@ function updateStateVictory(player: PlayerEntity): PlayerEntity {
 function updateActiveTile(player: PlayerEntity): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") {
     if (player.activeTile == "kill") {
+      // TODO(@zach): The player was killed by a kill tile
       return {
         ...player,
         stateMachine: {
@@ -749,6 +773,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     };
   }
   if (ENTROPY_LIMIT <= player.entropy && player.stateMachine.state.type !== "ASPLODE") {
+    // TODO(@zach): This is overload
     return {
       ...player,
       stateMachine: {
@@ -842,6 +867,12 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         { x: 11, y: 14 },
       ],
     },
+    groundHitbox: {
+      corners: [
+        { x: 4, y: 14 },
+        { x: 11, y: 14 },
+      ],
+    },
     footSensor: { x: 8.0, y: 16 },
     tileSensor: { x: 8.0, y: 8.0 },
     entropy: 1,
@@ -904,6 +935,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       );
 
       // Draw pips
+      if (state.type === "ASPLODE") return;
       const redFactor = entropy < ENTROPY_LIMIT - 1 ? 1 : (Math.sin(20 * love.timer.getTime()) + 1) / 4 + 0.75;
       setColor(1, redFactor, redFactor);
       const center = { x: x + 16 / 2 - 2, y: y + 16 / 2 };
@@ -923,6 +955,9 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       const input = currentInput();
       if (!input.wantsToJump) {
         entity.lastJumpReleased = true;
+      }
+      if (input.wantsToReset) {
+        entity.entropy = ENTROPY_LIMIT;
       }
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
