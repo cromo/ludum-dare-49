@@ -1,10 +1,24 @@
 import { glitchedDraw } from "./glitch";
 import { parseLevelDefinition } from "./levelLoader";
-import { setCurrentLevel } from "./levels";
-import { Level, LevelDefinition, TILE_SIZE_PIXELS } from "./models";
+import { getPlayer, getTerminal, setCurrentLevel } from "./levels";
+import { LEVEL_HEIGHT, LEVEL_WIDTH, Level, LevelDefinition, Point, TILE_SIZE_PIXELS } from "./models";
 
 export function tick(level: Level): void {
   level.entities = level.entities.map((entity) => entity.update(level, entity));
+
+  //TODO: crappy oob detection for death/reset development, should probably be in the player entity somewhere
+  const player = getPlayer();
+  const terminal = getTerminal();
+  if (player) {
+    const tilePos: Point = {
+      x: Math.floor(player.pos.x / TILE_SIZE_PIXELS),
+      y: Math.floor(player.pos.y / TILE_SIZE_PIXELS),
+    };
+    if (tilePos.x < 0 || tilePos.x >= LEVEL_WIDTH || tilePos.y < 0 || tilePos.y >= LEVEL_HEIGHT) {
+      if (terminal) terminal.trackers.deathCount++;
+      level.doRestart = true;
+    }
+  }
 }
 
 export function loadLevel(levelDefinition: LevelDefinition): void {
