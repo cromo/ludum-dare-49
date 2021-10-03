@@ -570,8 +570,7 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
       },
     };
   } else if (input.wantsToJump && player.lastJumpReleased) {
-    // TODO: vary double-jump SFX?
-    playSfx("jump");
+    playSfx("doublejump");
     return {
       ...player,
       entropy: player.entropy - 1,
@@ -608,8 +607,7 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
       },
     };
   } else if (input.wantsToJump && player.lastJumpReleased) {
-    // TODO: vary double-jump SFX?
-    playSfx("jump");
+    playSfx("doublejump");
     return {
       ...player,
       entropy: player.entropy - 1,
