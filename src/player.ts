@@ -33,6 +33,7 @@ import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import {
+  ENTROPY_LIMIT,
   ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   GRAVITY,
   JUMP_VELOCITY,
@@ -556,6 +557,15 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
       stateMachine: {
         ...player.stateMachine,
         state: { type: "OUT_OF_ENTROPY", ticksRemainingBeforeRechargeStarts: OUT_OF_ENTROPY_PENALTY_TICKS },
+      },
+    };
+  }
+  if (ENTROPY_LIMIT <= player.entropy && player.stateMachine.state.type !== "ASPLODE") {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "ASPLODE", framesDead: 0 },
       },
     };
   }
