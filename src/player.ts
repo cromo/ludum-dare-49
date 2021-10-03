@@ -37,6 +37,7 @@ import {
   JUMP_VELOCITY,
   Level,
   PIP_INSTABILITY_ANIMATION_TIME_TICKS,
+  PIP_INSTABILITY_SPREAD,
   Point,
   Vector,
   WALKING_ACCELERATION,
@@ -625,7 +626,9 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         const instability = entity.entropyInstabilityCountdown[pipNumber];
         glitchedDraw(sprites.entropyPip, center.x + x, center.y + y, {
           glitchRate: 1 - instability / PIP_INSTABILITY_ANIMATION_TIME_TICKS,
-          spread: entity.entropyInstabilityCountdown[pipNumber],
+          spread:
+            (entity.entropyInstabilityCountdown[pipNumber] / PIP_INSTABILITY_ANIMATION_TIME_TICKS) *
+            PIP_INSTABILITY_SPREAD,
         });
       });
     },
