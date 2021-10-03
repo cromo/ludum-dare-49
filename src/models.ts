@@ -29,6 +29,7 @@ export const LEVEL_WIDTH = 40;
 export const TILE_SIZE_PIXELS = 16;
 export const TILE_HEIGHT = TILE_SIZE_PIXELS;
 export const TILE_WIDTH = TILE_SIZE_PIXELS;
+export const HALF_TILE = TILE_SIZE_PIXELS / 2;
 export const TERMINAL_HEIGHT = 5;
 export const TERMINAL_WIDTH = 14;
 
