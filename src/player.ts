@@ -48,6 +48,9 @@ import {
   HitBox,
   JUMP_VELOCITY,
   Level,
+  MAXIMUM_AFTERIMAGE_TICK_DURATION,
+  MINIMUM_AFTERIMAGE_TICK_DURATION,
+  MINIMUM_DISTANCE_BETWEEN_AFTERIMAGES,
   MOVEMENT_ACCELERATION,
   MOVEMENT_SPEEDCAP,
   OUT_OF_ENTROPY_PENALTY_TICKS,
@@ -267,6 +270,21 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   modifiedPlayer.acc = { x: 0, y: GRAVITY };
   modifiedPlayer.vel = { x: dashDirection.x * POST_DASH_VELOCITY, y: dashDirection.y * POST_DASH_VELOCITY };
 
+  const start = player.pos;
+  const dashDelta = { x: modifiedPlayer.pos.x - player.pos.x, y: modifiedPlayer.pos.y - player.pos.y };
+  const dashDistance = Math.sqrt(dashDelta.x * dashDelta.x + dashDelta.y * dashDelta.y);
+  const afterImageCount = Math.floor(dashDistance / MINIMUM_DISTANCE_BETWEEN_AFTERIMAGES);
+  const afterImageDelta = { x: dashDelta.x / afterImageCount, y: dashDelta.y / afterImageCount };
+  // Skip the starting point by starting at 1.
+  for (let imageNumber = 0; imageNumber < afterImageCount; ++imageNumber) {
+    modifiedPlayer.afterImages.push({
+      x: start.x + imageNumber * afterImageDelta.x,
+      y: start.y + imageNumber * afterImageDelta.y,
+      ticksRemaining:
+        MINIMUM_AFTERIMAGE_TICK_DURATION +
+        (MAXIMUM_AFTERIMAGE_TICK_DURATION - MINIMUM_AFTERIMAGE_TICK_DURATION) * (imageNumber / afterImageCount),
+    });
+  }
   return modifiedPlayer;
 }
 
@@ -751,13 +769,23 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   return { ...player, entropy: newEntropy, entropyInstabilityCountdown: newEntropyInstability };
 }
 
+function updateAfterImages(player: PlayerEntity): PlayerEntity {
+  return {
+    ...player,
+    afterImages: player.afterImages
+      .map((image) => ({ ...image, ticksRemaining: image.ticksRemaining - 1 }))
+      .filter(({ ticksRemaining }) => 0 < ticksRemaining),
+  };
+}
+
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
 // starting point.
 export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
   // There are two steps here (sort of parallel states) - updating entropy, and
   // the main player state.
   const entropyUpdatedPlayer = updateEntropy(player);
-  const tileUpdatedPlayer = updateActiveTile(entropyUpdatedPlayer);
+  const afterImageUpdatedPlayer = updateAfterImages(entropyUpdatedPlayer);
+  const tileUpdatedPlayer = updateActiveTile(afterImageUpdatedPlayer);
   return {
     ASPLODE: updateStateDying,
     ASCENDING: updateStateAscending,
@@ -826,6 +854,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       state: { type: "STANDING", coyoteTime: COYOTE_TIME },
     },
     grounded: false,
+    afterImages: [],
     lastJumpReleased: true,
     isDead: false,
     activeZone: "normal",
@@ -861,6 +890,13 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
           flipHorizontally,
         });
       }
+
+      // Draw after images
+      entity.afterImages.forEach(({ x, y, ticksRemaining }) =>
+        glitchedDraw(sprites.standing, x, y, {
+          glitchRate: (8 / 16) * (ticksRemaining / MAXIMUM_AFTERIMAGE_TICK_DURATION),
+        })
+      );
 
       // Draw pips
       const redFactor = entropy < ENTROPY_LIMIT - 1 ? 1 : (Math.sin(20 * love.timer.getTime()) + 1) / 4 + 0.75;
