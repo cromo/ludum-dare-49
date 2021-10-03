@@ -36,7 +36,7 @@ export const MOVEMENT_ACCELERATION = 0.2;
 export const MOVEMENT_SPEEDCAP = 2;
 export const PLAYER_FRICTION = 0.05;
 export const JUMP_VELOCITY = 3.5;
-export const DOUBLE_JUMP_VELOCITY = 3.5;
+export const DOUBLE_JUMP_VELOCITY = 2.5;
 export const DASH_LENGTH = 8; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
 export const POST_DASH_VELOCITY = 4; // speed, in the direction of the dash, after the teleport effect ends. "Wheeeeee4!#~"
 export const DASH_CHARGE_FRAMES = 10;
@@ -132,6 +132,7 @@ export interface PlayerEntity extends VisibleEntity {
   entropyInstabilityCountdown: number[];
   stateMachine: PlayerStateMachine;
   grounded: boolean;
+  lastJumpReleased: boolean;
   isDead: boolean;
   activeZone: ZoneMode;
   activeTile: PhysicalMode;
@@ -159,6 +160,11 @@ export interface Walking {
 
 export interface JumpPrep {
   type: "JUMP_PREP";
+  ticksRemainingBeforeAscent: number;
+}
+
+export interface DoubleJumpPrep {
+  type: "DOUBLE_JUMP_PREP";
   ticksRemainingBeforeAscent: number;
 }
 
@@ -195,7 +201,18 @@ export interface Asplode {
 export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
-  state: OutOfEntropy | Standing | Walking | JumpPrep | Ascending | Descending | Landing | DashPrep | Dashing | Asplode;
+  state:
+    | OutOfEntropy
+    | Standing
+    | Walking
+    | JumpPrep
+    | DoubleJumpPrep
+    | Ascending
+    | Descending
+    | Landing
+    | DashPrep
+    | Dashing
+    | Asplode;
 }
 
 export interface LayoutLine {
