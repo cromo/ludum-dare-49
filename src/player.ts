@@ -27,7 +27,7 @@
 //
 // Also need a facing for all of these
 
-import { Image } from "love.graphics";
+import { Image, setColor } from "love.graphics";
 
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
@@ -550,7 +550,7 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
 }
 
 function updateEntropy(player: PlayerEntity): PlayerEntity {
-  if (player.entropy < 1 && player.stateMachine.state.type !== "OUT_OF_ENTROPY") {
+  if (player.entropy < 0 && player.stateMachine.state.type !== "OUT_OF_ENTROPY") {
     // Forcefully yank the player out of any state when they run out of entropy.
     return {
       ...player,
@@ -646,10 +646,11 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     isDead: false,
     draw: (level, entity) => {
       if (entity.type !== "playerEntity") return;
+      const { entropy } = entity;
 
       const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
       love.graphics.setColor(255, 255, 255);
-      const entropyPercent = (entity.entropy - 1) / (ENTROPY_LIMIT - 1);
+      const entropyPercent = (entropy - 1) / (ENTROPY_LIMIT - 1);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
         glitchRate: entropyPercent,
         spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
@@ -658,8 +659,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       });
 
       // Draw pips
+      const redFactor = entropy < ENTROPY_LIMIT - 1 ? 1 : (Math.sin(20 * love.timer.getTime()) + 1) / 4 + 0.75;
+      setColor(1, redFactor, redFactor);
       const center = { x: Math.floor(entity.pos.x) + 16 / 2 - 2, y: Math.floor(entity.pos.y) + 16 / 2 };
-      entity.entropyPipOffsets.slice(0, Math.floor(entity.entropy)).forEach(({ x, y }, pipNumber) => {
+      entity.entropyPipOffsets.slice(0, Math.floor(entropy < 0 ? 0 : entropy)).forEach(({ x, y }, pipNumber) => {
         const instability = entity.entropyInstabilityCountdown[pipNumber];
         glitchedDraw(sprites.entropyPip, center.x + x, center.y + y, {
           glitchRate: 1 - instability / PIP_INSTABILITY_ANIMATION_TIME_TICKS,
