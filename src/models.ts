@@ -121,7 +121,7 @@ export interface PlayerEntity extends VisibleEntity {
   directionalInfluenceSpeedCap: number;
   hitbox: HitBox;
   footSensor: Point;
-  zoneSensor: Point;
+  tileSensor: Point;
   entropy: number;
   entropyPipOffsets: Vector[];
   entropyInstabilityCountdown: number[];
@@ -129,6 +129,7 @@ export interface PlayerEntity extends VisibleEntity {
   grounded: boolean;
   isDead: boolean;
   activeZone: ZoneMode;
+  activeTile: PhysicalMode;
 }
 
 export enum Facing {

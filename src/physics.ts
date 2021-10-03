@@ -1,4 +1,4 @@
-import { GlitchMode, HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, Point, Vector, ZoneMode } from "./models";
+import { GlitchMode, HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, PhysicalMode, Point, Vector, ZoneMode } from "./models";
 import { TILE_HEIGHT, TILE_WIDTH } from "./models";
 
 // Any object which moves
@@ -56,6 +56,15 @@ export function tileCoordinates(pos: Point): Point {
     x: Math.floor(pos.x / TILE_WIDTH),
     y: Math.floor(pos.y / TILE_HEIGHT),
   };
+}
+
+export function sensorInPhysicalMode(pos: Point, sensor: Point, level: Level): PhysicalMode {
+  const sensorPos = { x: pos.x + sensor.x, y: pos.y + sensor.y };
+  const tilePos = tileCoordinates(sensorPos);
+  if (tileInBounds(tilePos)) {
+    return level.physicalModes[tilePos.y][tilePos.x];
+  }
+  return "empty";
 }
 
 export function sensorInZone(pos: Point, sensor: Point, level: Level): ZoneMode {

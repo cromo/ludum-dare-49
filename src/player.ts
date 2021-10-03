@@ -61,6 +61,7 @@ import {
   glitchSolidCollider,
   hitboxOverlapsGlitchTile,
   normalSolidCollider,
+  sensorInPhysicalMode,
   sensorInZone,
   stepPhysics,
 } from "./physics";
@@ -559,6 +560,21 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
   };
 }
 
+function updateActiveTile(player: PlayerEntity): PlayerEntity {
+  if (player.stateMachine.state.type != "ASPLODE") {
+    if (player.activeTile == "kill") {
+      return {
+        ...player,
+        stateMachine: {
+          ...player.stateMachine,
+          state: { type: "ASPLODE", framesDead: 0 },
+        },
+      };
+    }
+  }
+  return player;
+}
+
 function updateEntropy(player: PlayerEntity): PlayerEntity {
   if (
     player.entropy < 0 &&
@@ -608,6 +624,7 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
   // There are two steps here (sort of parallel states) - updating entropy, and
   // the main player state.
   const entropyUpdatedPlayer = updateEntropy(player);
+  const tileUpdatedPlayer = updateActiveTile(entropyUpdatedPlayer);
   return {
     ASPLODE: updateStateDying,
     ASCENDING: updateStateAscending,
@@ -619,7 +636,7 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
     LANDING: updateStateLanding,
     OUT_OF_ENTROPY: updateStateOutOfEntropy,
     WALKING: updateStateWalking,
-  }[player.stateMachine.state.type](entropyUpdatedPlayer, input);
+  }[player.stateMachine.state.type](tileUpdatedPlayer, input);
 }
 
 const sprites: Record<string, Image> = {};
@@ -658,7 +675,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       ],
     },
     footSensor: { x: 8.0, y: 16 },
-    zoneSensor: { x: 8.0, y: 8.0 },
+    tileSensor: { x: 8.0, y: 8.0 },
     entropy: 1,
     entropyPipOffsets: [
       { x: 0, y: -20 },
@@ -676,6 +693,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     grounded: false,
     isDead: false,
     activeZone: "normal",
+    activeTile: "empty",
     draw: (level, entity) => {
       if (entity.type !== "playerEntity") return;
       const { entropy } = entity;
@@ -711,6 +729,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
       entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
+      entity.activeTile = sensorInPhysicalMode(entity.pos, entity.tileSensor, level);
 
       // print(entity, level); //stop complaining about unused variables
       // print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
