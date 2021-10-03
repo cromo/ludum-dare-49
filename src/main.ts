@@ -60,9 +60,10 @@ love.draw = () => {
 
   push();
   scale(GAME_SCALE, GAME_SCALE);
-  print(love.timer.getFPS());
   const level = getCurrentLevel();
   drawLevel(level);
   drawLevelEntities(level);
+  love.graphics.setColor(0, 0, 0);
+  love.graphics.print(`${love.timer.getFPS()}`, 2, 2);
   pop();
 };
