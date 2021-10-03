@@ -826,7 +826,10 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     dead: ENTROPY_DEAD_RATE,
     hot: ENTROPY_HOT_RATE,
   }[player.activeZone];
-  const newEntropy = player.entropy + entropyGrowthRate;
+
+  const entropyCap = player.activeZone == "dead" ? 2 : ENTROPY_LIMIT;
+  const newEntropy = Math.min(player.entropy + entropyGrowthRate, entropyCap);
+
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
