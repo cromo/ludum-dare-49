@@ -33,12 +33,17 @@ import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import {
+  COYOTE_TIME,
+  DASH_LENGTH,
   DEATH_ANIMATION_PIXEL_SPREAD,
   DEATH_ANIMATION_TICKS,
+  ENTROPY_BASE_RATE,
+  ENTROPY_DEAD_RATE,
+  ENTROPY_HOT_RATE,
   ENTROPY_LIMIT,
-  ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
   GRAVITY,
+  HitBox,
   JUMP_VELOCITY,
   Level,
   MOVEMENT_ACCELERATION,
@@ -47,9 +52,11 @@ import {
   PIP_INSTABILITY_ANIMATION_TIME_TICKS,
   PIP_INSTABILITY_SPREAD,
   PLAYER_FRICTION,
+  POST_DASH_VELOCITY,
   Point,
   RESET_DURATION_TICKS,
   Vector,
+  ZoneMode,
 } from "./models";
 import { Facing, PlayerEntity } from "./models";
 import {
@@ -57,6 +64,7 @@ import {
   glitchSolidCollider,
   hitboxOverlapsGlitchTile,
   normalSolidCollider,
+  sensorInZone,
   stepPhysics,
 } from "./physics";
 
@@ -182,7 +190,7 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   };
 
   // Iterate the physics step 4 times, moving the player approximately 2 tiles in the dash direction instantly
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < DASH_LENGTH; i++) {
     modifiedPlayer = applyGlitchMovement(modifiedPlayer, level);
   }
 
@@ -204,6 +212,7 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   // and get out of here. Also re-enable gracity.
   modifiedPlayer.friction = originalFriction;
   modifiedPlayer.acc = { x: 0, y: GRAVITY };
+  modifiedPlayer.vel = { x: dashDirection.x * POST_DASH_VELOCITY, y: dashDirection.y * POST_DASH_VELOCITY };
 
   return modifiedPlayer;
 }
@@ -242,7 +251,7 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING", coyoteTime: 5 },
+        state: { type: "STANDING", coyoteTime: COYOTE_TIME },
       },
     };
   }
@@ -337,7 +346,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "WALKING", coyoteTime: 5 },
+        state: { type: "WALKING", coyoteTime: COYOTE_TIME },
       },
     };
   } else if (!player.grounded && 0 < state.coyoteTime) {
@@ -455,7 +464,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
       stateMachine: {
         ...player.stateMachine,
         facing: input.moveDirection === HorizontalDirection.Left ? Facing.Left : Facing.Right,
-        state: { type: "WALKING", coyoteTime: 5 },
+        state: { type: "WALKING", coyoteTime: COYOTE_TIME },
       },
     };
   } else if (0 < state.ticksRemainingBeforeStanding) {
@@ -474,7 +483,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING", coyoteTime: 5 },
+        state: { type: "STANDING", coyoteTime: COYOTE_TIME },
       },
     };
   }
@@ -579,7 +588,12 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
       },
     };
   }
-  const newEntropy = player.entropy + ENTROPY_NORMAL_GROWTH_RATE;
+  const entropyGrowthRate = {
+    normal: ENTROPY_BASE_RATE,
+    dead: ENTROPY_DEAD_RATE,
+    hot: ENTROPY_HOT_RATE,
+  }[player.activeZone];
+  const newEntropy = player.entropy + entropyGrowthRate;
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
@@ -619,6 +633,16 @@ export function loadPlayerSprites(): void {
   sprites.entropyPip = newImage("res/player-entropy-pip.png");
 }
 
+export function activeZone(pos: Point, hitbox: HitBox, level: Level): ZoneMode {
+  const sensedZones = hitbox.corners.map((corner) => sensorInZone(pos, corner, level));
+  const activeZone = sensedZones.reduce((a, b) => {
+    if (b == "dead") return b;
+    if (b == "hot" && a == "normal") return b;
+    return a;
+  });
+  return activeZone;
+}
+
 export function createPlayerEntity(pos: Point): PlayerEntity {
   return {
     type: "playerEntity",
@@ -650,10 +674,11 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     stateMachine: {
       facing: Facing.Right,
       entropy: 0,
-      state: { type: "STANDING", coyoteTime: 5 },
+      state: { type: "STANDING", coyoteTime: COYOTE_TIME },
     },
     grounded: false,
     isDead: false,
+    activeZone: "normal",
     draw: (level, entity) => {
       if (entity.type !== "playerEntity") return;
       const { entropy } = entity;
@@ -707,12 +732,14 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       const input = currentInput();
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
+      entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
 
       // print(entity, level); //stop complaining about unused variables
       // print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       // print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       // print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
       // print(`PlayerState ${entity.stateMachine.state.type}`);
+      // print(`PlayerZone ${entity.activeZone}`);
       return entity;
     },
     drawEffect: {},
