@@ -109,6 +109,8 @@ function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): Player
   if (hitX || hitY) {
     /* Telesplat(tm) */
     player.isDead = true;
+    // TODO(@zach): The player crashed into a wall, while still inside glitch tiles. We can't put them somewhere
+    // safe, so they die instantly. We probably have a million lawsuits pending...
   }
   return player;
 }
@@ -274,6 +276,8 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (safetyCounter == EXTENDED_DASH_SAFETY_LIMIT) {
     /* Force a Telesplat. The employee safety handbook was *very* clear. */
     modifiedPlayer.entropy = ENTROPY_LIMIT;
+    // TODO(@zach): This shouldn't be possible to reach in normal gameplay. If it occurs, the terminal
+    // should probably treat it like an ordinary Telesplat
   }
 
   for (const onceGlitchTile of onceGlitchTilesTouched) {
@@ -722,6 +726,7 @@ function updateStateVictory(player: PlayerEntity): PlayerEntity {
 function updateActiveTile(player: PlayerEntity): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") {
     if (player.activeTile == "kill") {
+      // TODO(@zach): The player was killed by a kill tile
       return {
         ...player,
         stateMachine: {
