@@ -66,5 +66,7 @@ love.draw = () => {
   drawParticleEmitters();
   love.graphics.setColor(0, 0, 0);
   love.graphics.print(`${love.timer.getFPS()}`, 2, 2);
+  love.graphics.setColor(1, 1, 1);
+  love.graphics.print(`${love.timer.getFPS()}`, 1, 1);
   pop();
 };
