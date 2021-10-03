@@ -1,10 +1,11 @@
-import { Canvas } from "love.graphics";
+import { Canvas, ParticleSystem } from "love.graphics";
 
 import { glitchedDraw } from "./glitch";
 import { parseLevelDefinition } from "./levelLoader";
 import { getPlayer, getTerminal, getTerminalFrom, setCurrentLevel } from "./levels";
 import { LEVEL_HEIGHT, LEVEL_WIDTH, Level, LevelDefinition, Point, TILE_SIZE_PIXELS } from "./models";
 import { migrateTerminalEntity } from "./terminal";
+import { clearParticleEmitters, createParticleEmitters, updateParticleEmitters } from "./zone";
 
 let backgroundCanvas: Canvas;
 
@@ -55,12 +56,16 @@ export function tick(level: Level): void {
     drawBackgroundTiles(level);
     delete level.requestBackgroundRedraw;
   }
+
+  updateParticleEmitters();
 }
 
 export function loadLevel(levelDefinition: LevelDefinition): void {
   const level = parseLevelDefinition(levelDefinition);
   setCurrentLevel(level);
   drawBackgroundTiles(level);
+  clearParticleEmitters();
+  createParticleEmitters(level);
 }
 export function reloadLevel(level: Level): void {
   const freshLevel = parseLevelDefinition(level.levelDef);

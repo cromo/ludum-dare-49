@@ -6,6 +6,7 @@ import { debugLevel } from "./levels/debugLevel";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
+import { drawParticleEmitters, initZoneEmitters } from "./zone";
 
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
@@ -17,6 +18,7 @@ let currentLevelIndex = 0;
 love.load = () => {
   buildStructresAtInit();
   initBackgroundCanvas();
+  initZoneEmitters();
 
   initFastRandom();
   loadPlayerSprites();
@@ -61,6 +63,7 @@ love.draw = () => {
   const level = getCurrentLevel();
   drawLevel(level);
   drawLevelEntities(level);
+  drawParticleEmitters();
   love.graphics.setColor(0, 0, 0);
   love.graphics.print(`${love.timer.getFPS()}`, 2, 2);
   pop();
