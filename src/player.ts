@@ -821,7 +821,8 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   }
   if (ENTROPY_LIMIT <= player.entropy && player.stateMachine.state.type !== "ASPLODE") {
     const terminal = getTerminal();
-    if (terminal) {
+    if (terminal && !terminal.trackers.deathTick) {
+      // resets may have already set this death
       terminal.trackers.deathCount++;
       terminal.trackers.lastDeathType = "overload";
       terminal.trackers.deathTick = true;
@@ -1013,6 +1014,12 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         entity.lastJumpReleased = true;
       }
       if (input.wantsToReset) {
+        const terminal = getTerminal();
+        if (terminal && entity.entropy < ENTROPY_LIMIT - 1) {
+          terminal.trackers.deathCount++;
+          terminal.trackers.lastDeathType = "reset";
+          terminal.trackers.deathTick = true;
+        }
         entity.entropy = ENTROPY_LIMIT;
       }
       entity = updateStateMachine(entity, input);

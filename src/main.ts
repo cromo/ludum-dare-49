@@ -3,8 +3,11 @@ import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLe
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
 import { getCurrentLevel } from "./levels";
+import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { debugLevel } from "./levels/debugLevel";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
+import { simpleJumpLevel } from "./levels/simpleJumpLevel";
+import { simpleWalkLevel } from "./levels/simpleWalkLevel";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
 import { drawParticleEmitters, initZoneEmitters } from "./zone";
@@ -13,7 +16,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
 
-const LEVEL_SEQUENCE = [debugLevel, sampleLevelEmpty];
+const LEVEL_SEQUENCE = [debugLevel, simpleWalkLevel, simpleJumpLevel, debugLevel, blankCorridorLevel, sampleLevelEmpty];
 let currentLevelIndex = 0;
 
 love.load = () => {

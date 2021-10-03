@@ -13,6 +13,7 @@ export enum TileTypes {
   ENTRANCE_CONDUIT = "S",
   EXIT_CONDUIT = "F",
   KILL_PLANE = "K",
+  OUT_OF_BOUNDS = "?",
 }
 
 // 1920 x 1080
@@ -41,7 +42,7 @@ export const DOUBLE_JUMP_VELOCITY = 3.5;
 export const DASH_LENGTH = 8; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
 export const EXTENDED_DASH_SAFETY_LIMIT = 255; // measured in half-tiles; should be comfortably more than the length of the widest level
 export const POST_DASH_VELOCITY = 4; // speed, in the direction of the dash, after the teleport effect ends. "Wheeeeee4!#~"
-export const DASH_CHARGE_FRAMES = 10;
+export const DASH_CHARGE_FRAMES = 18;
 export const COYOTE_TIME = 5; // frames
 
 export const RESET_DURATION_TICKS = 60;
@@ -68,6 +69,8 @@ export const TERMINAL_FILLER_COOLDOWN_TICKS = 30;
 export const TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS = 960;
 // GENERAL_FILLER should be larger than TERMINAL_FILLER_COOLDOWN_TICKS
 export const TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS = 180;
+
+export const ZONE_PARTICLES_PER_SECOND = 0.45;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
@@ -288,6 +291,7 @@ export function buildStructresAtInit(): void {
     effect: { glitchyLevel: 1 / 16 },
   };
   TILE_CODE_TO_TYPE["K"] = { type: TileTypes.KILL_PLANE, image: love.graphics.newImage("res/kill.png") };
+  TILE_CODE_TO_TYPE["?"] = { type: TileTypes.AIR, image: love.graphics.newImage("res/oob.png") };
 }
 
 export interface LevelDefinition {
@@ -350,6 +354,7 @@ export interface TerminalTrackers {
   ticksSinceLastFillerMessage: number;
   spawnTick: boolean; // onSpawn
   deathTick: boolean; // onDeath - the moment the player dies but before the level resets
+  hasDied: boolean; // don't process deathTick more than once per life
   ticksOfPlayerIdling: number;
   ticksInDeadZone: number;
   ticksInHotZone: number;
