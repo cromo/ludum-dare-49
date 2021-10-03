@@ -37,6 +37,7 @@ import {
   GRAVITY,
   JUMP_VELOCITY,
   Level,
+  OUT_OF_ENTROPY_PENALTY_TICKS,
   PIP_INSTABILITY_ANIMATION_TIME_TICKS,
   PIP_INSTABILITY_SPREAD,
   Point,
@@ -230,7 +231,7 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
         },
       },
     };
-  } else if (state.ticksRemainingBeforeRechargeStarts === 0) {
+  } else if (state.ticksRemainingBeforeRechargeStarts === 0 && 1 <= player.entropy) {
     return {
       ...player,
       stateMachine: {
@@ -381,12 +382,14 @@ function updateStateJumpPrep(player: PlayerEntity): PlayerEntity {
 
 function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
+  const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "ASCENDING") return player;
   if (input.wantsToDash) {
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
       },
     };
@@ -395,21 +398,24 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "DESCENDING" },
       },
     };
   }
-  return player;
+  return { ...player, stateMachine: { ...player.stateMachine, facing } };
 }
 
 function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
+  const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "DESCENDING") return player;
   if (input.wantsToDash) {
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
       },
     };
@@ -418,11 +424,12 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "LANDING", ticksRemainingBeforeStanding: 10 },
       },
     };
   }
-  return player;
+  return { ...player, stateMachine: { ...player.stateMachine, facing } };
 }
 
 function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntity {
@@ -485,6 +492,7 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
   } else if (state.ticksBeforeGlitchOff === 0) {
     return {
       ...player,
+      entropy: player.entropy - 1,
       stateMachine: {
         ...player.stateMachine,
         state: { type: "DASHING", dashDirection: input.dashDirection },
@@ -540,6 +548,17 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
 }
 
 function updateEntropy(player: PlayerEntity): PlayerEntity {
+  if (player.entropy < 1 && player.stateMachine.state.type !== "OUT_OF_ENTROPY") {
+    // Forcefully yank the player out of any state when they run out of entropy.
+    return {
+      ...player,
+      entropy: 0,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "OUT_OF_ENTROPY", ticksRemainingBeforeRechargeStarts: OUT_OF_ENTROPY_PENALTY_TICKS },
+      },
+    };
+  }
   const newEntropy = player.entropy + ENTROPY_NORMAL_GROWTH_RATE;
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
@@ -598,7 +617,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     footSensor: { x: 8.0, y: 16 },
     zoneSensor: { x: 8.0, y: 8.0 },
-    entropy: 0,
+    entropy: 1,
     entropyPipOffsets: [
       { x: 0, y: -20 },
       { x: 10, y: -20 },
@@ -618,10 +637,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       if (entity.type !== "playerEntity") return;
       love.graphics.setColor(255, 255, 255);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
-        glitchRate: 0.3,
+        glitchRate: 0,
         spread: 3,
         mode: GlitchMode.Progressive,
-        flipHorizontally: false,
+        flipHorizontally: entity.stateMachine.facing === Facing.Right,
       });
 
       // Draw pips
