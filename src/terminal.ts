@@ -1,3 +1,4 @@
+import { getPlayer } from "./levels";
 import {
   Level,
   Point,
@@ -113,6 +114,29 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
   // any message in the terminal starts a cooldown before time-based triggers are met
   //  instantly respond to important triggers like death or reaching zones
   //  but don't spam with filler-text (marked *)
+  const player = getPlayer();
+
+  if (player) {
+    const tilePos: Point = {
+      x: Math.floor(player.pos.x / TILE_SIZE_PIXELS),
+      y: Math.floor(player.pos.y / TILE_SIZE_PIXELS),
+    };
+    // track tags
+    const customTags = level.customTags[tilePos.y][tilePos.x];
+    // tags where the player is standing
+    customTags.forEach((tag) => {
+      const trackTags = terminal.trackers.trackedTag.filter((ttag) => ttag.tag == tag);
+      if (trackTags.length == 1) {
+        const trackTag = trackTags[0];
+        if (!trackTag.enteredYetThisLife) {
+          trackTag.enteredYetThisLife = true;
+          trackTag.timesEnteredAtLeastOnce++;
+        }
+        trackTag.timesEnteredThisLife++;
+      }
+      return;
+    });
+  }
 
   return terminal;
 }
@@ -145,7 +169,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
           tag,
           enteredYetThisLife: false,
           timesEnteredThisLife: 0,
-          timesEnteredOverall: 0,
+          timesEnteredAtLeastOnce: 0,
         };
       }),
       conversations: terminalAnotation.conversations.map((convoAnno) => {
@@ -168,4 +192,35 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
   // pushTerminalMessage(terminalEntity, terminalAnotation.entrance[0]);
   // pushTerminalMessage(terminalEntity, terminalAnotation.entrance[1]);
   return terminalEntity;
+}
+
+export function migrateTerminalEntity(previous: TerminalEntity): TerminalEntity {
+  const pt = previous.trackers;
+  return {
+    ...previous,
+    trackers: {
+      ...pt,
+      spawnTick: true, // preparing for a spawn
+      // deathTick: false, // this should be cleared before level resets, not now
+      // deathCount: pt.deathCount + 1, // this should be incremented when the player dies, not now
+      ticksInBottomHalf: 0,
+      ticksInTopHalf: 0,
+      ticksInLeftHalf: 0,
+      ticksInRightHalf: 0,
+      ticksInDeadZone: 0,
+      ticksInHotZone: 0,
+      // ticksOnLevel: 0, // DONT reset this one! it's the total time across multiple plays of the same level
+      // ticksSinceLastFillerMessage: 0 // DONT reset this one! death and spawn messages are usually filler messages
+      ticksSincePlayerInput: 0,
+      ticksSinceSpawn: 0,
+      trackedTag: pt.trackedTag.map((tt) => {
+        return {
+          ...tt,
+          enteredYetThisLife: false,
+          timesEnteredThisLife: 0,
+          // timesEnteredAtLeastOnce: 0, // DONT reset this one! number of attempts that have had at least one entry
+        };
+      }),
+    },
+  };
 }

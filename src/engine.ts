@@ -1,7 +1,8 @@
 import { glitchedDraw } from "./glitch";
 import { parseLevelDefinition } from "./levelLoader";
-import { getPlayer, getTerminal, setCurrentLevel } from "./levels";
+import { getPlayer, getTerminal, getTerminalFrom, setCurrentLevel } from "./levels";
 import { LEVEL_HEIGHT, LEVEL_WIDTH, Level, LevelDefinition, Point, TILE_SIZE_PIXELS } from "./models";
+import { migrateTerminalEntity } from "./terminal";
 
 export function tick(level: Level): void {
   level.entities = level.entities.map((entity) => entity.update(level, entity));
@@ -27,6 +28,14 @@ export function loadLevel(levelDefinition: LevelDefinition): void {
 export function reloadLevel(level: Level): void {
   const freshLevel = parseLevelDefinition(level.levelDef);
   // move over terminal state
+  const previousTerminal = getTerminalFrom(level);
+  if (previousTerminal) {
+    const migratedTerminalEntity = migrateTerminalEntity(previousTerminal);
+    // remove the existing terminal
+    freshLevel.entities = freshLevel.entities.filter((e) => e.type != "terminalEntity");
+    // add the migrated terminal
+    freshLevel.entities.unshift(migratedTerminalEntity);
+  }
 
   // start the reloaded level
   setCurrentLevel(freshLevel);

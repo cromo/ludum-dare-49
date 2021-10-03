@@ -283,7 +283,7 @@ export interface TerminalTrackedTag {
   tag: string;
   enteredYetThisLife: boolean;
   timesEnteredThisLife: number;
-  timesEnteredOverall: number;
+  timesEnteredAtLeastOnce: number;
 }
 
 export interface TerminalConversation extends TerminalConversationAnnotation {

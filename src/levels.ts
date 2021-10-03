@@ -1,4 +1,4 @@
-import { Entity, Level, PlayerEntity, TerminalEntity } from "./models";
+import { Entity, EntityTypes, Level, PlayerEntity, TerminalEntity } from "./models";
 
 let currentLevel: Level;
 
@@ -21,6 +21,11 @@ export function getTerminal(): TerminalEntity | undefined {
   if (terminals.length == 1) return terminals[0] as TerminalEntity;
   return undefined;
 }
+export function getTerminalFrom(level: Level): TerminalEntity | undefined {
+  const terminals = level.entities.filter(({ type }) => type == "terminalEntity");
+  if (terminals.length == 1) return terminals[0] as TerminalEntity;
+  return undefined;
+}
 
 export function spawnEntity(entity: Entity): void {
   currentLevel.entities.push(entity);
@@ -28,4 +33,8 @@ export function spawnEntity(entity: Entity): void {
 
 export function despawnEntityByRef(entity: Entity): void {
   currentLevel.entities = currentLevel.entities.filter((e) => e != entity);
+}
+
+export function despawnEntityByType(type: EntityTypes): void {
+  currentLevel.entities = currentLevel.entities.filter((e) => e.type != type);
 }
