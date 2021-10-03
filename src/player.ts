@@ -38,6 +38,7 @@ import {
   DASH_LENGTH,
   DEATH_ANIMATION_PIXEL_SPREAD,
   DEATH_ANIMATION_TICKS,
+  DOUBLE_JUMP_VELOCITY,
   ENTROPY_BASE_RATE,
   ENTROPY_DEAD_RATE,
   ENTROPY_HOT_RATE,
@@ -59,6 +60,7 @@ import {
   POST_DASH_VELOCITY,
   Point,
   RESET_DURATION_TICKS,
+  VICTORY_DURATION_TICKS,
   Vector,
   ZoneMode,
 } from "./models";
@@ -135,10 +137,23 @@ function jumpInitState(player: PlayerEntity, level: Level, input: GameInput): Pl
   return walkingState(modifiedPlayer, level, input);
 }
 
+function doubleJumpInitState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  const modifiedPlayer = { ...player, grounded: false, vel: { x: player.vel.x, y: -DOUBLE_JUMP_VELOCITY } };
+  return walkingState(modifiedPlayer, level, input);
+}
+
 function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") return player;
   if (player.stateMachine.state.framesDead >= RESET_DURATION_TICKS) {
     level.doRestart = true;
+  }
+  return player;
+}
+
+function victoryState(player: PlayerEntity, level: Level): PlayerEntity {
+  if (player.stateMachine.state.type != "VICTORY") return player;
+  if (player.stateMachine.state.framesVictorious >= VICTORY_DURATION_TICKS) {
+    level.nextLevel = true;
   }
   return player;
 }
@@ -240,11 +255,13 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
 export function updateCurrentState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
   return {
     ASPLODE: dyingState,
+    VICTORY: victoryState,
     ASCENDING: walkingState,
     DASH_PREP: dashPrepState,
     DASHING: dashingState,
     DESCENDING: walkingState,
     JUMP_PREP: jumpInitState,
+    DOUBLE_JUMP_PREP: doubleJumpInitState,
     STANDING: standingState,
     LANDING: walkingState,
     OUT_OF_ENTROPY: standingState,
@@ -281,9 +298,10 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
 function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "STANDING") return player;
-  if (input.wantsToJump) {
+  if (input.wantsToJump && player.lastJumpReleased) {
     return {
       ...player,
+      lastJumpReleased: false,
       stateMachine: {
         ...player.stateMachine,
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
@@ -337,9 +355,10 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
 function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "WALKING") return player;
-  if (input.wantsToJump) {
+  if (input.wantsToJump && player.lastJumpReleased) {
     return {
       ...player,
+      lastJumpReleased: false,
       stateMachine: {
         ...player.stateMachine,
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
@@ -415,6 +434,32 @@ function updateStateJumpPrep(player: PlayerEntity): PlayerEntity {
   return player;
 }
 
+function updateStatedDoubleJumpPrep(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "DOUBLE_JUMP_PREP") return player;
+  if (0 < state.ticksRemainingBeforeAscent) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "DOUBLE_JUMP_PREP",
+          ticksRemainingBeforeAscent: state.ticksRemainingBeforeAscent - 1,
+        },
+      },
+    };
+  } else if (state.ticksRemainingBeforeAscent === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "ASCENDING" },
+      },
+    };
+  }
+  return player;
+}
+
 function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
@@ -426,6 +471,16 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
         ...player.stateMachine,
         facing,
         state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
+      },
+    };
+  } else if (input.wantsToJump && player.lastJumpReleased) {
+    return {
+      ...player,
+      entropy: player.entropy - 1,
+      lastJumpReleased: false,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DOUBLE_JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
   } else if (player.vel.y >= 0) {
@@ -452,6 +507,16 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
         ...player.stateMachine,
         facing,
         state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
+      },
+    };
+  } else if (input.wantsToJump && player.lastJumpReleased) {
+    return {
+      ...player,
+      entropy: player.entropy - 1,
+      lastJumpReleased: false,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DOUBLE_JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
   } else if (player.grounded) {
@@ -586,6 +651,19 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
   };
 }
 
+function updateStateVictory(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "VICTORY") return player;
+  // Experience Zen
+  return {
+    ...player,
+    stateMachine: {
+      ...player.stateMachine,
+      state: { type: "VICTORY", framesVictorious: state.framesVictorious + 1 },
+    },
+  };
+}
+
 function updateActiveTile(player: PlayerEntity): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") {
     if (player.activeTile == "kill") {
@@ -598,13 +676,24 @@ function updateActiveTile(player: PlayerEntity): PlayerEntity {
       };
     }
   }
+  if (player.stateMachine.state.type != "VICTORY") {
+    if (player.activeTile == "exit") {
+      return {
+        ...player,
+        stateMachine: {
+          ...player.stateMachine,
+          state: { type: "VICTORY", framesVictorious: 0 },
+        },
+      };
+    }
+  }
   return player;
 }
 
 function updateEntropy(player: PlayerEntity): PlayerEntity {
   if (
     player.entropy < 0 &&
-    ["OUT_OF_ENTROPY", "DASH_PREP", "DASHING", "ASPLODE"].findIndex(
+    ["OUT_OF_ENTROPY", "DASH_PREP", "DASHING", "ASPLODE", "VICTORY"].findIndex(
       (state) => state === player.stateMachine.state.type
     ) === -1
   ) {
@@ -668,10 +757,12 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
     DASHING: updateStateDashing,
     DESCENDING: updateStateDescending,
     JUMP_PREP: updateStateJumpPrep,
+    DOUBLE_JUMP_PREP: updateStatedDoubleJumpPrep,
     STANDING: updateStateStanding,
     LANDING: updateStateLanding,
     OUT_OF_ENTROPY: updateStateOutOfEntropy,
     WALKING: updateStateWalking,
+    VICTORY: updateStateVictory,
   }[player.stateMachine.state.type](tileUpdatedPlayer, input);
 }
 
@@ -728,6 +819,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     grounded: false,
     afterImages: [],
+    lastJumpReleased: true,
     isDead: false,
     activeZone: "normal",
     activeTile: "empty",
@@ -788,17 +880,16 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       if (entity.type != "playerEntity") return entity;
 
       const input = currentInput();
+      if (!input.wantsToJump) {
+        entity.lastJumpReleased = true;
+      }
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
       entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
       entity.activeTile = sensorInPhysicalMode(entity.pos, entity.tileSensor, level);
 
-      // print(entity, level); //stop complaining about unused variables
-      // print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
-      // print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
-      // print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
-      // print(`PlayerState ${entity.stateMachine.state.type}`);
-      // print(`PlayerZone ${entity.activeZone}`);
+      print(`PlayerState ${entity.stateMachine.state.type}`);
+
       return entity;
     },
     drawEffect: {},
