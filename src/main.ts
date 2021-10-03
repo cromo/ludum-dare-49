@@ -1,3 +1,5 @@
+import { Canvas, Shader } from "love.graphics";
+
 import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
@@ -14,6 +16,8 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 
 const LEVEL_SEQUENCE = [debugLevel, sampleLevelEmpty];
 let currentLevelIndex = 0;
+let globalCanvas: Canvas;
+let bloomShader: Shader;
 
 love.load = () => {
   initBackgroundCanvas();
@@ -25,6 +29,9 @@ love.load = () => {
   print(levelData);
   currentLevelIndex = 0;
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
+
+  globalCanvas = love.graphics.newCanvas();
+  bloomShader = love.graphics.newShader("res/bloom.hlsl");
 };
 
 love.keypressed = input.onKeyDown;
@@ -58,6 +65,8 @@ love.update = (dt) => {
 love.draw = () => {
   const { push, pop, scale } = love.graphics;
 
+  love.graphics.setCanvas(globalCanvas);
+
   push();
   scale(GAME_SCALE, GAME_SCALE);
   const level = getCurrentLevel();
@@ -66,4 +75,14 @@ love.draw = () => {
   love.graphics.setColor(0, 0, 0);
   love.graphics.print(`${love.timer.getFPS()}`, 2, 2);
   pop();
+
+  love.graphics.setCanvas();
+  // draw the stage once, normally
+  love.graphics.setShader();
+  love.graphics.setColor(1, 1, 1);
+  love.graphics.draw(globalCanvas, 0, 0);
+  // draw it again, with the bloom shader active
+  love.graphics.setShader(bloomShader);
+  love.graphics.setColor(1, 1, 1);
+  love.graphics.draw(globalCanvas, 0, 0);
 };
