@@ -46,6 +46,10 @@ export const RESET_DURATION_TICKS = 60;
 export const DEATH_ANIMATION_TICKS = (1 / 2) * RESET_DURATION_TICKS;
 export const DEATH_ANIMATION_PIXEL_SPREAD = 400;
 
+export const MINIMUM_DISTANCE_BETWEEN_AFTERIMAGES = 18;
+export const MINIMUM_AFTERIMAGE_TICK_DURATION = 3;
+export const MAXIMUM_AFTERIMAGE_TICK_DURATION = 30;
+
 // Add a pip every four seconds (4 * 60 ticks)
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
 export const ENTROPY_DEAD_RATE = 1 / (8 * 60);
@@ -132,6 +136,7 @@ export interface PlayerEntity extends VisibleEntity {
   entropyInstabilityCountdown: number[];
   stateMachine: PlayerStateMachine;
   grounded: boolean;
+  afterImages: (Vector & { ticksRemaining: number })[];
   isDead: boolean;
   activeZone: ZoneMode;
   activeTile: PhysicalMode;
