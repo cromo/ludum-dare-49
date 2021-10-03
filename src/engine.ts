@@ -12,6 +12,24 @@ export function initBackgroundCanvas(): void {
   backgroundCanvas = love.graphics.newCanvas();
 }
 
+function drawBackgroundTiles({ tiles }: Level): void {
+  const { draw, setColor } = love.graphics;
+
+  love.graphics.push();
+  love.graphics.scale(1, 1);
+  love.graphics.setCanvas(backgroundCanvas);
+  setColor(255, 255, 255);
+  // Draw the tiles
+  for (let y = 0; y < tiles.length; ++y) {
+    for (let x = 0; x < tiles[y].length; ++x) {
+      const tile = tiles[y][x];
+      draw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS);
+    }
+  }
+  love.graphics.setCanvas();
+  love.graphics.pop();
+}
+
 export function tick(level: Level): void {
   level.entities = level.entities.map((entity) => entity.update(level, entity));
 
@@ -28,21 +46,11 @@ export function tick(level: Level): void {
       level.doRestart = true;
     }
   }
-}
 
-function drawBackgroundTiles({ tiles }: Level): void {
-  const { draw, setColor } = love.graphics;
-
-  love.graphics.setCanvas(backgroundCanvas);
-  setColor(255, 255, 255);
-  // Draw the tiles
-  for (let y = 0; y < tiles.length; ++y) {
-    for (let x = 0; x < tiles[y].length; ++x) {
-      const tile = tiles[y][x];
-      draw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS);
-    }
+  if (level.requestBackgroundRedraw) {
+    drawBackgroundTiles(level);
+    delete level.requestBackgroundRedraw;
   }
-  love.graphics.setCanvas();
 }
 
 export function loadLevel(levelDefinition: LevelDefinition): void {

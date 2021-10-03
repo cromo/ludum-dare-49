@@ -4,7 +4,7 @@ import * as input from "./input";
 import { getCurrentLevel } from "./levels";
 import { debugLevel } from "./levels/debugLevel";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
-import { GAME_SCALE } from "./models";
+import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
 
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
@@ -15,6 +15,7 @@ const LEVEL_SEQUENCE = [debugLevel, sampleLevelEmpty];
 let currentLevelIndex = 0;
 
 love.load = () => {
+  buildStructresAtInit();
   initBackgroundCanvas();
 
   initFastRandom();

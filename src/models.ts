@@ -73,6 +73,7 @@ export interface Level {
   doRestart?: true; // true = reload this level (when you die)
   nextLevel?: true; // true = go to the next level in the level sequence (normal)
   gotoLevel?: LevelDefinition; // go to a specific level (storytelling)
+  requestBackgroundRedraw?: true;
 }
 
 export interface Point {
@@ -239,6 +240,40 @@ export interface TileDef {
 
 export interface TileEffect {
   glitchyLevel?: number;
+}
+
+export const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {};
+
+export function buildStructresAtInit(): void {
+  TILE_CODE_TO_TYPE[" "] = { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") };
+  TILE_CODE_TO_TYPE["*"] = { type: TileTypes.WALL_BLOCK, image: love.graphics.newImage("res/wall.png") };
+  TILE_CODE_TO_TYPE["|"] = { type: TileTypes.WALL_VERTICAL, image: love.graphics.newImage("res/wall-vertical.png") };
+  TILE_CODE_TO_TYPE["-"] = {
+    type: TileTypes.WALL_HORIZONTAL,
+    image: love.graphics.newImage("res/wall-horizontal.png"),
+  };
+  TILE_CODE_TO_TYPE["^"] = { type: TileTypes.SEMI_SOLID, image: love.graphics.newImage("res/semisolid.png") };
+  TILE_CODE_TO_TYPE["~"] = {
+    type: TileTypes.GLITCH_WALL,
+    image: love.graphics.newImage("res/wall-glitch.png"),
+    effect: { glitchyLevel: 2 / 16 },
+  };
+  TILE_CODE_TO_TYPE["S"] = {
+    type: TileTypes.ENTRANCE_CONDUIT,
+    image: love.graphics.newImage("res/conduit-entrance.png"),
+    effect: { glitchyLevel: 1 / 16 },
+  };
+  TILE_CODE_TO_TYPE["F"] = {
+    type: TileTypes.EXIT_CONDUIT,
+    image: love.graphics.newImage("res/conduit-exit.png"),
+    effect: { glitchyLevel: 1 / 16 },
+  };
+  TILE_CODE_TO_TYPE["1"] = {
+    type: TileTypes.ONCE_WALL,
+    image: love.graphics.newImage("res/wall-once.png"),
+    effect: { glitchyLevel: 1 / 16 },
+  };
+  TILE_CODE_TO_TYPE["K"] = { type: TileTypes.KILL_PLANE, image: love.graphics.newImage("res/kill.png") };
 }
 
 export interface LevelDefinition {

@@ -57,19 +57,25 @@ import {
   POST_DASH_VELOCITY,
   Point,
   RESET_DURATION_TICKS,
+  TILE_CODE_TO_TYPE,
+  TileDef,
+  TileTypes,
   VICTORY_DURATION_TICKS,
   Vector,
   ZoneMode,
 } from "./models";
-import { Facing, PlayerEntity } from "./models";
+import { Facing, GlitchMode as LevelGlitchMode, PlayerEntity } from "./models";
 import {
   collideWithLevel,
   glitchSolidCollider,
   hitboxOverlapsGlitchTile,
   normalSolidCollider,
+  sensorInGlitchMode,
   sensorInPhysicalMode,
   sensorInZone,
   stepPhysics,
+  tileCoordinates,
+  tileInBounds,
 } from "./physics";
 
 function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
@@ -181,6 +187,23 @@ function dashDiretionFrom(facing: Facing, dashInput: DashDirection): Vector {
   }
 }
 
+function floodFill(
+  location: Point,
+  sourceType: TileTypes,
+  destinationType: TileDef,
+  destinationGlitchMode: LevelGlitchMode,
+  level: Level
+): void {
+  if (tileInBounds(location) && level.tiles[location.y][location.x].type == sourceType) {
+    level.tiles[location.y][location.x] = { ...destinationType };
+    level.glitchModes[location.y][location.x] = destinationGlitchMode;
+    floodFill({ x: location.x + 1, y: location.y + 0 }, sourceType, destinationType, destinationGlitchMode, level);
+    floodFill({ x: location.x - 1, y: location.y + 0 }, sourceType, destinationType, destinationGlitchMode, level);
+    floodFill({ x: location.x + 0, y: location.y + 1 }, sourceType, destinationType, destinationGlitchMode, level);
+    floodFill({ x: location.x + 0, y: location.y - 1 }, sourceType, destinationType, destinationGlitchMode, level);
+  }
+}
+
 function normalize(vec: Vector): Vector {
   const length = math.sqrt(vec.x * vec.x + vec.y * vec.y);
   return { x: vec.x / length, y: vec.y / length };
@@ -206,9 +229,22 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
     friction: { x: 0, y: 0 },
   };
 
+  const onceGlitchTilesTouched = [];
+
   // Iterate the physics step 4 times, moving the player approximately 2 tiles in the dash direction instantly
   for (let i = 0; i < DASH_LENGTH; i++) {
     modifiedPlayer = applyGlitchMovement(modifiedPlayer, level);
+    const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, modifiedPlayer.tileSensor, level);
+    if (glitchMode == "glitch_once") {
+      onceGlitchTilesTouched.push(tileCoordinates(modifiedPlayer.pos));
+    }
+  }
+
+  for (const onceGlitchTile of onceGlitchTilesTouched) {
+    const replacementTileDef = TILE_CODE_TO_TYPE["*"];
+    const sourceTileType = TILE_CODE_TO_TYPE["1"].type;
+    floodFill(onceGlitchTile, sourceTileType, replacementTileDef, "solid", level);
+    level.requestBackgroundRedraw = true;
   }
 
   // Here, if we are currently in a glitch tile, continue to iterate until one of several things happens:
@@ -851,9 +887,6 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       entity = updateCurrentState(entity, level, input);
       entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
       entity.activeTile = sensorInPhysicalMode(entity.pos, entity.tileSensor, level);
-
-      print(`PlayerState ${entity.stateMachine.state.type}`);
-
       return entity;
     },
     drawEffect: {},
