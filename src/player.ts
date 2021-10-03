@@ -44,6 +44,7 @@ import {
   ENTROPY_HOT_RATE,
   ENTROPY_LIMIT,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
+  EXTENDED_DASH_SAFETY_LIMIT,
   GRAVITY,
   HitBox,
   JUMP_VELOCITY,
@@ -106,6 +107,7 @@ function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): Player
   const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
   player.pos = collidedPos;
   if (hitX || hitY) {
+    /* Telesplat(tm) */
     player.isDead = true;
   }
   return player;
@@ -237,9 +239,13 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   // Iterate the physics step 4 times, moving the player approximately 2 tiles in the dash direction instantly
   for (let i = 0; i < DASH_LENGTH; i++) {
     modifiedPlayer = applyGlitchMovement(modifiedPlayer, level);
-    const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, modifiedPlayer.tileSensor, level);
-    if (glitchMode == "glitch_once") {
-      onceGlitchTilesTouched.push(tileCoordinates(modifiedPlayer.pos));
+    for (const corner of modifiedPlayer.hitbox.corners) {
+      const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, corner, level);
+      if (glitchMode == "glitch_once") {
+        onceGlitchTilesTouched.push(
+          tileCoordinates({ x: modifiedPlayer.pos.x + corner.x, y: modifiedPlayer.pos.y + corner.y })
+        );
+      }
     }
   }
 
@@ -251,14 +257,23 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   while (
     !modifiedPlayer.isDead &&
     hitboxOverlapsGlitchTile(modifiedPlayer.pos, modifiedPlayer.hitbox, level) &&
-    safetyCounter < 16
+    safetyCounter < EXTENDED_DASH_SAFETY_LIMIT
   ) {
     modifiedPlayer = applyExtendedGlitchMovement(modifiedPlayer, level);
     safetyCounter += 1;
-    const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, modifiedPlayer.tileSensor, level);
-    if (glitchMode == "glitch_once") {
-      onceGlitchTilesTouched.push(tileCoordinates(modifiedPlayer.pos));
+    for (const corner of modifiedPlayer.hitbox.corners) {
+      const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, corner, level);
+      if (glitchMode == "glitch_once") {
+        onceGlitchTilesTouched.push(
+          tileCoordinates({ x: modifiedPlayer.pos.x + corner.x, y: modifiedPlayer.pos.y + corner.y })
+        );
+      }
     }
+  }
+
+  if (safetyCounter == EXTENDED_DASH_SAFETY_LIMIT) {
+    /* Force a Telesplat. The employee safety handbook was *very* clear. */
+    modifiedPlayer.entropy = ENTROPY_LIMIT;
   }
 
   for (const onceGlitchTile of onceGlitchTilesTouched) {

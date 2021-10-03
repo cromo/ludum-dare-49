@@ -38,6 +38,7 @@ export const PLAYER_FRICTION = 0.05;
 export const JUMP_VELOCITY = 3.5;
 export const DOUBLE_JUMP_VELOCITY = 2.5;
 export const DASH_LENGTH = 8; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
+export const EXTENDED_DASH_SAFETY_LIMIT = 255; // measured in half-tiles; should be comfortably more than the length of the widest level
 export const POST_DASH_VELOCITY = 4; // speed, in the direction of the dash, after the teleport effect ends. "Wheeeeee4!#~"
 export const DASH_CHARGE_FRAMES = 10;
 export const COYOTE_TIME = 5; // frames
