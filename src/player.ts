@@ -243,13 +243,6 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
     }
   }
 
-  for (const onceGlitchTile of onceGlitchTilesTouched) {
-    const replacementTileDef = TILE_CODE_TO_TYPE["*"];
-    const sourceTileType = TILE_CODE_TO_TYPE["1"].type;
-    floodFill(onceGlitchTile, sourceTileType, replacementTileDef, "solid", level);
-    level.requestBackgroundRedraw = true;
-  }
-
   // Here, if we are currently in a glitch tile, continue to iterate until one of several things happens:
   // If we leave glitch tiles, the effect ends
   // If we hit a solid AND we are still on a glitch tile, we die
@@ -262,6 +255,17 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   ) {
     modifiedPlayer = applyExtendedGlitchMovement(modifiedPlayer, level);
     safetyCounter += 1;
+    const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, modifiedPlayer.tileSensor, level);
+    if (glitchMode == "glitch_once") {
+      onceGlitchTilesTouched.push(tileCoordinates(modifiedPlayer.pos));
+    }
+  }
+
+  for (const onceGlitchTile of onceGlitchTilesTouched) {
+    const replacementTileDef = TILE_CODE_TO_TYPE["*"];
+    const sourceTileType = TILE_CODE_TO_TYPE["1"].type;
+    floodFill(onceGlitchTile, sourceTileType, replacementTileDef, "solid", level);
+    level.requestBackgroundRedraw = true;
   }
 
   // At this point we have either exited the dash on the other side of a glitch wall or died trying. Reset our speed cap
