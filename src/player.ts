@@ -721,7 +721,6 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
           flipHorizontally,
         });
       } else if (state.framesDead < DEATH_ANIMATION_TICKS) {
-        print(state.framesDead);
         love.graphics.setColor(1, 1, 1);
         const deathAnimationPercent = state.framesDead / DEATH_ANIMATION_TICKS;
         const centeredDeathAnimationPercent = deathAnimationPercent - 0.5;

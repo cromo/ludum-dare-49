@@ -22,7 +22,6 @@ love.load = () => {
   loadPlayerSprites();
 
   const levelData = parseLevelDefinition(debugLevel);
-  print(levelData);
   currentLevelIndex = 0;
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
 };
