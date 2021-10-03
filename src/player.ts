@@ -929,6 +929,9 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       if (!input.wantsToJump) {
         entity.lastJumpReleased = true;
       }
+      if (input.wantsToReset) {
+        entity.entropy = ENTROPY_LIMIT;
+      }
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
       entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
