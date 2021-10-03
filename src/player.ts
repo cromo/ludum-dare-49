@@ -110,8 +110,12 @@ function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): Player
   if (hitX || hitY) {
     /* Telesplat(tm) */
     player.isDead = true;
-    // TODO(@zach): The player crashed into a wall, while still inside glitch tiles. We can't put them somewhere
-    // safe, so they die instantly. We probably have a million lawsuits pending...
+    const terminal = getTerminal();
+    if (terminal) {
+      terminal.trackers.deathCount++;
+      terminal.trackers.lastDeathType = "telesplat";
+      terminal.trackers.deathTick = true;
+    }
   }
   return player;
 }
@@ -281,8 +285,12 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (safetyCounter == EXTENDED_DASH_SAFETY_LIMIT) {
     /* Force a Telesplat. The employee safety handbook was *very* clear. */
     modifiedPlayer.entropy = ENTROPY_LIMIT;
-    // TODO(@zach): This shouldn't be possible to reach in normal gameplay. If it occurs, the terminal
-    // should probably treat it like an ordinary Telesplat
+    const terminal = getTerminal();
+    if (terminal) {
+      terminal.trackers.deathCount++;
+      terminal.trackers.lastDeathType = "telesplat";
+      terminal.trackers.deathTick = true;
+    }
   }
 
   for (const onceGlitchTile of onceGlitchTilesTouched) {
@@ -731,7 +739,12 @@ function updateStateVictory(player: PlayerEntity): PlayerEntity {
 function updateActiveTile(player: PlayerEntity): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") {
     if (player.activeTile == "kill") {
-      // TODO(@zach): The player was killed by a kill tile
+      const terminal = getTerminal();
+      if (terminal) {
+        terminal.trackers.deathCount++;
+        terminal.trackers.lastDeathType = "killPlane";
+        terminal.trackers.deathTick = true;
+      }
       return {
         ...player,
         stateMachine: {
@@ -773,7 +786,12 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     };
   }
   if (ENTROPY_LIMIT <= player.entropy && player.stateMachine.state.type !== "ASPLODE") {
-    // TODO(@zach): This is overload
+    const terminal = getTerminal();
+    if (terminal) {
+      terminal.trackers.deathCount++;
+      terminal.trackers.lastDeathType = "overload";
+      terminal.trackers.deathTick = true;
+    }
     return {
       ...player,
       stateMachine: {
