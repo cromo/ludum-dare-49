@@ -621,7 +621,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         glitchRate: 0.3,
         spread: 3,
         mode: GlitchMode.Progressive,
-        flipHorizontally: false,
+        flipHorizontally: entity.stateMachine.facing === Facing.Right,
       });
 
       // Draw pips
