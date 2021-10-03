@@ -555,7 +555,12 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
 }
 
 function updateEntropy(player: PlayerEntity): PlayerEntity {
-  if (player.entropy < 0 && player.stateMachine.state.type !== "OUT_OF_ENTROPY") {
+  if (
+    player.entropy < 0 &&
+    ["OUT_OF_ENTROPY", "DASH_PREP", "DASHING", "ASPLODE"].findIndex(
+      (state) => state === player.stateMachine.state.type
+    ) === -1
+  ) {
     // Forcefully yank the player out of any state when they run out of entropy.
     return {
       ...player,
