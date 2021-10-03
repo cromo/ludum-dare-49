@@ -85,7 +85,14 @@ import {
 function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
   stepPhysics(player);
-  const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, normalSolidCollider);
+  const { collidedPos, hitX, hitY } = collideWithLevel(
+    oldPos,
+    player.pos,
+    player.hitbox,
+    player.groundHitbox,
+    level,
+    normalSolidCollider
+  );
   player.pos = collidedPos;
   if (hitX) {
     player.vel.x = 0.0;
@@ -104,7 +111,14 @@ function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
 function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
   stepPhysics(player);
-  const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
+  const { collidedPos, hitX, hitY } = collideWithLevel(
+    oldPos,
+    player.pos,
+    player.hitbox,
+    player.groundHitbox,
+    level,
+    glitchSolidCollider
+  );
   player.pos = collidedPos;
   if (hitX || hitY) {
     /* Telesplat(tm) */
@@ -118,7 +132,14 @@ function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): Player
 function applyGlitchMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
   stepPhysics(player);
-  const { collidedPos } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
+  const { collidedPos } = collideWithLevel(
+    oldPos,
+    player.pos,
+    player.hitbox,
+    player.groundHitbox,
+    level,
+    glitchSolidCollider
+  );
   player.pos = collidedPos;
   return player;
 }
