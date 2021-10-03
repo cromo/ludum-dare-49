@@ -26,6 +26,7 @@ export function initAudio(): void {
   availableSfx["death"] = { source: audio.newSource("res/sfx/death.wav", "static"), pitchVariation: 0.1 };
   availableSfx["dash"] = { source: audio.newSource("res/sfx/glitch-dash3.wav", "static"), pitchVariation: 0.1 };
   availableSfx["exit"] = { source: audio.newSource("res/sfx/tepelort.wav", "static") };
+  availableSfx["geiger"] = { source: audio.newSource("res/sfx/geiger-raw.wav", "static"), pitchVariation: 0.2 };
 }
 
 export function playSfx(id: string, volume?: number, pitchVariation?: number): void {

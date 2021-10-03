@@ -845,6 +845,15 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   const entropyCap = player.activeZone == "dead" ? 2 : ENTROPY_LIMIT;
   const newEntropy = Math.min(player.entropy + entropyGrowthRate, entropyCap);
 
+  // figure out which "segment" of our pip charge we're in at the moment
+  const oldEntropySegment = Math.floor(player.entropy / (1 / 16)) % 8;
+  const newEntropySegment = Math.floor(newEntropy / (1 / 16)) % 8;
+  if (oldEntropySegment != newEntropySegment) {
+    const baseClickVolume = newEntropySegment % 2 == 0 ? 0.5 : 0.25;
+    const zoneMultiplier = player.activeZone == "hot" ? 1.5 : 1.0;
+    playSfx("geiger", baseClickVolume * zoneMultiplier);
+  }
+
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
