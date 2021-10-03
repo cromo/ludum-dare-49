@@ -1,4 +1,6 @@
-import { Texture } from "love.graphics";
+import { Quad, SpriteBatch, Texture } from "love.graphics";
+
+import { TILE_SIZE_PIXELS } from "./models";
 
 const randomTable: number[] = [];
 let currentRunLength = 0;
@@ -23,12 +25,25 @@ function fastRandom(): number {
   return result;
 }
 
-// Since everything is 16x16px, just use one quad for everything.
-// Maybe this will change and everything will need to carry its own quad around,
-// but until then...
-const window = love.graphics.newQuad(0, 5, 16, 1, 16, 16);
-
 const lines = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
+let batch: SpriteBatch | undefined;
+function getSpriteBatch(): SpriteBatch {
+  if (batch === undefined) {
+    batch = love.graphics.newSpriteBatch(love.graphics.newImage(love.image.newImageData(16, 16)));
+  }
+  return batch;
+}
+
+const quads: Quad[] = [];
+function getQuads(): Quad[] {
+  if (quads.length === 0) {
+    for (let i = 0; i < 16; ++i) {
+      quads.push(love.graphics.newQuad(0, 0, TILE_SIZE_PIXELS, 1, TILE_SIZE_PIXELS, TILE_SIZE_PIXELS));
+    }
+  }
+  return quads;
+}
 
 function shuffleInPlace<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -83,6 +98,12 @@ export function glitchedDraw(
     return;
   }
 
+  const batch = getSpriteBatch();
+  batch.clear();
+  batch.setTexture(drawable);
+  const quads = getQuads();
+  let currentQuadIndex = 0;
+
   shuffleInPlace(lines);
   let spansToDrawNormally: number[][] = [[0, 15]];
   const scanlinesToOffsetCount = Math.floor(glitchRate * lines.length);
@@ -91,13 +112,16 @@ export function glitchedDraw(
     if (mode === GlitchMode.Progressive) {
       spansToDrawNormally = spansToDrawNormally.flatMap(([lower, upper]) => splitRange(lower, upper, scanline));
     }
-    window.setViewport(0, scanline, 16, 1);
-    draw(drawable, window, xAdjusted + Math.round((random() - 0.5) * spread), y + scanline, undefined, scale, 1);
+    const quad = quads[currentQuadIndex++];
+    quad.setViewport(0, scanline, 16, 1);
+    batch.add(quad, xAdjusted + Math.round((random() - 0.5) * spread), y + scanline, undefined, scale, 1);
   }
   if (mode === GlitchMode.Progressive) {
     spansToDrawNormally.forEach(([start, end]) => {
-      window.setViewport(0, start, 16, end - start + 1);
-      draw(drawable, window, xAdjusted, y + start, undefined, scale, 1);
+      const quad = quads[currentQuadIndex++];
+      quad.setViewport(0, start, 16, end - start + 1);
+      batch.add(quad, xAdjusted, y + start, undefined, scale, 1);
     });
   }
+  draw(batch);
 }
