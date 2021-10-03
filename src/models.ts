@@ -41,6 +41,10 @@ export const DASH_LENGTH = 8; // measured in half-tiles, when moving in a cardin
 export const POST_DASH_VELOCITY = 4; // speed, in the direction of the dash, after the teleport effect ends. "Wheeeeee4!#~"
 export const COYOTE_TIME = 5; // frames
 
+export const RESET_DURATION_TICKS = 60;
+export const DEATH_ANIMATION_TICKS = (1 / 2) * RESET_DURATION_TICKS;
+export const DEATH_ANIMATION_PIXEL_SPREAD = 400;
+
 // Add a pip every four seconds (4 * 60 ticks)
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
 export const ENTROPY_DEAD_RATE = 1 / (8 * 60);
