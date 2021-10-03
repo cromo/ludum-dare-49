@@ -841,6 +841,12 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         { x: 11, y: 14 },
       ],
     },
+    groundHitbox: {
+      corners: [
+        { x: 4, y: 14 },
+        { x: 11, y: 14 },
+      ],
+    },
     footSensor: { x: 8.0, y: 16 },
     tileSensor: { x: 8.0, y: 8.0 },
     entropy: 1,

@@ -131,6 +131,7 @@ export interface PlayerEntity extends VisibleEntity {
   directionalInfluenceAcc: number;
   directionalInfluenceSpeedCap: number;
   hitbox: HitBox;
+  groundHitbox: HitBox;
   footSensor: Point;
   tileSensor: Point;
   entropy: number;
