@@ -37,7 +37,7 @@ export const MOVEMENT_ACCELERATION = 0.2;
 export const MOVEMENT_SPEEDCAP = 2;
 export const PLAYER_FRICTION = 0.05;
 export const JUMP_VELOCITY = 3.5;
-export const DOUBLE_JUMP_VELOCITY = 2.5;
+export const DOUBLE_JUMP_VELOCITY = 3.5;
 export const DASH_LENGTH = 8; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
 export const EXTENDED_DASH_SAFETY_LIMIT = 255; // measured in half-tiles; should be comfortably more than the length of the widest level
 export const POST_DASH_VELOCITY = 4; // speed, in the direction of the dash, after the teleport effect ends. "Wheeeeee4!#~"
@@ -62,6 +62,12 @@ export const PIP_INSTABILITY_SPREAD = 10;
 export const OUT_OF_ENTROPY_PENALTY_TICKS = 10;
 export const ENTROPY_LIMIT = 6;
 export const ENTROPY_PIP_GAINED_GLITCH_SPREAD = 30;
+
+// Terminal timing constants
+export const TERMINAL_FILLER_COOLDOWN_TICKS = 30;
+export const TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS = 960;
+// GENERAL_FILLER should be larger than TERMINAL_FILLER_COOLDOWN_TICKS
+export const TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS = 180;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
@@ -308,7 +314,12 @@ export interface LevelAnnotation {
 
 export interface TerminalAnnotation {
   onSpawn?: TerminalMessage[];
-  onDeath?: TerminalMessage[];
+  // onDeath?: TerminalMessage[];
+  onKillPlaneDeath?: TerminalMessage[];
+  onOverloadDeath?: TerminalMessage[];
+  onTelesplatDeath?: TerminalMessage[];
+  onResetDeath?: TerminalMessage[];
+  onOOBDeath?: TerminalMessage[];
 
   idleMessages?: TerminalMessage[];
   deadZoneMessages?: TerminalMessage[];
@@ -339,7 +350,7 @@ export interface TerminalTrackers {
   ticksSinceLastFillerMessage: number;
   spawnTick: boolean; // onSpawn
   deathTick: boolean; // onDeath - the moment the player dies but before the level resets
-  ticksSincePlayerInput: number;
+  ticksOfPlayerIdling: number;
   ticksInDeadZone: number;
   ticksInHotZone: number;
   ticksInTopHalf: number;
@@ -350,6 +361,12 @@ export interface TerminalTrackers {
   ticksOnLevel: number; // across all lives
 
   deathCount: number; // number of times player died on this level
+  deathsByKillPlane: number;
+  deathsByOverload: number;
+  deathsByOOB: number;
+  deathsByTelesplat: number;
+  deathsByReset: number;
+  lastDeathType: "none" | "killPlane" | "overload" | "OOB" | "telesplat" | "reset";
 
   trackedTag: TerminalTrackedTag[];
 
@@ -357,7 +374,12 @@ export interface TerminalTrackers {
   conversations: TerminalConversation[];
 
   onSpawnProgress: number;
-  onDeathProgress: number;
+  onKillPlaneDeathProgress: number;
+  onOverloadDeathProgress: number;
+  onOOBDeathProgress: number;
+  onTelesplatDeathProgress: number;
+  onResetDeathProgress: number;
+
   idleMessagesProgress: number;
   deadZoneMessagesProgress: number;
   hotZoneMessagesProgress: number;
@@ -381,8 +403,15 @@ export interface TerminalConversationAnnotation {
   steps: TerminalConversationStep[];
 }
 
+export type checkFn = (stats: {
+  player?: PlayerEntity;
+  terminal: TerminalEntity;
+  track: TerminalTrackers;
+  level: Level;
+}) => boolean;
+
 export interface TerminalConversationStep {
-  check: (stats: { player?: PlayerEntity; terminal: TerminalEntity; track: TerminalTrackers; level: Level }) => boolean;
+  check: checkFn;
   run?: (stats: { player?: PlayerEntity; terminal: TerminalEntity; track: TerminalTrackers; level: Level }) => void;
   message?: TerminalMessage;
 }
