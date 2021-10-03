@@ -35,8 +35,10 @@ import { currentInput } from "./input";
 import {
   COYOTE_TIME,
   DASH_LENGTH,
+  ENTROPY_BASE_RATE,
+  ENTROPY_DEAD_RATE,
+  ENTROPY_HOT_RATE,
   ENTROPY_LIMIT,
-  ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
   GRAVITY,
   HitBox,
@@ -583,7 +585,12 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
       },
     };
   }
-  const newEntropy = player.entropy + ENTROPY_NORMAL_GROWTH_RATE;
+  const entropyGrowthRate = {
+    normal: ENTROPY_BASE_RATE,
+    dead: ENTROPY_DEAD_RATE,
+    hot: ENTROPY_HOT_RATE,
+  }[player.activeZone];
+  const newEntropy = player.entropy + entropyGrowthRate;
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>

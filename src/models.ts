@@ -43,6 +43,8 @@ export const COYOTE_TIME = 5; // frames
 
 // Add a pip every four seconds (4 * 60 ticks)
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
+export const ENTROPY_DEAD_RATE = 1 / (8 * 60);
+export const ENTROPY_HOT_RATE = 1 / (2 * 60);
 export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;
 export const PIP_INSTABILITY_SPREAD = 10;
 export const OUT_OF_ENTROPY_PENALTY_TICKS = 10;
