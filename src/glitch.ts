@@ -78,7 +78,7 @@ export function glitchedDraw(
   const { draw } = love.graphics;
   const random = fastRandom;
 
-  if (glitchRate === 0) {
+  if (glitchRate === 0 || spread === 0) {
     draw(drawable, xAdjusted, y, undefined, scale, 1);
     return;
   }
