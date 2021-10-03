@@ -903,6 +903,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       );
 
       // Draw pips
+      if (state.type === "ASPLODE") return;
       const redFactor = entropy < ENTROPY_LIMIT - 1 ? 1 : (Math.sin(20 * love.timer.getTime()) + 1) / 4 + 0.75;
       setColor(1, redFactor, redFactor);
       const center = { x: x + 16 / 2 - 2, y: y + 16 / 2 };
