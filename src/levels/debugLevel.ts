@@ -1,5 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
-import { checkRespawnCount, checkTagHitCount, frustrated, glitchy, serious, step, teach, tease } from "./terminalTalk";
+import { frustrated, glitchy, onRespawn, respawnCount, serious, step, tagHitCount, teach, tease } from "./terminalTalk";
 
 export const debugLevel: LevelDefinition = {
   layout: [
@@ -33,7 +33,7 @@ export const debugLevel: LevelDefinition = {
       glitchMode: "empty",
       flags: [LevelAnnotationFlag.terminal],
       terminal: {
-        onSpawn: [
+        idleMessages: [
           teach("Take your time here"),
           frustrated("How long will going to take?"),
           tease("Here we go again~"),
@@ -45,9 +45,9 @@ export const debugLevel: LevelDefinition = {
           {
             name: "death tease",
             steps: [
-              step(checkRespawnCount(1), tease("not too good at this, are you")),
-              step(checkRespawnCount(2), tease("there you go again")),
-              step(checkRespawnCount(3), teach("protip: try doing that less")),
+              step([onRespawn, respawnCount(1)], tease("not too good at this, are you")),
+              step([onRespawn, respawnCount(2)], tease("there you go again")),
+              step([onRespawn, respawnCount(3)], teach("protip: try doing that less")),
               {
                 check: ({ track: { spawnTick, deathCount } }) => spawnTick && deathCount == 4,
                 message: serious("a strange game..."),
@@ -121,14 +121,14 @@ export const debugLevel: LevelDefinition = {
           {
             name: "get up",
             steps: [
-              step(checkTagHitCount("up", 1), teach("you got up! good job!")),
+              step(tagHitCount("up", 1), teach("you got up! good job!")),
               // {
               //   check: (x) => checkTagHitCount("up", 1)(x),
               //   message: teach("you got up! good job!"),
               //   run: ({ level }) => (level.nextLevel = true),
               // },
               // step(({ track: { spawnTick } }) => spawnTick, teach("but you died")),
-              step(checkTagHitCount("up", 2), teach("you got up again!")),
+              step(tagHitCount("up", 2), teach("you got up again!")),
               // step(({ track: { spawnTick } }) => spawnTick, teach("but you died again")),
             ],
           },

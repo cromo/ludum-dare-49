@@ -1,12 +1,4 @@
-import {
-  Level,
-  PlayerEntity,
-  TerminalConversationStep,
-  TerminalEntity,
-  TerminalMessage,
-  TerminalTone,
-  TerminalTrackers,
-} from "../models";
+import { TerminalConversationStep, TerminalMessage, TerminalTone, checkFn } from "../models";
 
 const sayWithTone = (tone: TerminalTone) => (text: string): TerminalMessage => {
   return {
@@ -27,32 +19,30 @@ export const teach = sayWithTone(TerminalTone.teach);
 
 export const tease = sayWithTone(TerminalTone.tease);
 
-export const step = (
-  check: (stats: { player?: PlayerEntity; terminal: TerminalEntity; track: TerminalTrackers; level: Level }) => boolean,
-  message: TerminalMessage
-): TerminalConversationStep => {
+export const step = (check: checkFn | checkFn[], message: TerminalMessage): TerminalConversationStep => {
+  if (Array.isArray(check)) {
+    return {
+      check: (x) => check.every((c) => c(x)),
+      message,
+    };
+  }
   return {
     check: (x) => check(x),
     message,
   };
 };
 
-export type checkFn = (stats: {
-  player?: PlayerEntity;
-  terminal: TerminalEntity;
-  track: TerminalTrackers;
-  level: Level;
-}) => boolean;
+export const onRespawn: checkFn = ({ track: { spawnTick } }) => spawnTick;
 
-export const checkRespawnCount: (deathCount: number) => checkFn = (targetCount: number) => ({
-  track: { spawnTick, deathCount },
-}) => spawnTick && deathCount == targetCount;
+export const respawnCount: (deathCount: number) => checkFn = (targetCount: number) => ({ track: { deathCount } }) =>
+  deathCount == targetCount;
 
-export const checkTagHitCount: (tag: string, targetCount: number) => checkFn = (tag: string, targetCount: number) => ({
+export const onTagHit: (tag: string) => checkFn = (tag: string) => ({ track: { trackedTag } }) => {
+  return trackedTag.filter((tt) => tt.tag == tag && tt.enteredYetThisLife).length > 0;
+};
+
+export const tagHitCount: (tag: string, targetCount: number) => checkFn = (tag: string, targetCount: number) => ({
   track: { trackedTag },
 }) => {
-  return (
-    trackedTag.filter((tt) => tt.tag == tag && tt.enteredYetThisLife && tt.timesEnteredAtLeastOnce == targetCount)
-      .length > 0
-  );
+  return trackedTag.filter((tt) => tt.tag == tag && tt.timesEnteredAtLeastOnce == targetCount).length > 0;
 };

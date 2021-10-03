@@ -32,6 +32,7 @@ import { Image, setColor } from "love.graphics";
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
+import { getTerminal } from "./levels";
 import {
   COYOTE_TIME,
   DASH_CHARGE_FRAMES,
@@ -152,6 +153,10 @@ function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") return player;
   if (player.stateMachine.state.framesDead >= RESET_DURATION_TICKS) {
     level.doRestart = true;
+    const terminal = getTerminal();
+    if (terminal) {
+      terminal.trackers.deathCount++; // TODO: move this to the causes instead
+    }
   }
   return player;
 }
