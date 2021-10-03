@@ -32,7 +32,16 @@ import { Image } from "love.graphics";
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
-import { GRAVITY, JUMP_VELOCITY, Level, Point, Vector, WALKING_ACCELERATION } from "./models";
+import {
+  GRAVITY,
+  JUMP_VELOCITY,
+  Level,
+  PIP_INSTABILITY_ANIMATION_TIME_TICKS,
+  PIP_INSTABILITY_SPREAD,
+  Point,
+  Vector,
+  WALKING_ACCELERATION,
+} from "./models";
 import { Facing, PlayerEntity } from "./models";
 import {
   collideWithLevel,
@@ -532,6 +541,19 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
 // starting point.
 export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
+  const newEntropy = player.entropy + 1 / (4 * 60);
+  const discreteOldEntropy = Math.floor(player.entropy);
+  const discreteNewEntropy = Math.floor(newEntropy);
+  const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
+    instability <= 0 ? 0 : instability - 1
+  );
+  if (discreteOldEntropy < discreteNewEntropy && discreteNewEntropy < 6) {
+    newEntropyInstability[discreteOldEntropy] = PIP_INSTABILITY_ANIMATION_TIME_TICKS;
+  }
+  // There are two steps here (sort of parallel states) - updating entropy, and
+  // the main player state.
+  // TODO(cromo): This will eventually be controlled by fields and such, but this will work for now.
+  const entropyUpdatedPlayer = { ...player, entropy: newEntropy, entropyInstabilityCountdown: newEntropyInstability };
   return {
     ASPLODE: updateStateDying,
     ASCENDING: updateStateAscending,
@@ -543,8 +565,7 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
     LANDING: updateStateLanding,
     OUT_OF_ENTROPY: updateStateOutOfEntropy,
     WALKING: updateStateWalking,
-  }[player.stateMachine.state.type](player, input);
-  return player;
+  }[player.stateMachine.state.type](entropyUpdatedPlayer, input);
 }
 
 const sprites: Record<string, Image> = {};
@@ -573,7 +594,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     footSensor: { x: 8.0, y: 16 },
     zoneSensor: { x: 8.0, y: 8.0 },
-    entropy: 22,
+    entropy: 0,
     entropyPipOffsets: [
       { x: 0, y: -20 },
       { x: 10, y: -20 },
@@ -581,6 +602,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       { x: 20, y: -20 },
       { x: -20, y: -20 },
     ],
+    entropyInstabilityCountdown: [0, 0, 0, 0, 0],
     stateMachine: {
       facing: Facing.Right,
       entropy: 0,
@@ -599,10 +621,15 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       });
 
       // Draw pips
-      const pipCountToDraw = Math.floor(entity.entropy / 20);
       const center = { x: Math.floor(entity.pos.x) + 16 / 2 - 2, y: Math.floor(entity.pos.y) + 16 / 2 };
-      entity.entropyPipOffsets.slice(0, pipCountToDraw).forEach(({ x, y }) => {
-        glitchedDraw(sprites.entropyPip, center.x + x, center.y + y, { glitchRate: 0 });
+      entity.entropyPipOffsets.slice(0, Math.floor(entity.entropy)).forEach(({ x, y }, pipNumber) => {
+        const instability = entity.entropyInstabilityCountdown[pipNumber];
+        glitchedDraw(sprites.entropyPip, center.x + x, center.y + y, {
+          glitchRate: 1 - instability / PIP_INSTABILITY_ANIMATION_TIME_TICKS,
+          spread:
+            (entity.entropyInstabilityCountdown[pipNumber] / PIP_INSTABILITY_ANIMATION_TIME_TICKS) *
+            PIP_INSTABILITY_SPREAD,
+        });
       });
     },
     update: (level, entity) => {

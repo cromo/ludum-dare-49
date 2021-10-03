@@ -38,6 +38,9 @@ export const AIR_FRICTION = 0.1;
 export const JUMP_VELOCITY = 3.5;
 export const DOUBLE_JUMP_VELOCITY = 3.5;
 
+export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;
+export const PIP_INSTABILITY_SPREAD = 10;
+
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
 export type ZoneMode = "normal" | "dead" | "hot";
@@ -110,6 +113,7 @@ export interface PlayerEntity extends VisibleEntity {
   zoneSensor: Point;
   entropy: number;
   entropyPipOffsets: Vector[];
+  entropyInstabilityCountdown: number[];
   stateMachine: PlayerStateMachine;
   grounded: boolean;
   isDead: boolean;
