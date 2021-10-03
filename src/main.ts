@@ -1,7 +1,6 @@
 import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
-import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel } from "./levels";
 import { debugLevel } from "./levels/debugLevel";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
@@ -21,7 +20,6 @@ love.load = () => {
   initFastRandom();
   loadPlayerSprites();
 
-  const levelData = parseLevelDefinition(debugLevel);
   currentLevelIndex = 0;
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
 };
