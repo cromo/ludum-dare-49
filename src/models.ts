@@ -126,6 +126,7 @@ export interface PlayerEntity extends VisibleEntity {
   stateMachine: PlayerStateMachine;
   grounded: boolean;
   isDead: boolean;
+  activeZone: ZoneMode;
 }
 
 export enum Facing {

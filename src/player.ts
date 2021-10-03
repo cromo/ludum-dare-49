@@ -39,6 +39,7 @@ import {
   ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
   GRAVITY,
+  HitBox,
   JUMP_VELOCITY,
   Level,
   MOVEMENT_ACCELERATION,
@@ -50,6 +51,7 @@ import {
   POST_DASH_VELOCITY,
   Point,
   Vector,
+  ZoneMode,
 } from "./models";
 import { Facing, PlayerEntity } from "./models";
 import {
@@ -57,6 +59,7 @@ import {
   glitchSolidCollider,
   hitboxOverlapsGlitchTile,
   normalSolidCollider,
+  sensorInZone,
   stepPhysics,
 } from "./physics";
 
@@ -620,6 +623,16 @@ export function loadPlayerSprites(): void {
   sprites.entropyPip = newImage("res/player-entropy-pip.png");
 }
 
+export function activeZone(pos: Point, hitbox: HitBox, level: Level): ZoneMode {
+  const sensedZones = hitbox.corners.map((corner) => sensorInZone(pos, corner, level));
+  const activeZone = sensedZones.reduce((a, b) => {
+    if (b == "dead") return b;
+    if (b == "hot" && a == "normal") return b;
+    return a;
+  });
+  return activeZone;
+}
+
 export function createPlayerEntity(pos: Point): PlayerEntity {
   return {
     type: "playerEntity",
@@ -655,6 +668,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     grounded: false,
     isDead: false,
+    activeZone: "normal",
     draw: (level, entity) => {
       if (entity.type !== "playerEntity") return;
       const { entropy } = entity;
@@ -689,12 +703,14 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       const input = currentInput();
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
+      entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
 
       // print(entity, level); //stop complaining about unused variables
       // print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
       // print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
       // print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
       // print(`PlayerState ${entity.stateMachine.state.type}`);
+      // print(`PlayerZone ${entity.activeZone}`);
       return entity;
     },
     drawEffect: {},
