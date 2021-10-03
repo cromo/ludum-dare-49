@@ -64,8 +64,9 @@ export const ENTROPY_PIP_GAINED_GLITCH_SPREAD = 30;
 
 // Terminal timing constants
 export const TERMINAL_FILLER_COOLDOWN_TICKS = 30;
-export const TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS = 180; // should be larger than TERMINAL_FILLER_COOLDOWN_TICKS
-export const TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS = 120;
+export const TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS = 960;
+// GENERAL_FILLER should be larger than TERMINAL_FILLER_COOLDOWN_TICKS
+export const TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS = 180;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
