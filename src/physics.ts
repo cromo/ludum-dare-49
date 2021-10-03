@@ -6,25 +6,9 @@ export interface PhysicsObject {
   pos: Point;
   vel: Vector;
   acc: Vector;
-  speedCap: Vector;
   friction: Vector;
-}
-
-function applySpeedCap(object: PhysicsObject): void {
-  // Speed cap always applies equally on both axis. It should be specified
-  // as a pair of positive values.
-  if (object.vel.x > object.speedCap.x) {
-    object.vel.x = object.speedCap.x;
-  }
-  if (object.vel.x < -object.speedCap.x) {
-    object.vel.x = -object.speedCap.x;
-  }
-  if (object.vel.y > object.speedCap.y) {
-    object.vel.y = object.speedCap.y;
-  }
-  if (object.vel.y < -object.speedCap.y) {
-    object.vel.y = -object.speedCap.y;
-  }
+  directionalInfluenceAcc: number;
+  directionalInfluenceSpeedCap: number;
 }
 
 function applyFriction(object: PhysicsObject): void {
@@ -42,9 +26,20 @@ function applyFriction(object: PhysicsObject): void {
 
 export function stepPhysics(object: PhysicsObject): void {
   applyFriction(object);
+  // apply generlc velocity and uncapped acceleration
   object.vel.x += object.acc.x;
   object.vel.y += object.acc.y;
-  applySpeedCap(object);
+  // apply directional influence, with speed cap
+  if (object.directionalInfluenceAcc > 0) {
+    if (object.vel.x < object.directionalInfluenceSpeedCap) {
+      object.vel.x = Math.min(object.vel.x + object.directionalInfluenceAcc, object.directionalInfluenceSpeedCap);
+    }
+  } else if (object.directionalInfluenceAcc < 0) {
+    if (object.vel.x > -object.directionalInfluenceSpeedCap) {
+      object.vel.x = Math.max(object.vel.x + object.directionalInfluenceAcc, -object.directionalInfluenceSpeedCap);
+    }
+  }
+  // Finally, apply speed to object's position
   object.pos.x += object.vel.x;
   object.pos.y += object.vel.y;
 }
