@@ -33,6 +33,8 @@ import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import {
+  COYOTE_TIME,
+  DASH_LENGTH,
   ENTROPY_LIMIT,
   ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
@@ -45,6 +47,7 @@ import {
   PIP_INSTABILITY_ANIMATION_TIME_TICKS,
   PIP_INSTABILITY_SPREAD,
   PLAYER_FRICTION,
+  POST_DASH_VELOCITY,
   Point,
   Vector,
 } from "./models";
@@ -179,7 +182,7 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   };
 
   // Iterate the physics step 4 times, moving the player approximately 2 tiles in the dash direction instantly
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < DASH_LENGTH; i++) {
     modifiedPlayer = applyGlitchMovement(modifiedPlayer, level);
   }
 
@@ -201,6 +204,7 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   // and get out of here. Also re-enable gracity.
   modifiedPlayer.friction = originalFriction;
   modifiedPlayer.acc = { x: 0, y: GRAVITY };
+  modifiedPlayer.vel = { x: dashDirection.x * POST_DASH_VELOCITY, y: dashDirection.y * POST_DASH_VELOCITY };
 
   return modifiedPlayer;
 }
@@ -239,7 +243,7 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING", coyoteTime: 5 },
+        state: { type: "STANDING", coyoteTime: COYOTE_TIME },
       },
     };
   }
@@ -334,7 +338,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "WALKING", coyoteTime: 5 },
+        state: { type: "WALKING", coyoteTime: COYOTE_TIME },
       },
     };
   } else if (!player.grounded && 0 < state.coyoteTime) {
@@ -452,7 +456,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
       stateMachine: {
         ...player.stateMachine,
         facing: input.moveDirection === HorizontalDirection.Left ? Facing.Left : Facing.Right,
-        state: { type: "WALKING", coyoteTime: 5 },
+        state: { type: "WALKING", coyoteTime: COYOTE_TIME },
       },
     };
   } else if (0 < state.ticksRemainingBeforeStanding) {
@@ -471,7 +475,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "STANDING", coyoteTime: 5 },
+        state: { type: "STANDING", coyoteTime: COYOTE_TIME },
       },
     };
   }
@@ -642,7 +646,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     stateMachine: {
       facing: Facing.Right,
       entropy: 0,
-      state: { type: "STANDING", coyoteTime: 5 },
+      state: { type: "STANDING", coyoteTime: COYOTE_TIME },
     },
     grounded: false,
     isDead: false,
