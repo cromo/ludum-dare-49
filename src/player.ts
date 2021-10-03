@@ -29,6 +29,7 @@
 
 import { Image, setColor } from "love.graphics";
 
+import { playSfx } from "./audio";
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
@@ -392,6 +393,7 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
   const { state } = player.stateMachine;
   if (state.type !== "STANDING") return player;
   if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("jump");
     return {
       ...player,
       lastJumpReleased: false,
@@ -401,6 +403,7 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
       },
     };
   } else if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
@@ -449,6 +452,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
   const { state } = player.stateMachine;
   if (state.type !== "WALKING") return player;
   if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("jump");
     return {
       ...player,
       lastJumpReleased: false,
@@ -458,6 +462,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       },
     };
   } else if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
@@ -558,6 +563,7 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "ASCENDING") return player;
   if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
@@ -567,6 +573,7 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
       },
     };
   } else if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("doublejump");
     return {
       ...player,
       entropy: player.entropy - 1,
@@ -594,6 +601,7 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "DESCENDING") return player;
   if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
@@ -603,6 +611,7 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
       },
     };
   } else if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("doublejump");
     return {
       ...player,
       entropy: player.entropy - 1,
@@ -629,6 +638,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
   const { state } = player.stateMachine;
   if (state.type !== "LANDING") return player;
   if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
@@ -704,6 +714,7 @@ function updateStateDashing(player: PlayerEntity): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "DASHING") return player;
   if (player.isDead) {
+    playSfx("death");
     return {
       ...player,
       stateMachine: {
@@ -766,6 +777,7 @@ function updateActiveTile(player: PlayerEntity): PlayerEntity {
         terminal.trackers.lastDeathType = "killPlane";
         terminal.trackers.deathTick = true;
       }
+      playSfx("death");
       return {
         ...player,
         stateMachine: {
@@ -777,6 +789,7 @@ function updateActiveTile(player: PlayerEntity): PlayerEntity {
   }
   if (player.stateMachine.state.type != "VICTORY") {
     if (player.activeTile == "exit") {
+      playSfx("exit");
       return {
         ...player,
         stateMachine: {
@@ -814,6 +827,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
       terminal.trackers.lastDeathType = "overload";
       terminal.trackers.deathTick = true;
     }
+    playSfx("death");
     return {
       ...player,
       stateMachine: {
@@ -830,6 +844,15 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
 
   const entropyCap = player.activeZone == "dead" ? 2 : ENTROPY_LIMIT;
   const newEntropy = Math.min(player.entropy + entropyGrowthRate, entropyCap);
+
+  // figure out which "segment" of our pip charge we're in at the moment
+  const oldEntropySegment = Math.floor(player.entropy / (1 / 16)) % 8;
+  const newEntropySegment = Math.floor(newEntropy / (1 / 16)) % 8;
+  if (oldEntropySegment != newEntropySegment) {
+    const baseClickVolume = newEntropySegment % 2 == 0 ? 0.5 : 0.25;
+    const zoneMultiplier = player.activeZone == "hot" ? 1.5 : 1.0;
+    playSfx("geiger", baseClickVolume * zoneMultiplier);
+  }
 
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
