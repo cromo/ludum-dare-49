@@ -32,7 +32,7 @@ const lines = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
 function shuffleInPlace<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(love.math.random() * (i + 1));
+    const j = Math.floor(fastRandom() * (i + 1));
     const temp = arr[i];
     arr[i] = arr[j];
     arr[j] = temp;

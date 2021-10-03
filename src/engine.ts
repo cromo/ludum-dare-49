@@ -37,35 +37,23 @@ export function drawLevel({ tiles }: Level): void {
 
   setColor(255, 255, 255);
   // Draw the tiles
-  push();
   for (let y = 0; y < tiles.length; ++y) {
-    push();
     for (let x = 0; x < tiles[y].length; ++x) {
       const tile = tiles[y][x];
-      draw(tile.image);
-      translate(TILE_SIZE_PIXELS, 0);
+      draw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS);
     }
-    pop();
-    translate(0, TILE_SIZE_PIXELS);
   }
-  pop();
 
   // Glitch the tiles
-  push();
   for (let y = 0; y < tiles.length; ++y) {
-    push();
     for (let x = 0; x < tiles[y].length; ++x) {
       const tile = tiles[y][x];
       const glitchRate = tile.effect?.glitchyLevel;
       if (glitchRate !== undefined) {
-        glitchedDraw(tile.image, 0, 0, { glitchRate });
+        glitchedDraw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS, { glitchRate });
       }
-      translate(TILE_SIZE_PIXELS, 0);
     }
-    pop();
-    translate(0, TILE_SIZE_PIXELS);
   }
-  pop();
 }
 
 export function drawLevelEntities(level: Level): void {
