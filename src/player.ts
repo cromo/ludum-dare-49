@@ -35,6 +35,7 @@ import { currentInput } from "./input";
 import {
   ENTROPY_LIMIT,
   ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
+  ENTROPY_PIP_GAINED_GLITCH_SPREAD,
   GRAVITY,
   JUMP_VELOCITY,
   Level,
@@ -645,10 +646,13 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     isDead: false,
     draw: (level, entity) => {
       if (entity.type !== "playerEntity") return;
+
+      const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
       love.graphics.setColor(255, 255, 255);
+      const entropyPercent = (entity.entropy - 1) / (ENTROPY_LIMIT - 1);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
-        glitchRate: 0,
-        spread: 3,
+        glitchRate: entropyPercent,
+        spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
         mode: GlitchMode.Progressive,
         flipHorizontally: entity.stateMachine.facing === Facing.Right,
       });

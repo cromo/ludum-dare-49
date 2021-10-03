@@ -44,6 +44,7 @@ export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;
 export const PIP_INSTABILITY_SPREAD = 10;
 export const OUT_OF_ENTROPY_PENALTY_TICKS = 10;
 export const ENTROPY_LIMIT = 6;
+export const ENTROPY_PIP_GAINED_GLITCH_SPREAD = 30;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
