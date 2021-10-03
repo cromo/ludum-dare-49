@@ -32,11 +32,12 @@ export const TERMINAL_HEIGHT = 5;
 export const TERMINAL_WIDTH = 14;
 
 export const GRAVITY = 0.18;
-export const WALKING_ACCELERATION = 0.2;
-export const GROUND_FRICTION = 0.1;
-export const AIR_FRICTION = 0.1;
+export const MOVEMENT_ACCELERATION = 0.2;
+export const MOVEMENT_SPEEDCAP = 2;
+export const PLAYER_FRICTION = 0.05;
 export const JUMP_VELOCITY = 3.5;
 export const DOUBLE_JUMP_VELOCITY = 3.5;
+export const DASH_LENGTH = 4; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
 
 // Add a pip every four seconds (4 * 60 ticks)
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
@@ -111,8 +112,9 @@ export interface PlayerEntity extends VisibleEntity {
   pos: Point;
   vel: Vector;
   acc: Vector;
-  speedCap: Vector;
   friction: Vector;
+  directionalInfluenceAcc: number;
+  directionalInfluenceSpeedCap: number;
   hitbox: HitBox;
   footSensor: Point;
   zoneSensor: Point;

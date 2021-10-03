@@ -39,12 +39,14 @@ import {
   GRAVITY,
   JUMP_VELOCITY,
   Level,
+  MOVEMENT_ACCELERATION,
+  MOVEMENT_SPEEDCAP,
   OUT_OF_ENTROPY_PENALTY_TICKS,
   PIP_INSTABILITY_ANIMATION_TIME_TICKS,
   PIP_INSTABILITY_SPREAD,
+  PLAYER_FRICTION,
   Point,
   Vector,
-  WALKING_ACCELERATION,
 } from "./models";
 import { Facing, PlayerEntity } from "./models";
 import {
@@ -94,7 +96,7 @@ function applyGlitchMovement(player: PlayerEntity, level: Level): PlayerEntity {
 }
 
 function standingState(player: PlayerEntity, level: Level): PlayerEntity {
-  let modifiedPlayer = { ...player, acc: { x: 0.0, y: GRAVITY } };
+  let modifiedPlayer = { ...player, directionalInfluenceAcc: 0 };
   modifiedPlayer = applyNormalMovement(modifiedPlayer, level);
   return modifiedPlayer;
 }
@@ -102,12 +104,12 @@ function standingState(player: PlayerEntity, level: Level): PlayerEntity {
 function walkingState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
   let directionalInfluenceX = 0.0;
   if (input.moveDirection === HorizontalDirection.Left) {
-    directionalInfluenceX = -WALKING_ACCELERATION;
+    directionalInfluenceX = -MOVEMENT_ACCELERATION;
   }
   if (input.moveDirection === HorizontalDirection.Right) {
-    directionalInfluenceX = WALKING_ACCELERATION;
+    directionalInfluenceX = MOVEMENT_ACCELERATION;
   }
-  let modifiedPlayer = { ...player, acc: { x: directionalInfluenceX, y: GRAVITY } };
+  let modifiedPlayer = { ...player, directionalInfluenceAcc: directionalInfluenceX };
   modifiedPlayer = applyNormalMovement(modifiedPlayer, level);
   return modifiedPlayer;
 }
@@ -166,14 +168,13 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   );
 
   // Set up a constant acceleration, moving the player about one half-tile per step
-  const originalSpeedCap = { ...player.speedCap };
   const originalFriction = { ...player.friction };
   let modifiedPlayer = {
     ...player,
     grounded: false,
     vel: { x: dashDirection.x * 8.0, y: dashDirection.y * 8.0 },
-    acc: { x: 0, y: 0 },
-    speedCap: { x: 8, y: 8 },
+    acc: { x: 0, y: 0 }, // disable gravity during the dash
+    directionalInfluenceAcc: 0,
     friction: { x: 0, y: 0 },
   };
 
@@ -197,9 +198,9 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   }
 
   // At this point we have either exited the dash on the other side of a glitch wall or died trying. Reset our speed cap
-  // and get out of here.
-  modifiedPlayer.speedCap = originalSpeedCap;
+  // and get out of here. Also re-enable gracity.
   modifiedPlayer.friction = originalFriction;
+  modifiedPlayer.acc = { x: 0, y: GRAVITY };
 
   return modifiedPlayer;
 }
@@ -615,9 +616,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     type: "playerEntity",
     pos: pos,
     vel: { x: 0, y: 0 },
-    acc: { x: 0, y: 0 },
-    speedCap: { x: 2, y: 10 },
-    friction: { x: 0.05, y: 0.05 },
+    acc: { x: 0, y: GRAVITY }, // generic, normally set to gravity, sometimes disabled
+    directionalInfluenceAcc: 0, // set by movement code
+    directionalInfluenceSpeedCap: MOVEMENT_SPEEDCAP,
+    friction: { x: PLAYER_FRICTION, y: PLAYER_FRICTION },
     hitbox: {
       corners: [
         { x: 4, y: 2 },
