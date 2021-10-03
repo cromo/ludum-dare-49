@@ -1,7 +1,15 @@
+import { Canvas } from "love.graphics";
+
 import { glitchedDraw } from "./glitch";
 import { parseLevelDefinition } from "./levelLoader";
-import { getPlayer, getTerminal, setCurrentLevel } from "./levels";
+import { getCurrentLevel, getPlayer, getTerminal, setCurrentLevel } from "./levels";
 import { LEVEL_HEIGHT, LEVEL_WIDTH, Level, LevelDefinition, Point, TILE_SIZE_PIXELS } from "./models";
+
+let backgroundCanvas: Canvas;
+
+export function initBackgroundCanvas(): void {
+  backgroundCanvas = love.graphics.newCanvas();
+}
 
 export function tick(level: Level): void {
   level.entities = level.entities.map((entity) => entity.update(level, entity));
@@ -21,20 +29,10 @@ export function tick(level: Level): void {
   }
 }
 
-export function loadLevel(levelDefinition: LevelDefinition): void {
-  setCurrentLevel(parseLevelDefinition(levelDefinition));
-}
-export function reloadLevel(level: Level): void {
-  const freshLevel = parseLevelDefinition(level.levelDef);
-  // move over terminal state
+function drawBackgroundTiles({ tiles }: Level): void {
+  const { draw, setColor } = love.graphics;
 
-  // start the reloaded level
-  setCurrentLevel(freshLevel);
-}
-
-export function drawLevel({ tiles }: Level): void {
-  const { push, pop, translate, draw, setColor } = love.graphics;
-
+  love.graphics.setCanvas(backgroundCanvas);
   setColor(255, 255, 255);
   // Draw the tiles
   for (let y = 0; y < tiles.length; ++y) {
@@ -43,6 +41,28 @@ export function drawLevel({ tiles }: Level): void {
       draw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS);
     }
   }
+  love.graphics.setCanvas();
+}
+
+export function loadLevel(levelDefinition: LevelDefinition): void {
+  const level = parseLevelDefinition(levelDefinition);
+  setCurrentLevel(level);
+  drawBackgroundTiles(level);
+}
+export function reloadLevel(level: Level): void {
+  const freshLevel = parseLevelDefinition(level.levelDef);
+  // move over terminal state
+
+  // start the reloaded level
+  setCurrentLevel(freshLevel);
+  drawBackgroundTiles(freshLevel);
+}
+
+export function drawLevel({ tiles }: Level): void {
+  const { draw, setColor } = love.graphics;
+
+  setColor(255, 255, 255);
+  draw(backgroundCanvas);
 
   // Glitch the tiles
   for (let y = 0; y < tiles.length; ++y) {
