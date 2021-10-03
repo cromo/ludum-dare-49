@@ -14,7 +14,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
 
-const LEVEL_SEQUENCE = [simpleWalkLevel, blankCorridorLevel, debugLevel, sampleLevelEmpty];
+const LEVEL_SEQUENCE = [simpleWalkLevel, debugLevel, blankCorridorLevel, sampleLevelEmpty];
 let currentLevelIndex = 0;
 
 love.load = () => {
