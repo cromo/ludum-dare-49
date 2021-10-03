@@ -114,7 +114,7 @@ export const debugLevel: LevelDefinition = {
               },
               {
                 check: ({ track: { spawnTick, deathCount } }) => spawnTick && deathCount == 28,
-                message: serious("people enjoy doing that too, you know"),
+                message: serious("it's a human thing"),
               },
             ],
           },
