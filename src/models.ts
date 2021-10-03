@@ -43,6 +43,7 @@ export const DASH_CHARGE_FRAMES = 10;
 export const COYOTE_TIME = 5; // frames
 
 export const RESET_DURATION_TICKS = 60;
+export const VICTORY_DURATION_TICKS = 60;
 export const DEATH_ANIMATION_TICKS = (1 / 2) * RESET_DURATION_TICKS;
 export const DEATH_ANIMATION_PIXEL_SPREAD = 400;
 
@@ -198,6 +199,11 @@ export interface Asplode {
   framesDead: number;
 }
 
+export interface Victory {
+  type: "VICTORY";
+  framesVictorious: number;
+}
+
 export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
@@ -212,7 +218,8 @@ export interface PlayerStateMachine {
     | Landing
     | DashPrep
     | Dashing
-    | Asplode;
+    | Asplode
+    | Victory;
 }
 
 export interface LayoutLine {

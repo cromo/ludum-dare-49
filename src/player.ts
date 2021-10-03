@@ -57,6 +57,7 @@ import {
   POST_DASH_VELOCITY,
   Point,
   RESET_DURATION_TICKS,
+  VICTORY_DURATION_TICKS,
   Vector,
   ZoneMode,
 } from "./models";
@@ -146,6 +147,14 @@ function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
   return player;
 }
 
+function victoryState(player: PlayerEntity, level: Level): PlayerEntity {
+  if (player.stateMachine.state.type != "VICTORY") return player;
+  if (player.stateMachine.state.framesVictorious >= VICTORY_DURATION_TICKS) {
+    level.nextLevel = true;
+  }
+  return player;
+}
+
 function dashPrepState(player: PlayerEntity): PlayerEntity {
   const modifiedPlayer = { ...player, grounded: false, vel: { x: 0, y: 0 }, acc: { x: 0, y: 0 } };
   return modifiedPlayer;
@@ -228,6 +237,7 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
 export function updateCurrentState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
   return {
     ASPLODE: dyingState,
+    VICTORY: victoryState,
     ASCENDING: walkingState,
     DASH_PREP: dashPrepState,
     DASHING: dashingState,
@@ -623,6 +633,19 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
   };
 }
 
+function updateStateVictory(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "VICTORY") return player;
+  // Experience Zen
+  return {
+    ...player,
+    stateMachine: {
+      ...player.stateMachine,
+      state: { type: "VICTORY", framesVictorious: state.framesVictorious + 1 },
+    },
+  };
+}
+
 function updateActiveTile(player: PlayerEntity): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") {
     if (player.activeTile == "kill") {
@@ -635,13 +658,24 @@ function updateActiveTile(player: PlayerEntity): PlayerEntity {
       };
     }
   }
+  if (player.stateMachine.state.type != "VICTORY") {
+    if (player.activeTile == "exit") {
+      return {
+        ...player,
+        stateMachine: {
+          ...player.stateMachine,
+          state: { type: "VICTORY", framesVictorious: 0 },
+        },
+      };
+    }
+  }
   return player;
 }
 
 function updateEntropy(player: PlayerEntity): PlayerEntity {
   if (
     player.entropy < 0 &&
-    ["OUT_OF_ENTROPY", "DASH_PREP", "DASHING", "ASPLODE"].findIndex(
+    ["OUT_OF_ENTROPY", "DASH_PREP", "DASHING", "ASPLODE", "VICTORY"].findIndex(
       (state) => state === player.stateMachine.state.type
     ) === -1
   ) {
@@ -700,6 +734,7 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
     LANDING: updateStateLanding,
     OUT_OF_ENTROPY: updateStateOutOfEntropy,
     WALKING: updateStateWalking,
+    VICTORY: updateStateVictory,
   }[player.stateMachine.state.type](tileUpdatedPlayer, input);
 }
 
@@ -812,13 +847,13 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       if (!input.wantsToJump) {
         entity.lastJumpReleased = true;
       }
-      if (entity.activeTile == "exit") {
-        level.nextLevel = true;
-      }
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
       entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
       entity.activeTile = sensorInPhysicalMode(entity.pos, entity.tileSensor, level);
+
+      print(`PlayerState ${entity.stateMachine.state.type}`);
+
       return entity;
     },
     drawEffect: {},
