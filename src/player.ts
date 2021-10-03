@@ -33,6 +33,7 @@ import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import {
+  ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   GRAVITY,
   JUMP_VELOCITY,
   Level,
@@ -538,10 +539,8 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
   };
 }
 
-// Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
-// starting point.
-export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
-  const newEntropy = player.entropy + 1 / (4 * 60);
+function updateEntropy(player: PlayerEntity): PlayerEntity {
+  const newEntropy = player.entropy + ENTROPY_NORMAL_GROWTH_RATE;
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
@@ -550,10 +549,15 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
   if (discreteOldEntropy < discreteNewEntropy && discreteNewEntropy < 6) {
     newEntropyInstability[discreteOldEntropy] = PIP_INSTABILITY_ANIMATION_TIME_TICKS;
   }
+  return { ...player, entropy: newEntropy, entropyInstabilityCountdown: newEntropyInstability };
+}
+
+// Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
+// starting point.
+export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
   // There are two steps here (sort of parallel states) - updating entropy, and
   // the main player state.
-  // TODO(cromo): This will eventually be controlled by fields and such, but this will work for now.
-  const entropyUpdatedPlayer = { ...player, entropy: newEntropy, entropyInstabilityCountdown: newEntropyInstability };
+  const entropyUpdatedPlayer = updateEntropy(player);
   return {
     ASPLODE: updateStateDying,
     ASCENDING: updateStateAscending,

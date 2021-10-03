@@ -38,6 +38,8 @@ export const AIR_FRICTION = 0.1;
 export const JUMP_VELOCITY = 3.5;
 export const DOUBLE_JUMP_VELOCITY = 3.5;
 
+// Add a pip every four seconds (4 * 60 ticks)
+export const ENTROPY_BASE_RATE = 1 / (4 * 60);
 export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;
 export const PIP_INSTABILITY_SPREAD = 10;
 

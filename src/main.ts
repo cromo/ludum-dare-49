@@ -1,4 +1,5 @@
-import { drawLevel, drawLevelEntities, loadLevel, reloadLevel, tick } from "./engine";
+import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
+import { initFastRandom } from "./glitch";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel } from "./levels";
@@ -6,22 +7,18 @@ import { debugLevel } from "./levels/debugLevel";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
 import { GAME_SCALE } from "./models";
 import { loadPlayerSprites } from "./player";
+
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
-
-let content = "";
 
 const LEVEL_SEQUENCE = [debugLevel, sampleLevelEmpty];
 let currentLevelIndex = 0;
 
 love.load = () => {
-  const [rawContent] = love.filesystem.read("res/index.txt");
-  if (rawContent !== undefined) {
-    content = rawContent;
-  }
-  print(content);
+  initBackgroundCanvas();
 
+  initFastRandom();
   loadPlayerSprites();
 
   const levelData = parseLevelDefinition(debugLevel);
@@ -66,5 +63,7 @@ love.draw = () => {
   const level = getCurrentLevel();
   drawLevel(level);
   drawLevelEntities(level);
+  love.graphics.setColor(0, 0, 0);
+  love.graphics.print(`${love.timer.getFPS()}`, 2, 2);
   pop();
 };

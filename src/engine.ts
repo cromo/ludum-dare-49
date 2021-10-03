@@ -1,8 +1,16 @@
+import { Canvas } from "love.graphics";
+
 import { glitchedDraw } from "./glitch";
 import { parseLevelDefinition } from "./levelLoader";
 import { getPlayer, getTerminal, getTerminalFrom, setCurrentLevel } from "./levels";
 import { LEVEL_HEIGHT, LEVEL_WIDTH, Level, LevelDefinition, Point, TILE_SIZE_PIXELS } from "./models";
 import { migrateTerminalEntity } from "./terminal";
+
+let backgroundCanvas: Canvas;
+
+export function initBackgroundCanvas(): void {
+  backgroundCanvas = love.graphics.newCanvas();
+}
 
 export function tick(level: Level): void {
   level.entities = level.entities.map((entity) => entity.update(level, entity));
@@ -22,8 +30,25 @@ export function tick(level: Level): void {
   }
 }
 
+function drawBackgroundTiles({ tiles }: Level): void {
+  const { draw, setColor } = love.graphics;
+
+  love.graphics.setCanvas(backgroundCanvas);
+  setColor(255, 255, 255);
+  // Draw the tiles
+  for (let y = 0; y < tiles.length; ++y) {
+    for (let x = 0; x < tiles[y].length; ++x) {
+      const tile = tiles[y][x];
+      draw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS);
+    }
+  }
+  love.graphics.setCanvas();
+}
+
 export function loadLevel(levelDefinition: LevelDefinition): void {
-  setCurrentLevel(parseLevelDefinition(levelDefinition));
+  const level = parseLevelDefinition(levelDefinition);
+  setCurrentLevel(level);
+  drawBackgroundTiles(level);
 }
 export function reloadLevel(level: Level): void {
   const freshLevel = parseLevelDefinition(level.levelDef);
@@ -39,42 +64,25 @@ export function reloadLevel(level: Level): void {
 
   // start the reloaded level
   setCurrentLevel(freshLevel);
+  drawBackgroundTiles(freshLevel);
 }
 
 export function drawLevel({ tiles }: Level): void {
-  const { push, pop, translate, draw, setColor } = love.graphics;
+  const { draw, setColor } = love.graphics;
 
   setColor(255, 255, 255);
-  // Draw the tiles
-  push();
-  for (let y = 0; y < tiles.length; ++y) {
-    push();
-    for (let x = 0; x < tiles[y].length; ++x) {
-      const tile = tiles[y][x];
-      draw(tile.image);
-      translate(TILE_SIZE_PIXELS, 0);
-    }
-    pop();
-    translate(0, TILE_SIZE_PIXELS);
-  }
-  pop();
+  draw(backgroundCanvas);
 
   // Glitch the tiles
-  push();
   for (let y = 0; y < tiles.length; ++y) {
-    push();
     for (let x = 0; x < tiles[y].length; ++x) {
       const tile = tiles[y][x];
       const glitchRate = tile.effect?.glitchyLevel;
       if (glitchRate !== undefined) {
-        glitchedDraw(tile.image, 0, 0, { glitchRate });
+        glitchedDraw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS, { glitchRate });
       }
-      translate(TILE_SIZE_PIXELS, 0);
     }
-    pop();
-    translate(0, TILE_SIZE_PIXELS);
   }
-  pop();
 }
 
 export function drawLevelEntities(level: Level): void {
