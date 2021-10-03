@@ -152,6 +152,10 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
   });
   // then use fillers if no conversations match
 
+  // clear spawn and death ticks
+  terminal.trackers.deathTick = false;
+  terminal.trackers.spawnTick = false;
+
   return terminal;
 }
 

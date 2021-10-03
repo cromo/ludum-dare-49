@@ -32,7 +32,7 @@ export const step = (
   message: TerminalMessage
 ): TerminalConversationStep => {
   return {
-    check,
+    check: (x) => check(x),
     message,
   };
 };
@@ -44,19 +44,15 @@ export type checkFn = (stats: {
   level: Level;
 }) => boolean;
 
-export type stupidCheckFn = (
-  self: unknown,
-  stats: {
-    player?: PlayerEntity;
-    terminal: TerminalEntity;
-    track: TerminalTrackers;
-    level: Level;
-  }
-) => boolean;
+export const checkRespawnCount: (deathCount: number) => checkFn = (targetCount: number) => ({
+  track: { spawnTick, deathCount },
+}) => spawnTick && deathCount == targetCount;
 
-const checkRespawnCountStupid: (deathCount: number) => stupidCheckFn = (targetCount) => (
-  self: unknown,
-  { track: { spawnTick, deathCount } }
-): boolean => spawnTick && deathCount == targetCount;
-
-export const checkRespawnCount = checkRespawnCountStupid as (deathCount: number) => checkFn;
+export const checkTagHitCount: (tag: string, targetCount: number) => checkFn = (tag: string, targetCount: number) => ({
+  track: { trackedTag },
+}) => {
+  return (
+    trackedTag.filter((tt) => tt.tag == tag && tt.enteredYetThisLife && tt.timesEnteredAtLeastOnce == targetCount)
+      .length > 0
+  );
+};

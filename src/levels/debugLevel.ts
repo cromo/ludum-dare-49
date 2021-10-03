@@ -1,18 +1,18 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
-import { checkFn, checkRespawnCount, frustrated, glitchy, serious, step, teach, tease } from "./terminalTalk";
+import { checkRespawnCount, checkTagHitCount, frustrated, glitchy, serious, step, teach, tease } from "./terminalTalk";
 
 export const debugLevel: LevelDefinition = {
   layout: [
     "*#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*#",
-    "|# . . . u . . . . . . . . . . . . . . . . . . . . . . u . . . . . . . . . . .|#",
-    "|# . . . u . . .*# . . . . .*# . . . . . . . . . . . . u . . . . . . . . . . .|#",
-    "|# . . . u . . .~~ . . . . .~~ . . . . . . . . . . . . u . . . . . . . . . . .|#",
-    "|# . . . u . . .~~ . . . . .~~ . . . . . . . . . . . . u . . . . . . . . . . .|#",
-    "|# . . . u . . .~~ . . . . .~~ . . . . . . . . . . . . u . . . . . . . . . . .|#",
-    "|# . . . u . . .~~~~~~~~~~~~~~ . . . . . . . . . . . . u . . . . . . . . . . .|#",
-    "FF . . .*# . . . . . .~~ . . . . . . . W . . . . . . . u . . . . . . . . . . .|#",
-    "FF . . .*# . . . . . .~~ . . . . . . . W . . . . . . . u . . . . . . . . . . .|#",
-    "|# . . .-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*# . . . . ! ! ! ! ! ! !|#",
+    "|# . . . u u . . . . . . . . . . . . . . . . . . . . u u . . . . . . . . . . .|#",
+    "|# . . . u u . .*# . . . . .*# . . . . . . . . . . . u u . . . . . . . . . . .|#",
+    "|# . . . u u . .~~ . . . . .~~ . . . . . . . . . . . u u . . . . . . . . . . .|#",
+    "|# . . . u u . .~~ . . . . .~~ . . . . . . . . . . . u u . . . . . . . . . . .|#",
+    "|# . . . u u . .~~ . . . . .~~ . . . . . . . . . . . u u . . . . . . . . . . .|#",
+    "|# . . . u u . .~~~~~~~~~~~~~~ . . . . . . . . . . . u u . . . . . . . . . . .|#",
+    "FF . . .*# u . . . . .~~ . . . . . . u u u . . . . . u u . . . . . . . . . . .|#",
+    "FF . . .*# u . . . . .~~ . . . . . . u u u . . . . . u u . . . . . . . . . . .|#",
+    "|# . . .-#-#-#-#-#-#-#-#-#-#-#-#-#-#~~~~~~-#-#-#-#-#-#*# . . . . ! ! ! ! ! ! !|#",
     "|# . . . . . . . . . . . . T . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . .|# . . . . ! ! ! ! ! ! !|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . .*#*#*#*# . ! ! ! ! ! ! !|#",
@@ -116,6 +116,20 @@ export const debugLevel: LevelDefinition = {
                 check: ({ track: { spawnTick, deathCount } }) => spawnTick && deathCount == 28,
                 message: serious("people enjoy doing that too, you know"),
               },
+            ],
+          },
+          {
+            name: "get up",
+            steps: [
+              step(checkTagHitCount("up", 1), teach("you got up! good job!")),
+              // {
+              //   check: (x) => checkTagHitCount("up", 1)(x),
+              //   message: teach("you got up! good job!"),
+              //   run: ({ level }) => (level.nextLevel = true),
+              // },
+              // step(({ track: { spawnTick } }) => spawnTick, teach("but you died")),
+              step(checkTagHitCount("up", 2), teach("you got up again!")),
+              // step(({ track: { spawnTick } }) => spawnTick, teach("but you died again")),
             ],
           },
         ],
