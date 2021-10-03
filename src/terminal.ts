@@ -151,6 +151,9 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
     });
   }
 
+  // don't deathTick more than once per attempt
+  if (terminal.trackers.hasDied) terminal.trackers.deathTick = false;
+
   // first check conversations
   terminal.trackers.conversations.forEach((conversation) => {
     // if the conversation is matched, use it or post its message and advance the progress by one
@@ -229,7 +232,7 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
   if (
     terminal.trackers.deathTick &&
     terminal.trackers.lastDeathType == "reset" &&
-    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    // terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
     terminal.terminalAnotation.onResetDeath
   ) {
     if (
@@ -290,6 +293,7 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
   }
 
   // clear spawn and death ticks
+  terminal.trackers.hasDied = terminal.trackers.hasDied || terminal.trackers.deathTick;
   terminal.trackers.deathTick = false;
   terminal.trackers.spawnTick = false;
 
@@ -324,7 +328,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
     terminalAnotation,
     lines: [EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE],
     trackers: {
-      ticksSinceLastFillerMessage: 0,
+      ticksSinceLastFillerMessage: TERMINAL_FILLER_COOLDOWN_TICKS * 10, //be ready to send spawn messages
       spawnTick: true,
       ticksOfPlayerIdling: 0,
       ticksInDeadZone: 0,
@@ -337,6 +341,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
       ticksOnLevel: 0,
 
       deathTick: false,
+      hasDied: false,
       deathCount: 0,
       deathsByKillPlane: 0,
       deathsByOverload: 0,
@@ -386,7 +391,8 @@ export function migrateTerminalEntity(previous: TerminalEntity): TerminalEntity 
     trackers: {
       ...pt,
       spawnTick: true, // preparing for a spawn
-      // deathTick: false, // this should be cleared before level resets, not now
+      hasDied: false,
+      deathTick: false, // this should be cleared before level resets, not now
       // deathCount: pt.deathCount + 1, // this should be incremented when the player dies, not now
       ticksInBottomHalf: 0,
       ticksInTopHalf: 0,

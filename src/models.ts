@@ -354,6 +354,7 @@ export interface TerminalTrackers {
   ticksSinceLastFillerMessage: number;
   spawnTick: boolean; // onSpawn
   deathTick: boolean; // onDeath - the moment the player dies but before the level resets
+  hasDied: boolean; // don't process deathTick more than once per life
   ticksOfPlayerIdling: number;
   ticksInDeadZone: number;
   ticksInHotZone: number;
