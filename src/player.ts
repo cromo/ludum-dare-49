@@ -34,6 +34,7 @@ import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import {
   COYOTE_TIME,
+  DASH_CHARGE_FRAMES,
   DASH_LENGTH,
   DEATH_ANIMATION_PIXEL_SPREAD,
   DEATH_ANIMATION_TICKS,
@@ -275,7 +276,7 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (input.moveDirection !== HorizontalDirection.Neutral) {
@@ -331,7 +332,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (input.moveDirection === HorizontalDirection.Neutral) {
@@ -406,7 +407,7 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
       stateMachine: {
         ...player.stateMachine,
         facing,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (player.vel.y >= 0) {
@@ -432,7 +433,7 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
       stateMachine: {
         ...player.stateMachine,
         facing,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (player.grounded) {
@@ -456,7 +457,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (input.moveDirection !== HorizontalDirection.Neutral) {
@@ -502,6 +503,7 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
         state: {
           type: "DASH_PREP",
           ticksBeforeGlitchOff: state.ticksBeforeGlitchOff - 1,
+          dashDirection: input.dashDirection != "Forward" ? input.dashDirection : state.dashDirection,
         },
       },
     };
@@ -511,7 +513,10 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
       entropy: player.entropy - 1,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASHING", dashDirection: input.dashDirection },
+        state: {
+          type: "DASHING",
+          dashDirection: input.dashDirection != "Forward" ? input.dashDirection : state.dashDirection,
+        },
       },
     };
   }

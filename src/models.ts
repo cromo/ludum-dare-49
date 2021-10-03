@@ -39,6 +39,7 @@ export const JUMP_VELOCITY = 3.5;
 export const DOUBLE_JUMP_VELOCITY = 3.5;
 export const DASH_LENGTH = 8; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
 export const POST_DASH_VELOCITY = 4; // speed, in the direction of the dash, after the teleport effect ends. "Wheeeeee4!#~"
+export const DASH_CHARGE_FRAMES = 10;
 export const COYOTE_TIME = 5; // frames
 
 export const RESET_DURATION_TICKS = 60;
@@ -177,6 +178,7 @@ export interface Landing {
 export interface DashPrep {
   type: "DASH_PREP";
   ticksBeforeGlitchOff: number;
+  dashDirection: DashDirection;
 }
 
 export interface Dashing {
