@@ -42,7 +42,11 @@ export function tick(level: Level): void {
       y: Math.floor(player.pos.y / TILE_SIZE_PIXELS),
     };
     if (tilePos.x < 0 || tilePos.x >= LEVEL_WIDTH || tilePos.y < 0 || tilePos.y >= LEVEL_HEIGHT) {
-      if (terminal) terminal.trackers.deathCount++;
+      if (terminal) {
+        terminal.trackers.deathCount++;
+        terminal.trackers.lastDeathType = "OOB";
+      }
+      // TODO: can't deathTick because instantly restarting the level. instead kill the player properly?
       level.doRestart = true;
     }
   }
