@@ -381,12 +381,14 @@ function updateStateJumpPrep(player: PlayerEntity): PlayerEntity {
 
 function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
+  const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "ASCENDING") return player;
   if (input.wantsToDash) {
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
       },
     };
@@ -395,21 +397,24 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "DESCENDING" },
       },
     };
   }
-  return player;
+  return { ...player, stateMachine: { ...player.stateMachine, facing } };
 }
 
 function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
+  const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "DESCENDING") return player;
   if (input.wantsToDash) {
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
       },
     };
@@ -418,11 +423,12 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
       ...player,
       stateMachine: {
         ...player.stateMachine,
+        facing,
         state: { type: "LANDING", ticksRemainingBeforeStanding: 10 },
       },
     };
   }
-  return player;
+  return { ...player, stateMachine: { ...player.stateMachine, facing } };
 }
 
 function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntity {
@@ -618,7 +624,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       if (entity.type !== "playerEntity") return;
       love.graphics.setColor(255, 255, 255);
       glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
-        glitchRate: 0.3,
+        glitchRate: 0,
         spread: 3,
         mode: GlitchMode.Progressive,
         flipHorizontally: entity.stateMachine.facing === Facing.Right,
