@@ -39,6 +39,10 @@ export const JUMP_VELOCITY = 3.5;
 export const DOUBLE_JUMP_VELOCITY = 3.5;
 export const DASH_LENGTH = 4; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
 
+export const RESET_DURATION_TICKS = 60;
+export const DEATH_ANIMATION_TICKS = (1 / 2) * RESET_DURATION_TICKS;
+export const DEATH_ANIMATION_PIXEL_SPREAD = 400;
+
 // Add a pip every four seconds (4 * 60 ticks)
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
 export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;

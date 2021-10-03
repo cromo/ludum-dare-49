@@ -33,6 +33,8 @@ import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
 import {
+  DEATH_ANIMATION_PIXEL_SPREAD,
+  DEATH_ANIMATION_TICKS,
   ENTROPY_LIMIT,
   ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
@@ -46,6 +48,7 @@ import {
   PIP_INSTABILITY_SPREAD,
   PLAYER_FRICTION,
   Point,
+  RESET_DURATION_TICKS,
   Vector,
 } from "./models";
 import { Facing, PlayerEntity } from "./models";
@@ -121,7 +124,7 @@ function jumpInitState(player: PlayerEntity, level: Level, input: GameInput): Pl
 
 function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") return player;
-  if (player.stateMachine.state.framesDead >= 60) {
+  if (player.stateMachine.state.framesDead >= RESET_DURATION_TICKS) {
     level.doRestart = true;
   }
   return player;
@@ -514,7 +517,7 @@ function updateStateDashing(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "ASPLODE", framesDead: 20 },
+        state: { type: "ASPLODE", framesDead: 0 },
       },
     };
   } else if (player.vel.y > 0) {
@@ -654,21 +657,40 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     draw: (level, entity) => {
       if (entity.type !== "playerEntity") return;
       const { entropy } = entity;
-
-      const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
-      love.graphics.setColor(255, 255, 255);
+      const x = Math.floor(entity.pos.x);
+      const y = Math.floor(entity.pos.y);
+      const { state } = entity.stateMachine;
+      const flipHorizontally = entity.stateMachine.facing === Facing.Right;
       const entropyPercent = (entropy - 1) / (ENTROPY_LIMIT - 1);
-      glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
-        glitchRate: entropyPercent,
-        spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
-        mode: GlitchMode.Progressive,
-        flipHorizontally: entity.stateMachine.facing === Facing.Right,
-      });
+
+      if (state.type !== "ASPLODE") {
+        const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
+        love.graphics.setColor(255, 255, 255);
+        glitchedDraw(sprites.standing, x, y, {
+          glitchRate: entropyPercent,
+          spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
+          mode: GlitchMode.Progressive,
+          flipHorizontally,
+        });
+      } else if (state.framesDead < DEATH_ANIMATION_TICKS) {
+        print(state.framesDead);
+        love.graphics.setColor(1, 1, 1);
+        const deathAnimationPercent = state.framesDead / DEATH_ANIMATION_TICKS;
+        const centeredDeathAnimationPercent = deathAnimationPercent - 0.5;
+        glitchedDraw(sprites.standing, x, y, {
+          glitchRate:
+            entropyPercent * (1 - deathAnimationPercent * deathAnimationPercent) +
+            (1 - 4 * (centeredDeathAnimationPercent * centeredDeathAnimationPercent)),
+          spread: 3 + deathAnimationPercent * DEATH_ANIMATION_PIXEL_SPREAD,
+          mode: deathAnimationPercent < 0.5 ? GlitchMode.Progressive : GlitchMode.GlitchOnly,
+          flipHorizontally,
+        });
+      }
 
       // Draw pips
       const redFactor = entropy < ENTROPY_LIMIT - 1 ? 1 : (Math.sin(20 * love.timer.getTime()) + 1) / 4 + 0.75;
       setColor(1, redFactor, redFactor);
-      const center = { x: Math.floor(entity.pos.x) + 16 / 2 - 2, y: Math.floor(entity.pos.y) + 16 / 2 };
+      const center = { x: x + 16 / 2 - 2, y: y + 16 / 2 };
       entity.entropyPipOffsets.slice(0, Math.floor(entropy < 0 ? 0 : entropy)).forEach(({ x, y }, pipNumber) => {
         const instability = entity.entropyInstabilityCountdown[pipNumber];
         glitchedDraw(sprites.entropyPip, center.x + x, center.y + y, {
