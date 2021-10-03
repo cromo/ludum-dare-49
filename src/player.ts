@@ -748,6 +748,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     };
   }
   if (ENTROPY_LIMIT <= player.entropy && player.stateMachine.state.type !== "ASPLODE") {
+    // TODO(@zach): This is overload
     return {
       ...player,
       stateMachine: {
