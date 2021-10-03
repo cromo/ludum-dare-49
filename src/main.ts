@@ -1,3 +1,4 @@
+import { initAudio } from "./audio";
 import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
@@ -25,6 +26,8 @@ love.load = () => {
 
   currentLevelIndex = 0;
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
+
+  initAudio();
 };
 
 love.keypressed = input.onKeyDown;

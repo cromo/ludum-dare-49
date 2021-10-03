@@ -29,6 +29,7 @@
 
 import { Image, setColor } from "love.graphics";
 
+import { playSfx } from "./audio";
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
@@ -392,6 +393,7 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
   const { state } = player.stateMachine;
   if (state.type !== "STANDING") return player;
   if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("jump");
     return {
       ...player,
       lastJumpReleased: false,
@@ -449,6 +451,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
   const { state } = player.stateMachine;
   if (state.type !== "WALKING") return player;
   if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("jump");
     return {
       ...player,
       lastJumpReleased: false,
@@ -567,6 +570,8 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
       },
     };
   } else if (input.wantsToJump && player.lastJumpReleased) {
+    // TODO: vary double-jump SFX?
+    playSfx("jump");
     return {
       ...player,
       entropy: player.entropy - 1,
@@ -603,6 +608,8 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
       },
     };
   } else if (input.wantsToJump && player.lastJumpReleased) {
+    // TODO: vary double-jump SFX?
+    playSfx("jump");
     return {
       ...player,
       entropy: player.entropy - 1,
