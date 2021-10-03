@@ -132,11 +132,25 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
           trackTag.enteredYetThisLife = true;
           trackTag.timesEnteredAtLeastOnce++;
         }
-        trackTag.timesEnteredThisLife++;
+        trackTag.ticksThisLife++;
       }
       return;
     });
   }
+
+  // first check conversations
+  terminal.trackers.conversations.forEach((conversation) => {
+    // if the conversation is matched, use it or post its message and advance the progress by one
+    const nextStep = conversation.steps[conversation.progress];
+    if (!nextStep) return;
+    if (!nextStep.check({ player, level, terminal, track: terminal.trackers })) return;
+    conversation.progress++;
+    if (nextStep.message) {
+      pushTerminalMessage(terminal, nextStep.message);
+    }
+    if (nextStep.run) nextStep.run({ player, level, terminal, track: terminal.trackers });
+  });
+  // then use fillers if no conversations match
 
   return terminal;
 }
@@ -168,7 +182,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
         return {
           tag,
           enteredYetThisLife: false,
-          timesEnteredThisLife: 0,
+          ticksThisLife: 0,
           timesEnteredAtLeastOnce: 0,
         };
       }),
@@ -217,7 +231,7 @@ export function migrateTerminalEntity(previous: TerminalEntity): TerminalEntity 
         return {
           ...tt,
           enteredYetThisLife: false,
-          timesEnteredThisLife: 0,
+          ticksThisLife: 0,
           // timesEnteredAtLeastOnce: 0, // DONT reset this one! number of attempts that have had at least one entry
         };
       }),

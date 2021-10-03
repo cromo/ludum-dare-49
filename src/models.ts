@@ -284,7 +284,7 @@ export interface TerminalTrackers {
 export interface TerminalTrackedTag {
   tag: string;
   enteredYetThisLife: boolean;
-  timesEnteredThisLife: number;
+  ticksThisLife: number;
   timesEnteredAtLeastOnce: number;
 }
 
