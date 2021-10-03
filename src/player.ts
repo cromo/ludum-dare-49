@@ -619,10 +619,10 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     friction: { x: 0.05, y: 0.05 },
     hitbox: {
       corners: [
-        { x: 0, y: 0 },
-        { x: 0, y: 15 },
-        { x: 15, y: 0 },
-        { x: 15, y: 15 },
+        { x: 4, y: 2 },
+        { x: 4, y: 14 },
+        { x: 11, y: 2 },
+        { x: 11, y: 14 },
       ],
     },
     footSensor: { x: 8.0, y: 16 },
