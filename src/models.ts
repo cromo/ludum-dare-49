@@ -29,7 +29,7 @@ export const TILE_SIZE_PIXELS = 16;
 export const TILE_HEIGHT = TILE_SIZE_PIXELS;
 export const TILE_WIDTH = TILE_SIZE_PIXELS;
 export const TERMINAL_HEIGHT = 5;
-export const TERMINAL_WIDTH = 12;
+export const TERMINAL_WIDTH = 14;
 
 export const GRAVITY = 0.18;
 export const WALKING_ACCELERATION = 0.2;
@@ -45,10 +45,11 @@ export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
 export type ZoneMode = "normal" | "dead" | "hot";
 
 export interface Level {
-  tiles: TileDef[][];
-  physicalModes: PhysicalMode[][];
-  glitchModes: GlitchMode[][];
-  zoneModes: ZoneMode[][];
+  tiles: TileDef[][]; //y, x
+  physicalModes: PhysicalMode[][]; //y, x
+  glitchModes: GlitchMode[][]; //y, x
+  zoneModes: ZoneMode[][]; //y, x
+  customTags: string[][][]; //y, x, 0 or more tags
   entities: Entity[];
   // terminal: Terminal;
   levelDef: LevelDefinition;
@@ -76,6 +77,7 @@ export interface TerminalEntity extends BaseEntity {
   pos: Point;
   terminalAnotation: TerminalAnnotation;
   lines: TerminalMessage[];
+  trackers: TerminalTrackers;
 }
 
 export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity;
@@ -182,6 +184,7 @@ export interface LayoutLine {
   glitchModes: GlitchMode[];
   zoneModes: ZoneMode[];
   entities: Entity[];
+  customTags: string[][];
 }
 
 export interface TileDef {
@@ -211,12 +214,23 @@ export interface LevelAnnotation {
   zoneMode?: ZoneMode;
   // For adding entities and other special stuff:
   flags?: LevelAnnotationFlag[];
+  customTags?: string[]; // tags for terminal tracking, tied to the tile
   data?: { [key: string]: string | number };
   terminal?: TerminalAnnotation;
 }
 
 export interface TerminalAnnotation {
-  entrance: TerminalMessage[];
+  onSpawn?: TerminalMessage[];
+  onDeath?: TerminalMessage[];
+
+  idleMessages?: TerminalMessage[];
+  deadZoneMessages?: TerminalMessage[];
+  hotZoneMessages?: TerminalMessage[];
+  normalZoneMessages?: TerminalMessage[];
+  generalMessages?: TerminalMessage[];
+
+  trackTags: string[];
+  conversations: TerminalConversationAnnotation[];
 }
 
 export interface TerminalMessage {
@@ -232,6 +246,58 @@ export enum TerminalTone {
   tease,
   serious,
   teach,
+}
+export interface TerminalTrackers {
+  // filler messages:
+  ticksSinceLastFillerMessage: number;
+  spawnTick: boolean; // onSpawn
+  deathTick: boolean; // onDeath - the moment the player dies but before the level resets
+  ticksSincePlayerInput: number;
+  ticksInDeadZone: number;
+  ticksInHotZone: number;
+  ticksInTopHalf: number;
+  ticksInBottomHalf: number;
+  ticksInLeftHalf: number;
+  ticksInRightHalf: number;
+  ticksSinceSpawn: number; // on this single life
+  ticksOnLevel: number; // across all lives
+
+  deathCount: number; // number of times player died on this level
+
+  trackedTag: TerminalTrackedTag[];
+
+  // conversations track their own progress and have highest priority / show immediately
+  conversations: TerminalConversation[];
+
+  onSpawnProgress: number;
+  onDeathProgress: number;
+  idleMessagesProgress: number;
+  deadZoneMessagesProgress: number;
+  hotZoneMessagesProgress: number;
+  normalZoneMessagesProgress: number;
+  generalMessagesProgress: number;
+}
+
+export interface TerminalTrackedTag {
+  tag: string;
+  enteredYetThisLife: boolean;
+  timesEnteredThisLife: number;
+  timesEnteredOverall: number;
+}
+
+export interface TerminalConversation extends TerminalConversationAnnotation {
+  progress: number; // start at 0 until reaching the end of the conversation
+}
+
+export interface TerminalConversationAnnotation {
+  name: string; // for debugging
+  steps: TerminalConversationStep[];
+}
+
+export interface TerminalConversationStep {
+  check: (stats: { player?: PlayerEntity; terminal: TerminalEntity; track: TerminalTrackers; level: Level }) => boolean;
+  run?: (stats: { player?: PlayerEntity; terminal: TerminalEntity; track: TerminalTrackers; level: Level }) => void;
+  message?: TerminalMessage;
 }
 
 //Stop, don't add your code in here.

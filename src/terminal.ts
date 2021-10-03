@@ -11,7 +11,7 @@ import {
 } from "./models";
 
 love.graphics.setDefaultFilter("nearest");
-const TERMINAL_IMAGE = love.graphics.newImage("res/terminal.png");
+// const TERMINAL_IMAGE = love.graphics.newImage("res/terminal.png");
 const LINE_LEFT_MARGIN = 2;
 const LINE_TOP_MARGIN = 0;
 
@@ -34,32 +34,35 @@ const TERMINAL_BACK_COLOR = (): void => {
 const TERMINAL_TONE_SHADOW_COLOR = (): void => {
   return love.graphics.setColor(0.1, 0.1, 0.1);
 };
-const TERMINAL_TONE_COLOR: { [key: number]: () => void } = {
-  [TerminalTone.angry]: () => {
-    return love.graphics.setColor(0.8, 0.2, 0.2);
+const setDimmedColor = (r: number, g: number, b: number, a: number): void => {
+  return love.graphics.setColor(r * a, g * a, b * a);
+};
+const TERMINAL_TONE_COLOR: { [key: number]: (a: number) => void } = {
+  [TerminalTone.angry]: (a: number) => {
+    return setDimmedColor(0.8, 0.2, 0.2, a);
   },
-  [TerminalTone.emptyLine]: () => {
-    return love.graphics.setColor(1, 0, 1);
+  [TerminalTone.emptyLine]: (a: number) => {
+    return setDimmedColor(1, 0, 1, a);
   },
-  [TerminalTone.frustrated]: () => {
-    return love.graphics.setColor(0.85, 0.1, 0.1);
+  [TerminalTone.frustrated]: (a: number) => {
+    return setDimmedColor(0.85, 0.1, 0.1, a);
   },
-  [TerminalTone.serious]: () => {
-    return love.graphics.setColor(0.75, 0.75, 0.95);
+  [TerminalTone.serious]: (a: number) => {
+    return setDimmedColor(0.75, 0.75, 0.95, a);
   },
-  [TerminalTone.teach]: () => {
-    return love.graphics.setColor(0.5, 0.8, 0.5);
+  [TerminalTone.teach]: (a: number) => {
+    return setDimmedColor(0.5, 0.8, 0.5, a);
   },
-  [TerminalTone.tease]: () => {
+  [TerminalTone.tease]: (a: number) => {
     // it will do this a lot
-    return love.graphics.setColor(0.85, 0.85, 0.85);
+    return setDimmedColor(0.85, 0.85, 0.85, a);
   },
 };
 TERMINAL_FONT.setFilter("nearest");
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function drawTerminalEntity(level: Level, terminal: TerminalEntity): void {
-  const { push, pop, translate, draw, setColor, print, setFont } = love.graphics;
+  const { push, pop, translate, setColor, print, setFont } = love.graphics;
   const { pos, lines } = terminal;
 
   push();
@@ -83,7 +86,8 @@ function drawTerminalEntity(level: Level, terminal: TerminalEntity): void {
     print(text, LINE_LEFT_MARGIN + 1, LINE_TOP_MARGIN + 1);
     print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN + 1);
 
-    (TERMINAL_TONE_COLOR[tone] || TERMINAL_TONE_COLOR[TerminalTone.emptyLine])();
+    const dim = terminalLine == lines.length - 1 ? 0.5 : terminalLine == lines.length - 2 ? 0.8 : 1;
+    (TERMINAL_TONE_COLOR[tone] || TERMINAL_TONE_COLOR[TerminalTone.emptyLine])(dim);
     print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN);
 
     pop();
@@ -94,7 +98,6 @@ function drawTerminalEntity(level: Level, terminal: TerminalEntity): void {
   return;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalEntity {
   // spends most of its time waiting for triggers
   //  no player input for too long (*)
@@ -102,15 +105,15 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
   //  amount of time in a region of the map (*)
   //  amount of time in the level on this life (*)
   //  amount of time across all attempts in this level (*)
+
   //  entering an area of the map (once per life, but track number of times per level)
-  //  on player death (track number of deaths for the level)
+  //  onSpawn - on player spawn (track number of deaths for the level)
+  //  onDeath - on on player death (track number of deaths for the level)
 
   // any message in the terminal starts a cooldown before time-based triggers are met
   //  instantly respond to important triggers like death or reaching zones
   //  but don't spam with filler-text (marked *)
-  // if (Math.random() < 0.05) {
-  //   level.nextLevel = true;
-  // }
+
   return terminal;
 }
 
@@ -122,8 +125,46 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
     update: (l, e) => updateTerminalEntity(l, e as TerminalEntity),
     terminalAnotation,
     lines: [EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE],
+    trackers: {
+      ticksSinceLastFillerMessage: 0,
+      spawnTick: true,
+      ticksSincePlayerInput: 0,
+      ticksInDeadZone: 0,
+      ticksInHotZone: 0,
+      ticksInTopHalf: 0,
+      ticksInBottomHalf: 0,
+      ticksInLeftHalf: 0,
+      ticksInRightHalf: 0,
+      ticksSinceSpawn: 0,
+      ticksOnLevel: 0,
+
+      deathTick: false,
+      deathCount: 0,
+      trackedTag: terminalAnotation.trackTags.map((tag) => {
+        return {
+          tag,
+          enteredYetThisLife: false,
+          timesEnteredThisLife: 0,
+          timesEnteredOverall: 0,
+        };
+      }),
+      conversations: terminalAnotation.conversations.map((convoAnno) => {
+        return {
+          ...convoAnno,
+          progress: 0,
+        };
+      }),
+
+      onSpawnProgress: 0,
+      onDeathProgress: 0,
+      idleMessagesProgress: 0,
+      deadZoneMessagesProgress: 0,
+      hotZoneMessagesProgress: 0,
+      normalZoneMessagesProgress: 0,
+      generalMessagesProgress: 0,
+    },
   };
-  terminalAnotation.entrance.forEach((em) => pushTerminalMessage(terminalEntity, em));
+  (terminalAnotation.onSpawn || []).forEach((em) => pushTerminalMessage(terminalEntity, em));
   // pushTerminalMessage(terminalEntity, terminalAnotation.entrance[0]);
   // pushTerminalMessage(terminalEntity, terminalAnotation.entrance[1]);
   return terminalEntity;
