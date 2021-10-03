@@ -1,5 +1,28 @@
 import { Texture } from "love.graphics";
 
+const randomTable: number[] = [];
+let currentRunLength = 0;
+let currentRandomTableIndex = 0;
+function randomTableIndex(): number {
+  return Math.floor(love.math.random() * randomTable.length);
+}
+export function initFastRandom(): void {
+  for (let i = 0; i < 256; ++i) randomTable.push(love.math.random());
+  currentRunLength = randomTableIndex();
+  currentRandomTableIndex = randomTableIndex();
+}
+
+function fastRandom(): number {
+  if (currentRunLength <= 0) {
+    currentRunLength = randomTableIndex();
+    currentRandomTableIndex = randomTableIndex();
+  }
+  const result = randomTable[currentRandomTableIndex];
+  currentRandomTableIndex = (currentRandomTableIndex + 1) % randomTable.length;
+  currentRunLength -= 1;
+  return result;
+}
+
 // Since everything is 16x16px, just use one quad for everything.
 // Maybe this will change and everything will need to carry its own quad around,
 // but until then...
@@ -53,7 +76,7 @@ export function glitchedDraw(
   const xAdjusted = x + xOffset;
 
   const { draw } = love.graphics;
-  const { random } = love.math;
+  const random = fastRandom;
 
   if (glitchRate === 0) {
     draw(drawable, xAdjusted, y, undefined, scale, 1);

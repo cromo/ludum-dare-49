@@ -1,4 +1,5 @@
 import { drawLevel, drawLevelEntities, loadLevel, reloadLevel, tick } from "./engine";
+import { initFastRandom } from "./glitch";
 import * as input from "./input";
 import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel } from "./levels";
@@ -22,6 +23,7 @@ love.load = () => {
   }
   print(content);
 
+  initFastRandom();
   loadPlayerSprites();
 
   const levelData = parseLevelDefinition(debugLevel);
@@ -63,6 +65,7 @@ love.draw = () => {
 
   push();
   scale(GAME_SCALE, GAME_SCALE);
+  print(love.timer.getFPS());
   const level = getCurrentLevel();
   drawLevel(level);
   drawLevelEntities(level);
