@@ -37,6 +37,7 @@ import {
   GRAVITY,
   JUMP_VELOCITY,
   Level,
+  OUT_OF_ENTROPY_PENALTY_TICKS,
   PIP_INSTABILITY_ANIMATION_TIME_TICKS,
   PIP_INSTABILITY_SPREAD,
   Point,
@@ -230,7 +231,7 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
         },
       },
     };
-  } else if (state.ticksRemainingBeforeRechargeStarts === 0) {
+  } else if (state.ticksRemainingBeforeRechargeStarts === 0 && 1 <= player.entropy) {
     return {
       ...player,
       stateMachine: {
@@ -491,6 +492,7 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
   } else if (state.ticksBeforeGlitchOff === 0) {
     return {
       ...player,
+      entropy: player.entropy - 1,
       stateMachine: {
         ...player.stateMachine,
         state: { type: "DASHING", dashDirection: input.dashDirection },
@@ -546,6 +548,17 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
 }
 
 function updateEntropy(player: PlayerEntity): PlayerEntity {
+  if (player.entropy < 1 && player.stateMachine.state.type !== "OUT_OF_ENTROPY") {
+    // Forcefully yank the player out of any state when they run out of entropy.
+    return {
+      ...player,
+      entropy: 0,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "OUT_OF_ENTROPY", ticksRemainingBeforeRechargeStarts: OUT_OF_ENTROPY_PENALTY_TICKS },
+      },
+    };
+  }
   const newEntropy = player.entropy + ENTROPY_NORMAL_GROWTH_RATE;
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
@@ -604,7 +617,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     footSensor: { x: 8.0, y: 16 },
     zoneSensor: { x: 8.0, y: 8.0 },
-    entropy: 0,
+    entropy: 1,
     entropyPipOffsets: [
       { x: 0, y: -20 },
       { x: 10, y: -20 },

@@ -42,6 +42,7 @@ export const DOUBLE_JUMP_VELOCITY = 3.5;
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
 export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;
 export const PIP_INSTABILITY_SPREAD = 10;
+export const OUT_OF_ENTROPY_PENALTY_TICKS = 10;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
