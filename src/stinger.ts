@@ -1,5 +1,6 @@
 import { Image } from "love.graphics";
 
+import { playSfx } from "./audio";
 import { glitchedDraw } from "./glitch";
 
 const STINGER_SCALE = 44;
@@ -24,6 +25,9 @@ export function updateStinger(): void {
   framesSinceStingerTrigger++;
   if (1000 < framesSinceStingerTrigger) {
     framesSinceStingerTrigger = 1000;
+  }
+  if (framesSinceStingerTrigger == 50) {
+    playSfx("swoosh");
   }
 }
 
