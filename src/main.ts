@@ -9,6 +9,7 @@ import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { columns1Level } from "./levels/columns1Level";
 import { deadPitFull2Level } from "./levels/deadPitFull2Level";
 import { debugLevel } from "./levels/debugLevel";
+import { encourageExhaustion } from "./levels/encourageExhaustion";
 import { hotPitFull1Level } from "./levels/hotPitFull1Level";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
@@ -37,6 +38,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 const LEVEL_SEQUENCE = [
   deadPitFull2Level,
   hotPitFull1Level,
+  encourageExhaustion,
   straightforwardGlitch,
   // simpleJumpLevel,
   // singleJumpTutorial,
@@ -65,7 +67,13 @@ const LEVEL_SEQUENCE = [
 /*/
 // The real level sequence
 // Ensure this is uncommented for release!
-const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial, simpleJumpLevel, straightforwardGlitch];
+const LEVEL_SEQUENCE = [
+  simpleGlitchLevel,
+  singleJumpTutorial,
+  simpleJumpLevel,
+  straightforwardGlitch,
+  encourageExhaustion,
+];
 //*/
 
 let currentLevelIndex = 0;
