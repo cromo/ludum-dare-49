@@ -26,13 +26,18 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
 
+//*
+// Dev level sequence
+// Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
   invertedTower2Level,
   invertedTower1Level,
+  simpleGlitchLevel,
+  debugLevel,
+  level3,
   debugLevel,
   level1,
   level2,
-  level3,
   level4,
   simpleGlitchWallLevel,
   simpleKillPlaneLevel,
@@ -42,10 +47,15 @@ const LEVEL_SEQUENCE = [
   simpleKillPlaneLevel,
   simpleGlitchLevel,
   simpleJumpLevel,
-  debugLevel,
   blankCorridorLevel,
   sampleLevelEmpty,
 ];
+/*/
+// The real level sequence
+// Ensure this is uncommented for release!
+const LEVEL_SEQUENCE = [simpleGlitchLevel];
+//*/
+
 let currentLevelIndex = 0;
 let globalCanvas: Canvas;
 let bloomShader: Shader;
