@@ -66,6 +66,7 @@ export const OUT_OF_ENTROPY_PENALTY_TICKS = 0;
 export const DEAD_ZONE_ENTROPY_LIMIT = 2.3;
 export const ENTROPY_LIMIT = 6;
 export const ENTROPY_PIP_GAINED_GLITCH_SPREAD = 30;
+export const DEFAULT_PLAYER_ENTROPY = 1;
 
 // Terminal timing constants
 export const TERMINAL_FILLER_COOLDOWN_TICKS = 30;
@@ -329,6 +330,7 @@ export interface LevelAnnotation {
   data?: { [key: string]: string | number }; // not actually used
   terminal?: TerminalAnnotation;
   image?: string;
+  startWithEntropy?: number;
 }
 
 export interface TerminalAnnotation {
