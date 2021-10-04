@@ -39,6 +39,16 @@ export const onOutOfEntropy: checkFn = ({ player }) => {
   return false;
 };
 
+export const onNotOutOfEntropy: checkFn = ({ player }) => {
+  if (player && player.stateMachine.state.type != "OUT_OF_ENTROPY") return true;
+  return false;
+};
+
+export const onEntropyLevel: (targetEnergy: number) => checkFn = (targetEnergy: number) => ({ player }) => {
+  if (player && player.entropy >= targetEnergy) return true;
+  return false;
+};
+
 export const respawnCount: (deathCount: number) => checkFn = (targetCount: number) => ({ track: { deathCount } }) => {
   return deathCount == targetCount;
 };
