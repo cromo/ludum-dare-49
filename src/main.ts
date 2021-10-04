@@ -39,6 +39,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  level2,
   telesplatLikely,
   level1,
   killBlockIntro,
@@ -82,6 +83,7 @@ const LEVEL_SEQUENCE = [
   encourageExhaustion,
   level1,
   telesplatLikely,
+  level2,
 ];
 //*/
 
