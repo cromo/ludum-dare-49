@@ -29,6 +29,8 @@ yarn build:watch:all
 ## Contributors
 
 - cromo
+- Zachery Delafosse
+- zeta0134
 
 ## Credits
 
