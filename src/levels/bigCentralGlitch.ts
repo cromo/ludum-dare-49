@@ -1,5 +1,9 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
-import { glitchy, teach } from "./terminalTalk";
+import { angry, glitchy, onTagHit, step, teach, tease } from "./terminalTalk";
+
+enum Tags {
+  Face = "face",
+}
 
 export const bigCentralGlitch: LevelDefinition = {
   layout: [
@@ -19,21 +23,26 @@ export const bigCentralGlitch: LevelDefinition = {
     "|#KK . . . . . . . . .~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ . . . .|# . . . . .|#",
     "|#-#-#-#-#-#-#-#-#-#|#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~KKKKKKKKKKKKKKKKKKKK|#",
     "|# . . . . . . . . .|#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-#-#-#-#-#-#-#-#-#-#|#",
-    "|# . . . . . . . . .|#~~~~~~~~~~~~~~~~~~~~~~~~~~~~ T . . . . . . . . . . . . .|#",
-    "|# . . . . . . . . .|#~~~~~~~~~~~~~~~~~~~~~~~~~~~~ . . . . . . . . . . . . . .|#",
-    "|# . . . . . . . . . . . . . .|#|#|# . . . .111111 . . . . . . . . . . . . . .|#",
+    "|# . . . . . . . . .|#~~~~~~~~~~~~~~~~~~~~~~~~~~~~ T f f f f . . . . . . . . .|#",
+    "|# . . . . . . . . .|#~~~~~~~~~~~~~~~~~~~~~~~~~~~~ f f f f f . . . . . . . . .|#",
+    "|# . . . . . . . . . . . . . .|#|#|# . . . .111111 f f f f f . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . .|#|#|# . . . .111111 . . . . . . . . . . . . . .|#",
     "|#SS . . . . . . . . . . . . .|#|#|# . . . .111111 . . . . . . . . . . . . . .|#",
     "*#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*#",
   ],
   annotations: [
     {
+      symbol: "f",
+      customTags: [Tags.Face],
+    },
+    {
       symbol: "T",
       flags: [LevelAnnotationFlag.terminal],
       terminal: {
-        trackTags: [],
-        onOverloadDeath: [teach("Too unstable."), glitchy("Too much of a good thing?")],
-        conversations: [],
+        trackTags: [Tags.Face],
+        onTelesplatDeath: [tease("Telesplat 2000(TM)")],
+        onKillPlaneDeath: [teach("Be prepared!")],
+        conversations: [{ name: "face", steps: [step(onTagHit(Tags.Face), angry("Hey, hey, watch the face!"))] }],
       },
     },
   ],
