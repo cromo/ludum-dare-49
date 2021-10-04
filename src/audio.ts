@@ -46,6 +46,25 @@ export function initAudio(): void {
   availableSfx["exit"] = { source: audio.newSource("res/sfx/tepelort.wav", "static") };
   availableSfx["geiger"] = { source: audio.newSource("res/sfx/geiger-raw.wav", "static"), pitchVariation: 0.2 };
 
+  availableSfx["terminal"] = { source: audio.newSource("res/sfx/typing_dot_matrix.wav", "static") };
+  availableSfx["charge"] = {
+    source: audio.newSource("res/sfx/dash_charge.wav", "static"),
+    pitchVariation: 0.1,
+    volume: 0.7,
+  };
+  availableSfx["powerdown"] = {
+    source: audio.newSource("res/sfx/power_down.wav", "static"),
+    pitchVariation: 0.1,
+    volume: 0.4,
+  };
+  availableSfx["lostpips"] = {
+    source: audio.newSource("res/sfx/lose_pips.wav", "static"),
+    pitchVariation: 0.1,
+    volume: 0.5,
+  };
+  availableSfx["warning"] = { source: audio.newSource("res/sfx/warning.wav", "static") };
+  availableSfx["gainpip"] = { source: audio.newSource("res/sfx/pip_get.wav", "static"), volume: 0.5 };
+
   availableBgm["level"] = {
     sources: {
       normal: audio.newSource("res/bgm/ld49-smooth.wav", "static"),
@@ -63,7 +82,7 @@ export function initAudio(): void {
       normal: audio.newSource("res/bgm/ld49-title.wav", "static"),
     },
     looping: true,
-    loopStart: 0.83,
+    loopStart: 0.083,
     loopEnd: 14.868,
     bpm: 130,
   };
@@ -80,7 +99,11 @@ export function playSfx(id: string, volume?: number, pitchVariation?: number): v
     const pitch = basePitch + love.math.random() * selectedPitchVariation * 2.0 - selectedPitchVariation;
     sfx.source.setPitch(pitch);
     sfx.source.setVolume(selectedVolume);
-    sfx.source.play();
+    if (sfx.source.isPlaying()) {
+      sfx.source.seek(0);
+    } else {
+      sfx.source.play();
+    }
   }
 }
 

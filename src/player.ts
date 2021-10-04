@@ -406,7 +406,7 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
       },
     };
   } else if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -465,7 +465,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       },
     };
   } else if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -566,7 +566,7 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "ASCENDING") return player;
   if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -604,7 +604,7 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "DESCENDING") return player;
   if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -641,7 +641,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
   const { state } = player.stateMachine;
   if (state.type !== "LANDING") return player;
   if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -697,6 +697,7 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
       },
     };
   } else if (state.ticksBeforeGlitchOff === 0) {
+    playSfx("dash");
     return {
       ...player,
       entropy: player.entropy - 1,
@@ -814,6 +815,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     ) === -1
   ) {
     // Forcefully yank the player out of any state when they run out of entropy.
+    playSfx("powerdown");
     return {
       ...player,
       entropy: 0,
@@ -855,13 +857,25 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   const entropyCap = player.activeZone == "dead" ? DEAD_ZONE_ENTROPY_LIMIT : ENTROPY_LIMIT;
   const newEntropy = Math.min(player.entropy + entropyGrowthRate + entropyBurnRate, entropyCap);
 
-  // figure out which "segment" of our pip charge we're in at the moment. If that changes, play a tick
-  const oldEntropySegment = Math.floor(player.entropy / (1 / 16)) % 8;
-  const newEntropySegment = Math.floor(newEntropy / (1 / 16)) % 8;
-  if (oldEntropySegment != newEntropySegment) {
-    const baseClickVolume = newEntropySegment % 2 == 0 ? 0.5 : 0.25;
-    const zoneMultiplier = player.activeZone == "hot" ? 1.5 : 1.0;
-    playSfx("geiger", baseClickVolume * zoneMultiplier);
+  // If we have advanced to a new pip, play an acquisition sound
+  const discreteOldEntropy = Math.floor(player.entropy);
+  const discreteNewEntropy = Math.floor(newEntropy);
+
+  if (discreteNewEntropy > discreteOldEntropy) {
+    playSfx("gainpip");
+  } else if (discreteOldEntropy > 2 && discreteNewEntropy <= 2 && player.activeZone == "dead") {
+    playSfx("lostpips");
+  }
+
+  // If we are at or above 5 pips, we are in DANGER! Play a warning sound every pie slice or so,
+  // with increasing intensity
+  if (discreteNewEntropy >= 5) {
+    const oldEntropySubTick = Math.floor(player.entropy * 16) % 16;
+    const newEntropySubTick = Math.floor(newEntropy * 16) % 16;
+    if (oldEntropySubTick != newEntropySubTick) {
+      const warningVolume = (newEntropySubTick + 1) * (1.0 / 32); // caps at around half volume, on purpose
+      playSfx("warning", warningVolume);
+    }
   }
 
   // Switch to the appropriate BGM variant for the zone the player is standing in, if one exists
@@ -873,8 +887,6 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     queueBgmVariant("normal");
   }
 
-  const discreteOldEntropy = Math.floor(player.entropy);
-  const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
     instability <= 0 ? 0 : instability - 1
   );
