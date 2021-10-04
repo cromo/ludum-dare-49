@@ -34,6 +34,10 @@ export const step = (check: checkFn | checkFn[], message?: TerminalMessage): Ter
 
 export const onRespawn: checkFn = ({ track: { spawnTick } }) => spawnTick;
 export const onDeath: checkFn = ({ track: { deathTick } }) => deathTick;
+export const onOutOfEntropy: checkFn = ({ player }) => {
+  if (player && player.stateMachine.state.type == "OUT_OF_ENTROPY") return true;
+  return false;
+};
 
 export const respawnCount: (deathCount: number) => checkFn = (targetCount: number) => ({ track: { deathCount } }) => {
   return deathCount == targetCount;
