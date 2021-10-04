@@ -52,7 +52,7 @@ export function initAudio(): void {
     },
     looping: true,
     loopStart: 7.484,
-    loopEnd: 14.868,
+    loopEnd: 51.789,
   };
 
   bgmPlayer = { playing: false };
