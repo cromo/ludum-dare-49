@@ -29,7 +29,7 @@
 
 import { Image, setColor } from "love.graphics";
 
-import { playSfx, queueBgmVariant } from "./audio";
+import { playBgm, playSfx, queueBgmVariant } from "./audio";
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
@@ -793,6 +793,7 @@ function updateActiveTile(player: PlayerEntity): PlayerEntity {
   if (player.stateMachine.state.type != "VICTORY") {
     if (player.activeTile == "exit") {
       playSfx("exit");
+      playBgm("level", "normal");
       return {
         ...player,
         stateMachine: {
