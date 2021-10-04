@@ -23,7 +23,7 @@ export const hotPitFull1Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . . . . . . . . .-#-#-# . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . .*# . . . . . . . . . . . .|#",
     "|# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !|#",
-    "|#?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K|#",
+    "|#KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK|#",
   ],
   annotations: [
     // { symbol: ".", zoneMode: "hot" },
