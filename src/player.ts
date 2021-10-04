@@ -406,7 +406,7 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
       },
     };
   } else if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -465,7 +465,7 @@ function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntit
       },
     };
   } else if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -566,7 +566,7 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "ASCENDING") return player;
   if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -604,7 +604,7 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "DESCENDING") return player;
   if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -641,7 +641,7 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
   const { state } = player.stateMachine;
   if (state.type !== "LANDING") return player;
   if (input.wantsToDash) {
-    playSfx("dash");
+    playSfx("charge");
     return {
       ...player,
       stateMachine: {
@@ -697,6 +697,7 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
       },
     };
   } else if (state.ticksBeforeGlitchOff === 0) {
+    playSfx("dash");
     return {
       ...player,
       entropy: player.entropy - 1,
