@@ -866,6 +866,8 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   // Switch to the appropriate BGM variant for the zone the player is standing in, if one exists
   if (player.activeZone == "dead") {
     queueBgmVariant("deadzone");
+  } else if (player.activeZone == "hot") {
+    queueBgmVariant("hotzone");
   } else {
     queueBgmVariant("normal");
   }
