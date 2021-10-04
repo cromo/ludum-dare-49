@@ -947,6 +947,45 @@ export function activeZone(pos: Point, hitbox: HitBox, level: Level): ZoneMode {
   return activeZone;
 }
 
+export interface Color {
+  r: number;
+  g: number;
+  b: number;
+}
+
+function playerColor(player: PlayerEntity): Color {
+  if (player.stateMachine.state.type == "OUT_OF_ENTROPY") {
+    // the player powered down! seriously darken their sprite, and
+    // have it slowly fade to normal-ish as they regain entropy
+    const chargeCycle = player.entropy % 1.0;
+    const brightness = chargeCycle * chargeCycle * chargeCycle * 0.7 + 0.3;
+    return { r: brightness, g: brightness, b: brightness };
+  }
+  if (player.entropy > 5.0) {
+    // Cycle between red and yellow; this is serious business
+    const flashCycle = (player.entropy * 8.0) % 1.0;
+    const cycleWeight = Math.sin(flashCycle * 2.0 * Math.PI);
+    const brightness = Math.min(1.0, 0.15 * cycleWeight + 0.85);
+    return { r: 1.0, g: brightness, b: 0.7 };
+  }
+  if (player.activeZone == "dead") {
+    // Flash (slowly) a sort of grey
+    const flashCycle = (player.entropy * 8.0) % 1.0;
+    const cycleWeight = Math.sin(flashCycle * 2.0 * Math.PI);
+    const brightness = Math.min(1.0, 0.15 * cycleWeight + 0.85);
+    return { r: brightness, g: brightness, b: brightness };
+  }
+  if (player.activeZone == "hot") {
+    // Flash (somewhat quickly) bright yellow
+    const flashCycle = (player.entropy * 8.0) % 1.0;
+    const cycleWeight = Math.sin(flashCycle * 2.0 * Math.PI);
+    const brightness = Math.min(1.0, 0.3 * cycleWeight + 0.7);
+    return { r: 1.0, g: 1.0, b: brightness };
+  }
+
+  return { r: 1, b: 1, g: 1 };
+}
+
 export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
   return {
     type: "playerEntity",
@@ -1003,7 +1042,8 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
 
       if (state.type !== "ASPLODE") {
         const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
-        love.graphics.setColor(255, 255, 255);
+        const color = playerColor(entity);
+        love.graphics.setColor(color.r, color.g, color.b);
         glitchedDraw(sprites.standing, x, y, {
           glitchRate: entropyPercent,
           spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
