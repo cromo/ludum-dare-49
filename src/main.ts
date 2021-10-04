@@ -16,6 +16,7 @@ import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
 import { level4 } from "./levels/level4";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
+import { straightforwardGlitch } from "./levels/simpleGlitch";
 import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
 import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
@@ -34,10 +35,13 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
   hotPitFull1Level,
+  straightforwardGlitch,
+  // simpleJumpLevel,
+  // singleJumpTutorial,
+  // invertedTower2Level,
   columns1Level,
   invertedTower2Level,
   invertedTower1Level,
-  singleJumpTutorial,
   simpleGlitchLevel,
   debugLevel,
   level3,
@@ -59,7 +63,7 @@ const LEVEL_SEQUENCE = [
 /*/
 // The real level sequence
 // Ensure this is uncommented for release!
-const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial];
+const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial, simpleJumpLevel, straightforwardGlitch];
 //*/
 
 let currentLevelIndex = 0;
@@ -80,7 +84,7 @@ love.load = () => {
   globalCanvas = love.graphics.newCanvas();
   bloomShader = love.graphics.newShader("res/bloom.hlsl");
   initAudio();
-  playBgm("level", "normal");
+  playBgm("title", "normal");
 };
 
 love.keypressed = input.onKeyDown;
