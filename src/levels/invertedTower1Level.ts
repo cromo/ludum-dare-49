@@ -1,4 +1,5 @@
-import { LevelDefinition } from "../models";
+import { LevelAnnotationFlag, LevelDefinition } from "../models";
+import { serious, teach } from "./terminalTalk";
 
 export const invertedTower1Level: LevelDefinition = {
   layout: [
@@ -13,7 +14,7 @@ export const invertedTower1Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . . . .|# . . . . . ! ! ! ! . . . . . . . . .|#",
     "*# . . . . . . . . . .-#-#-#-#-#-#-#-#-#|#-#-#-#-#-#-#-#-#-# . . . . . . . . .*#",
     "|# . . . . . . . . . . . . ! ! ! ! ! ! !|# ! ! ! ! ! ! ! . . . . . . . . . . .|#",
-    "|# . . . . . . . . . . . . ! ! ! ! ! ! !|# ! ! ! ! ! ! ! . . . . . . . . . . .|#",
+    "|# . T . . . . . . . . . . ! ! ! ! ! ! !|# ! ! ! ! ! ! ! . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . ! ! ! ! ! ! !|# ! ! ! ! ! ! ! . . . . . . . . . . .|#",
     "*# . . . . . . . . . . . . ! ! !-#-#-#-#-#-#-#-#-# ! ! ! . . . . . . . . . . .*#",
     "|# . . . . . . . . . . . . ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! . . . . . . . . . . .|#",
@@ -25,5 +26,17 @@ export const invertedTower1Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|#?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K|#",
   ],
-  annotations: [],
+  annotations: [
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "empty",
+      glitchMode: "empty",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        conversations: [],
+        trackTags: [],
+        onSpawn: [serious("Think you can make it?"), teach("You can do it!")],
+      },
+    },
+  ],
 };

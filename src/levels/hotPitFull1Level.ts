@@ -1,4 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
+import { serious } from "./terminalTalk";
 
 export const hotPitFull1Level: LevelDefinition = {
   layout: [
@@ -16,7 +17,7 @@ export const hotPitFull1Level: LevelDefinition = {
     "|# . . . ! . . . . .|#|#|# . . . . . . !|# ! . . . . .KK . . . . . . . . . . .|#",
     "|# . . .SS . . . . . .|# . . . . . . . !|#|# . . . . .KK . . . . . . . . . . .|#",
     "|# . . .|# . . . . . . . . . . . . . .|#|#|# . . . . . . . . . . . . . . . . .|#",
-    "|# . . .|# . . . . . . . . . . . . . .~~~~~~ . . . . . . . . . . . . . . . . .|#",
+    "|# . . .|# T . . . . . . . . . . . . .~~~~~~ . . . . . . . . . . . . . . . . .|#",
     "|# . . .|# . . . . . . . . . . . . . .~~~~~~ . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . .|#|# . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . .|# . . . . _ _ _ . . . . . . . . . . .|#",
@@ -29,5 +30,16 @@ export const hotPitFull1Level: LevelDefinition = {
     // { symbol: ".", zoneMode: "hot" },
     { symbol: "S", flags: [LevelAnnotationFlag.spawn_player], zoneMode: "hot" },
     // { symbol: "^", physicalMode: "semisolid", zoneMode: "hot" },
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "empty",
+      glitchMode: "empty",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        conversations: [],
+        trackTags: [],
+        onSpawn: [serious("It's getting hot in here...")],
+      },
+    },
   ],
 };
