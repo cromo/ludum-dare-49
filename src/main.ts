@@ -23,6 +23,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 }
 
 const LEVEL_SEQUENCE = [
+  debugLevel,
   level1,
   level2,
   level3,
