@@ -62,7 +62,7 @@ export function initAudio(): void {
     pitchVariation: 0.1,
     volume: 0.5,
   };
-  availableSfx["warning"] = { source: audio.newSource("res/sfx/lose_pips.wav", "static") };
+  availableSfx["warning"] = { source: audio.newSource("res/sfx/warning.wav", "static") };
   availableSfx["gainpip"] = { source: audio.newSource("res/sfx/pip_get.wav", "static"), volume: 0.5 };
 
   availableBgm["level"] = {
@@ -99,7 +99,11 @@ export function playSfx(id: string, volume?: number, pitchVariation?: number): v
     const pitch = basePitch + love.math.random() * selectedPitchVariation * 2.0 - selectedPitchVariation;
     sfx.source.setPitch(pitch);
     sfx.source.setVolume(selectedVolume);
-    sfx.source.play();
+    if (sfx.source.isPlaying()) {
+      sfx.source.seek(0);
+    } else {
+      sfx.source.play();
+    }
   }
 }
 

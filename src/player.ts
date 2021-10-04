@@ -867,6 +867,17 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     playSfx("lostpips");
   }
 
+  // If we are at or above 5 pips, we are in DANGER! Play a warning sound every pie slice or so,
+  // with increasing intensity
+  if (discreteNewEntropy >= 5) {
+    const oldEntropySubTick = Math.floor(player.entropy * 16) % 16;
+    const newEntropySubTick = Math.floor(newEntropy * 16) % 16;
+    if (oldEntropySubTick != newEntropySubTick) {
+      const warningVolume = (newEntropySubTick + 1) * (1.0 / 32); // caps at around half volume, on purpose
+      playSfx("warning", warningVolume);
+    }
+  }
+
   // Switch to the appropriate BGM variant for the zone the player is standing in, if one exists
   if (player.activeZone == "dead") {
     queueBgmVariant("deadzone");
