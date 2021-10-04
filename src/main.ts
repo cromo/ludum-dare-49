@@ -7,6 +7,8 @@ import * as input from "./input";
 import { getCurrentLevel } from "./levels";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { debugLevel } from "./levels/debugLevel";
+import { invertedTower1Level } from "./levels/invertedTower1Level";
+import { invertedTower2Level } from "./levels/invertedTower2Level";
 import { level1 } from "./levels/level1";
 import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
@@ -29,6 +31,8 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  invertedTower2Level,
+  invertedTower1Level,
   singleJumpTutorial,
   simpleGlitchLevel,
   debugLevel,

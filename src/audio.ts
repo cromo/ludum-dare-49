@@ -50,10 +50,11 @@ export function initAudio(): void {
     sources: {
       normal: audio.newSource("res/bgm/ld49-smooth.wav", "static"),
       deadzone: audio.newSource("res/bgm/ld49-smooth-muted.wav", "static"),
+      hotzone: audio.newSource("res/bgm/ld49-smooth-molten.wav", "static"),
     },
     looping: true,
-    loopStart: 7.484,
-    loopEnd: 51.789,
+    loopStart: 8.134,
+    loopEnd: 52.439,
     bpm: 130,
   };
 
