@@ -389,6 +389,7 @@ export interface TerminalTrackers {
   lastDeathType: "none" | "killPlane" | "overload" | "OOB" | "telesplat" | "reset";
 
   trackedTag: TerminalTrackedTag[];
+  activeTags: string[];
 
   // conversations track their own progress and have highest priority / show immediately
   conversations: TerminalConversation[];

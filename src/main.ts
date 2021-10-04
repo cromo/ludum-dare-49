@@ -1,4 +1,6 @@
-import { initAudio, playBgm, updateBgm } from "./audio";
+import { Canvas, Shader } from "love.graphics";
+
+import { currentBeat, initAudio, playBgm, updateBgm } from "./audio";
 import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
@@ -29,6 +31,7 @@ const LEVEL_SEQUENCE = [
   simpleGlitchLevel,
   debugLevel,
   level3,
+  debugLevel,
   level1,
   level2,
   level4,
@@ -50,6 +53,8 @@ const LEVEL_SEQUENCE = [simpleGlitchLevel];
 //*/
 
 let currentLevelIndex = 0;
+let globalCanvas: Canvas;
+let bloomShader: Shader;
 
 love.load = () => {
   buildStructresAtInit();
@@ -62,6 +67,8 @@ love.load = () => {
   currentLevelIndex = 0;
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
 
+  globalCanvas = love.graphics.newCanvas();
+  bloomShader = love.graphics.newShader("res/bloom.hlsl");
   initAudio();
   playBgm("level", "normal");
 };
@@ -98,6 +105,10 @@ love.update = (dt) => {
 love.draw = () => {
   const { push, pop, scale } = love.graphics;
 
+  love.graphics.setCanvas(globalCanvas);
+  love.graphics.setShader();
+  love.graphics.setColor(1, 1, 1, 1);
+
   push();
   scale(GAME_SCALE, GAME_SCALE);
   const level = getCurrentLevel();
@@ -109,4 +120,16 @@ love.draw = () => {
   love.graphics.setColor(1, 1, 1);
   love.graphics.print(`${love.timer.getFPS()}`, 1, 1);
   pop();
+
+  love.graphics.setCanvas();
+  love.graphics.clear();
+  // draw the global canvas with the bloom shader active
+  const beat = currentBeat();
+  const beatProgress = beat % 1.0;
+  const invertedBeatProgress = 1.0 - beatProgress;
+  const bloomStrength = Math.min(beatProgress * invertedBeatProgress, 1.0);
+  bloomShader.send("strength", bloomStrength);
+  love.graphics.setShader(bloomShader);
+  love.graphics.setColor(1, 1, 1, 1);
+  love.graphics.draw(globalCanvas, 0, 0);
 };
