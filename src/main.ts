@@ -9,6 +9,7 @@ import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { columns1Level } from "./levels/columns1Level";
 import { debugLevel } from "./levels/debugLevel";
 import { encourageExhaustion } from "./levels/encourageExhaustion";
+import { hotPitFull1Level } from "./levels/hotPitFull1Level";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
 import { level1 } from "./levels/level1";
@@ -34,6 +35,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  hotPitFull1Level,
   encourageExhaustion,
   straightforwardGlitch,
   // simpleJumpLevel,
