@@ -530,7 +530,7 @@ function updateStateJumpPrep(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "ASCENDING" },
+        state: { type: "ASCENDING", ticksSpentAscending: 0 },
       },
     };
   }
@@ -556,7 +556,7 @@ function updateStatedDoubleJumpPrep(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "ASCENDING" },
+        state: { type: "ASCENDING", ticksSpentAscending: 0 },
       },
     };
   }
@@ -598,7 +598,14 @@ function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEnt
       },
     };
   }
-  return { ...player, stateMachine: { ...player.stateMachine, facing } };
+  return {
+    ...player,
+    stateMachine: {
+      ...player.stateMachine,
+      facing,
+      state: { type: "ASCENDING", ticksSpentAscending: state.ticksSpentAscending + 1 },
+    },
+  };
 }
 
 function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEntity {
@@ -733,7 +740,7 @@ function updateStateDashing(player: PlayerEntity): PlayerEntity {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "ASCENDING" },
+        state: { type: "ASCENDING", ticksSpentAscending: 0 },
       },
     };
   } else {
@@ -942,6 +949,11 @@ export function loadPlayerSprites(): void {
   sprites.shutdown = newImage("res/player-shutdown.png");
   sprites.walking = newImage("res/player-walking.png");
   sprites.entropyPip = newImage("res/player-entropy-pip.png");
+  sprites.ascending = newImage("res/player-ascending.png");
+  sprites.descending = newImage("res/player-descending.png");
+  sprites.crouch1 = newImage("res/player-crouch1.png");
+  sprites.crouch2 = newImage("res/player-crouch2.png");
+  sprites.jump = newImage("res/player-jump1.png");
 }
 
 export function activeZone(pos: Point, hitbox: HitBox, level: Level): ZoneMode {
@@ -1052,6 +1064,20 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
           ? sprites.shutdown
           : state.type === "WALKING"
           ? sprites.walking
+          : state.type === "ASCENDING"
+          ? sprites.ascending
+          : state.type === "DESCENDING"
+          ? sprites.descending
+          : state.type === "JUMP_PREP"
+          ? state.ticksRemainingBeforeAscent > 8
+            ? sprites.crouch1
+            : state.ticksRemainingBeforeAscent > 6
+            ? sprites.crouch2
+            : state.ticksRemainingBeforeAscent > 4
+            ? sprites.ascending
+            : state.ticksRemainingBeforeAscent > 2
+            ? sprites.jump
+            : sprites.ascending
           : sprites.standing;
 
       if (state.type !== "ASPLODE" && state.type !== "VICTORY") {
