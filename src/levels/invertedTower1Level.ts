@@ -23,7 +23,7 @@ export const invertedTower1Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|#KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK|#",
+    "|#?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K|#",
   ],
   annotations: [],
 };

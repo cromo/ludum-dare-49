@@ -21,9 +21,9 @@ export const deadPitFull2Level: LevelDefinition = {
     "|#-#-#-# _ _ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|# _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|#",
-    "|#KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK|#",
+    "|# . . . . . . . .?. . . . .?. . . . . . . . . . . . . . . . . . . . .?. . . .|#",
+    "|# _ _ _ _ _?_ _ _ _ _ _ _ _?_?_ _ _ _ _ _ _ _ _?_ _ _ _ _ _ _ _ _?_?_ _ _ _ _|#",
+    "|#?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K|#",
   ],
   annotations: [
     // { symbol: ".", zoneMode: "hot" },
