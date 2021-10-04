@@ -13,6 +13,7 @@ import { encourageExhaustion } from "./levels/encourageExhaustion";
 import { hotPitFull1Level } from "./levels/hotPitFull1Level";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
+import { killBlockIntro } from "./levels/killBlockIntro";
 import { level1 } from "./levels/level1";
 import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
@@ -37,6 +38,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  killBlockIntro,
   outerGlitchMazeLevel,
   deadPitFull2Level,
   hotPitFull1Level,
@@ -73,6 +75,7 @@ const LEVEL_SEQUENCE = [
   simpleGlitchLevel,
   singleJumpTutorial,
   simpleJumpLevel,
+  killBlockIntro,
   straightforwardGlitch,
   encourageExhaustion,
 ];
