@@ -31,9 +31,10 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
-  invertedTower2Level,
+  // simpleJumpLevel,
+  // singleJumpTutorial,
+  // invertedTower2Level,
   invertedTower1Level,
-  singleJumpTutorial,
   simpleGlitchLevel,
   debugLevel,
   level3,
@@ -55,7 +56,7 @@ const LEVEL_SEQUENCE = [
 /*/
 // The real level sequence
 // Ensure this is uncommented for release!
-const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial];
+const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial, simpleJumpLevel];
 //*/
 
 let currentLevelIndex = 0;
