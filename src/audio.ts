@@ -52,7 +52,11 @@ export function initAudio(): void {
     pitchVariation: 0.1,
     volume: 0.7,
   };
-  availableSfx["powerdown"] = { source: audio.newSource("res/sfx/power_down.wav", "static"), pitchVariation: 0.1 };
+  availableSfx["powerdown"] = {
+    source: audio.newSource("res/sfx/power_down.wav", "static"),
+    pitchVariation: 0.1,
+    volume: 0.4,
+  };
   availableSfx["lostpips"] = {
     source: audio.newSource("res/sfx/lose_pips.wav", "static"),
     pitchVariation: 0.1,

@@ -815,6 +815,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     ) === -1
   ) {
     // Forcefully yank the player out of any state when they run out of entropy.
+    playSfx("powerdown");
     return {
       ...player,
       entropy: 0,
