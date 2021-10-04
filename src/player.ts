@@ -29,18 +29,31 @@
 
 import { Image, setColor } from "love.graphics";
 
+import { playSfx, queueBgmVariant } from "./audio";
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
+import { getTerminal } from "./levels";
 import {
   COYOTE_TIME,
+  DASH_CHARGE_FRAMES,
   DASH_LENGTH,
+  DEATH_ANIMATION_PIXEL_SPREAD,
+  DEATH_ANIMATION_TICKS,
+  DOUBLE_JUMP_VELOCITY,
+  ENTROPY_BASE_RATE,
+  ENTROPY_DEAD_RATE,
+  ENTROPY_HOT_RATE,
   ENTROPY_LIMIT,
-  ENTROPY_BASE_RATE as ENTROPY_NORMAL_GROWTH_RATE,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
+  EXTENDED_DASH_SAFETY_LIMIT,
   GRAVITY,
+  HitBox,
   JUMP_VELOCITY,
   Level,
+  MAXIMUM_AFTERIMAGE_TICK_DURATION,
+  MINIMUM_AFTERIMAGE_TICK_DURATION,
+  MINIMUM_DISTANCE_BETWEEN_AFTERIMAGES,
   MOVEMENT_ACCELERATION,
   MOVEMENT_SPEEDCAP,
   OUT_OF_ENTROPY_PENALTY_TICKS,
@@ -49,21 +62,39 @@ import {
   PLAYER_FRICTION,
   POST_DASH_VELOCITY,
   Point,
+  RESET_DURATION_TICKS,
+  TILE_CODE_TO_TYPE,
+  TileDef,
+  TileTypes,
+  VICTORY_DURATION_TICKS,
   Vector,
+  ZoneMode,
 } from "./models";
-import { Facing, PlayerEntity } from "./models";
+import { Facing, GlitchMode as LevelGlitchMode, PlayerEntity } from "./models";
 import {
   collideWithLevel,
   glitchSolidCollider,
   hitboxOverlapsGlitchTile,
   normalSolidCollider,
+  sensorInGlitchMode,
+  sensorInPhysicalMode,
+  sensorInZone,
   stepPhysics,
+  tileCoordinates,
+  tileInBounds,
 } from "./physics";
 
 function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
   stepPhysics(player);
-  const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, normalSolidCollider);
+  const { collidedPos, hitX, hitY } = collideWithLevel(
+    oldPos,
+    player.pos,
+    player.hitbox,
+    player.groundHitbox,
+    level,
+    normalSolidCollider
+  );
   player.pos = collidedPos;
   if (hitX) {
     player.vel.x = 0.0;
@@ -82,10 +113,24 @@ function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
 function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
   stepPhysics(player);
-  const { collidedPos, hitX, hitY } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
+  const { collidedPos, hitX, hitY } = collideWithLevel(
+    oldPos,
+    player.pos,
+    player.hitbox,
+    player.groundHitbox,
+    level,
+    glitchSolidCollider
+  );
   player.pos = collidedPos;
   if (hitX || hitY) {
+    /* Telesplat(tm) */
     player.isDead = true;
+    const terminal = getTerminal();
+    if (terminal) {
+      terminal.trackers.deathCount++;
+      terminal.trackers.lastDeathType = "telesplat";
+      terminal.trackers.deathTick = true;
+    }
   }
   return player;
 }
@@ -93,7 +138,14 @@ function applyExtendedGlitchMovement(player: PlayerEntity, level: Level): Player
 function applyGlitchMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
   stepPhysics(player);
-  const { collidedPos } = collideWithLevel(oldPos, player.pos, player.hitbox, level, glitchSolidCollider);
+  const { collidedPos } = collideWithLevel(
+    oldPos,
+    player.pos,
+    player.hitbox,
+    player.groundHitbox,
+    level,
+    glitchSolidCollider
+  );
   player.pos = collidedPos;
   return player;
 }
@@ -122,10 +174,27 @@ function jumpInitState(player: PlayerEntity, level: Level, input: GameInput): Pl
   return walkingState(modifiedPlayer, level, input);
 }
 
+function doubleJumpInitState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
+  const modifiedPlayer = { ...player, grounded: false, vel: { x: player.vel.x, y: -DOUBLE_JUMP_VELOCITY } };
+  return walkingState(modifiedPlayer, level, input);
+}
+
 function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") return player;
-  if (player.stateMachine.state.framesDead >= 60) {
+  if (player.stateMachine.state.framesDead >= RESET_DURATION_TICKS) {
     level.doRestart = true;
+    const terminal = getTerminal();
+    if (terminal) {
+      terminal.trackers.deathCount++; // TODO: move this to the causes instead
+    }
+  }
+  return player;
+}
+
+function victoryState(player: PlayerEntity, level: Level): PlayerEntity {
+  if (player.stateMachine.state.type != "VICTORY") return player;
+  if (player.stateMachine.state.framesVictorious >= VICTORY_DURATION_TICKS) {
+    level.nextLevel = true;
   }
   return player;
 }
@@ -156,6 +225,23 @@ function dashDiretionFrom(facing: Facing, dashInput: DashDirection): Vector {
   }
 }
 
+function floodFill(
+  location: Point,
+  sourceType: TileTypes,
+  destinationType: TileDef,
+  destinationGlitchMode: LevelGlitchMode,
+  level: Level
+): void {
+  if (tileInBounds(location) && level.tiles[location.y][location.x].type == sourceType) {
+    level.tiles[location.y][location.x] = { ...destinationType };
+    level.glitchModes[location.y][location.x] = destinationGlitchMode;
+    floodFill({ x: location.x + 1, y: location.y + 0 }, sourceType, destinationType, destinationGlitchMode, level);
+    floodFill({ x: location.x - 1, y: location.y + 0 }, sourceType, destinationType, destinationGlitchMode, level);
+    floodFill({ x: location.x + 0, y: location.y + 1 }, sourceType, destinationType, destinationGlitchMode, level);
+    floodFill({ x: location.x + 0, y: location.y - 1 }, sourceType, destinationType, destinationGlitchMode, level);
+  }
+}
+
 function normalize(vec: Vector): Vector {
   const length = math.sqrt(vec.x * vec.x + vec.y * vec.y);
   return { x: vec.x / length, y: vec.y / length };
@@ -181,9 +267,19 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
     friction: { x: 0, y: 0 },
   };
 
+  const onceGlitchTilesTouched = [];
+
   // Iterate the physics step 4 times, moving the player approximately 2 tiles in the dash direction instantly
   for (let i = 0; i < DASH_LENGTH; i++) {
     modifiedPlayer = applyGlitchMovement(modifiedPlayer, level);
+    for (const corner of modifiedPlayer.hitbox.corners) {
+      const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, corner, level);
+      if (glitchMode == "glitch_once") {
+        onceGlitchTilesTouched.push(
+          tileCoordinates({ x: modifiedPlayer.pos.x + corner.x, y: modifiedPlayer.pos.y + corner.y })
+        );
+      }
+    }
   }
 
   // Here, if we are currently in a glitch tile, continue to iterate until one of several things happens:
@@ -194,10 +290,36 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   while (
     !modifiedPlayer.isDead &&
     hitboxOverlapsGlitchTile(modifiedPlayer.pos, modifiedPlayer.hitbox, level) &&
-    safetyCounter < 16
+    safetyCounter < EXTENDED_DASH_SAFETY_LIMIT
   ) {
     modifiedPlayer = applyExtendedGlitchMovement(modifiedPlayer, level);
     safetyCounter += 1;
+    for (const corner of modifiedPlayer.hitbox.corners) {
+      const glitchMode = sensorInGlitchMode(modifiedPlayer.pos, corner, level);
+      if (glitchMode == "glitch_once") {
+        onceGlitchTilesTouched.push(
+          tileCoordinates({ x: modifiedPlayer.pos.x + corner.x, y: modifiedPlayer.pos.y + corner.y })
+        );
+      }
+    }
+  }
+
+  if (safetyCounter == EXTENDED_DASH_SAFETY_LIMIT) {
+    /* Force a Telesplat. The employee safety handbook was *very* clear. */
+    modifiedPlayer.entropy = ENTROPY_LIMIT;
+    const terminal = getTerminal();
+    if (terminal) {
+      terminal.trackers.deathCount++;
+      terminal.trackers.lastDeathType = "telesplat";
+      terminal.trackers.deathTick = true;
+    }
+  }
+
+  for (const onceGlitchTile of onceGlitchTilesTouched) {
+    const replacementTileDef = TILE_CODE_TO_TYPE["*"];
+    const sourceTileType = TILE_CODE_TO_TYPE["1"].type;
+    floodFill(onceGlitchTile, sourceTileType, replacementTileDef, "solid", level);
+    level.requestBackgroundRedraw = true;
   }
 
   // At this point we have either exited the dash on the other side of a glitch wall or died trying. Reset our speed cap
@@ -206,17 +328,34 @@ function dashingState(player: PlayerEntity, level: Level): PlayerEntity {
   modifiedPlayer.acc = { x: 0, y: GRAVITY };
   modifiedPlayer.vel = { x: dashDirection.x * POST_DASH_VELOCITY, y: dashDirection.y * POST_DASH_VELOCITY };
 
+  const start = player.pos;
+  const dashDelta = { x: modifiedPlayer.pos.x - player.pos.x, y: modifiedPlayer.pos.y - player.pos.y };
+  const dashDistance = Math.sqrt(dashDelta.x * dashDelta.x + dashDelta.y * dashDelta.y);
+  const afterImageCount = Math.floor(dashDistance / MINIMUM_DISTANCE_BETWEEN_AFTERIMAGES);
+  const afterImageDelta = { x: dashDelta.x / afterImageCount, y: dashDelta.y / afterImageCount };
+  // Skip the starting point by starting at 1.
+  for (let imageNumber = 0; imageNumber < afterImageCount; ++imageNumber) {
+    modifiedPlayer.afterImages.push({
+      x: start.x + imageNumber * afterImageDelta.x,
+      y: start.y + imageNumber * afterImageDelta.y,
+      ticksRemaining:
+        MINIMUM_AFTERIMAGE_TICK_DURATION +
+        (MAXIMUM_AFTERIMAGE_TICK_DURATION - MINIMUM_AFTERIMAGE_TICK_DURATION) * (imageNumber / afterImageCount),
+    });
+  }
   return modifiedPlayer;
 }
 
 export function updateCurrentState(player: PlayerEntity, level: Level, input: GameInput): PlayerEntity {
   return {
     ASPLODE: dyingState,
+    VICTORY: victoryState,
     ASCENDING: walkingState,
     DASH_PREP: dashPrepState,
     DASHING: dashingState,
     DESCENDING: walkingState,
     JUMP_PREP: jumpInitState,
+    DOUBLE_JUMP_PREP: doubleJumpInitState,
     STANDING: standingState,
     LANDING: walkingState,
     OUT_OF_ENTROPY: standingState,
@@ -253,20 +392,23 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
 function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "STANDING") return player;
-  if (input.wantsToJump) {
+  if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("jump");
     return {
       ...player,
+      lastJumpReleased: false,
       stateMachine: {
         ...player.stateMachine,
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
   } else if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (input.moveDirection !== HorizontalDirection.Neutral) {
@@ -309,20 +451,23 @@ function updateStateStanding(player: PlayerEntity, input: GameInput): PlayerEnti
 function updateStateWalking(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "WALKING") return player;
-  if (input.wantsToJump) {
+  if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("jump");
     return {
       ...player,
+      lastJumpReleased: false,
       stateMachine: {
         ...player.stateMachine,
         state: { type: "JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
   } else if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (input.moveDirection === HorizontalDirection.Neutral) {
@@ -387,17 +532,55 @@ function updateStateJumpPrep(player: PlayerEntity): PlayerEntity {
   return player;
 }
 
+function updateStatedDoubleJumpPrep(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "DOUBLE_JUMP_PREP") return player;
+  if (0 < state.ticksRemainingBeforeAscent) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: {
+          type: "DOUBLE_JUMP_PREP",
+          ticksRemainingBeforeAscent: state.ticksRemainingBeforeAscent - 1,
+        },
+      },
+    };
+  } else if (state.ticksRemainingBeforeAscent === 0) {
+    return {
+      ...player,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "ASCENDING" },
+      },
+    };
+  }
+  return player;
+}
+
 function updateStateAscending(player: PlayerEntity, input: GameInput): PlayerEntity {
   const { state } = player.stateMachine;
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "ASCENDING") return player;
   if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
         facing,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
+      },
+    };
+  } else if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("doublejump");
+    return {
+      ...player,
+      entropy: player.entropy - 1,
+      lastJumpReleased: false,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DOUBLE_JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
   } else if (player.vel.y >= 0) {
@@ -418,12 +601,24 @@ function updateStateDescending(player: PlayerEntity, input: GameInput): PlayerEn
   const facing = player.vel.x < 0 ? Facing.Left : Facing.Right;
   if (state.type !== "DESCENDING") return player;
   if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
         facing,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
+      },
+    };
+  } else if (input.wantsToJump && player.lastJumpReleased) {
+    playSfx("doublejump");
+    return {
+      ...player,
+      entropy: player.entropy - 1,
+      lastJumpReleased: false,
+      stateMachine: {
+        ...player.stateMachine,
+        state: { type: "DOUBLE_JUMP_PREP", ticksRemainingBeforeAscent: 10 },
       },
     };
   } else if (player.grounded) {
@@ -443,11 +638,12 @@ function updateStateLanding(player: PlayerEntity, input: GameInput): PlayerEntit
   const { state } = player.stateMachine;
   if (state.type !== "LANDING") return player;
   if (input.wantsToDash) {
+    playSfx("dash");
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASH_PREP", ticksBeforeGlitchOff: 10 },
+        state: { type: "DASH_PREP", ticksBeforeGlitchOff: DASH_CHARGE_FRAMES, dashDirection: input.dashDirection },
       },
     };
   } else if (input.moveDirection !== HorizontalDirection.Neutral) {
@@ -493,6 +689,7 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
         state: {
           type: "DASH_PREP",
           ticksBeforeGlitchOff: state.ticksBeforeGlitchOff - 1,
+          dashDirection: input.dashDirection != "Forward" ? input.dashDirection : state.dashDirection,
         },
       },
     };
@@ -502,7 +699,10 @@ function updateStateDashPrep(player: PlayerEntity, input: GameInput): PlayerEnti
       entropy: player.entropy - 1,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "DASHING", dashDirection: input.dashDirection },
+        state: {
+          type: "DASHING",
+          dashDirection: input.dashDirection != "Forward" ? input.dashDirection : state.dashDirection,
+        },
       },
     };
   }
@@ -514,11 +714,12 @@ function updateStateDashing(player: PlayerEntity): PlayerEntity {
   const { state } = player.stateMachine;
   if (state.type !== "DASHING") return player;
   if (player.isDead) {
+    playSfx("death");
     return {
       ...player,
       stateMachine: {
         ...player.stateMachine,
-        state: { type: "ASPLODE", framesDead: 20 },
+        state: { type: "ASPLODE", framesDead: 0 },
       },
     };
   } else if (player.vel.y > 0) {
@@ -554,10 +755,57 @@ function updateStateDying(player: PlayerEntity): PlayerEntity {
   };
 }
 
+function updateStateVictory(player: PlayerEntity): PlayerEntity {
+  const { state } = player.stateMachine;
+  if (state.type !== "VICTORY") return player;
+  // Experience Zen
+  return {
+    ...player,
+    stateMachine: {
+      ...player.stateMachine,
+      state: { type: "VICTORY", framesVictorious: state.framesVictorious + 1 },
+    },
+  };
+}
+
+function updateActiveTile(player: PlayerEntity): PlayerEntity {
+  if (player.stateMachine.state.type != "ASPLODE") {
+    if (player.activeTile == "kill") {
+      const terminal = getTerminal();
+      if (terminal) {
+        terminal.trackers.deathCount++;
+        terminal.trackers.lastDeathType = "killPlane";
+        terminal.trackers.deathTick = true;
+      }
+      playSfx("death");
+      return {
+        ...player,
+        stateMachine: {
+          ...player.stateMachine,
+          state: { type: "ASPLODE", framesDead: 0 },
+        },
+      };
+    }
+  }
+  if (player.stateMachine.state.type != "VICTORY") {
+    if (player.activeTile == "exit") {
+      playSfx("exit");
+      return {
+        ...player,
+        stateMachine: {
+          ...player.stateMachine,
+          state: { type: "VICTORY", framesVictorious: 0 },
+        },
+      };
+    }
+  }
+  return player;
+}
+
 function updateEntropy(player: PlayerEntity): PlayerEntity {
   if (
     player.entropy < 0 &&
-    ["OUT_OF_ENTROPY", "DASH_PREP", "DASHING", "ASPLODE"].findIndex(
+    ["OUT_OF_ENTROPY", "DASH_PREP", "DASHING", "ASPLODE", "VICTORY"].findIndex(
       (state) => state === player.stateMachine.state.type
     ) === -1
   ) {
@@ -572,6 +820,14 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     };
   }
   if (ENTROPY_LIMIT <= player.entropy && player.stateMachine.state.type !== "ASPLODE") {
+    const terminal = getTerminal();
+    if (terminal && !terminal.trackers.deathTick) {
+      // resets may have already set this death
+      terminal.trackers.deathCount++;
+      terminal.trackers.lastDeathType = "overload";
+      terminal.trackers.deathTick = true;
+    }
+    playSfx("death");
     return {
       ...player,
       stateMachine: {
@@ -580,7 +836,31 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
       },
     };
   }
-  const newEntropy = player.entropy + ENTROPY_NORMAL_GROWTH_RATE;
+  const entropyGrowthRate = {
+    normal: ENTROPY_BASE_RATE,
+    dead: ENTROPY_DEAD_RATE,
+    hot: ENTROPY_HOT_RATE,
+  }[player.activeZone];
+
+  const entropyCap = player.activeZone == "dead" ? 2 : ENTROPY_LIMIT;
+  const newEntropy = Math.min(player.entropy + entropyGrowthRate, entropyCap);
+
+  // figure out which "segment" of our pip charge we're in at the moment. If that changes, play a tick
+  const oldEntropySegment = Math.floor(player.entropy / (1 / 16)) % 8;
+  const newEntropySegment = Math.floor(newEntropy / (1 / 16)) % 8;
+  if (oldEntropySegment != newEntropySegment) {
+    const baseClickVolume = newEntropySegment % 2 == 0 ? 0.5 : 0.25;
+    const zoneMultiplier = player.activeZone == "hot" ? 1.5 : 1.0;
+    playSfx("geiger", baseClickVolume * zoneMultiplier);
+  }
+
+  // Switch to the appropriate BGM variant for the zone the player is standing in, if one exists
+  if (player.activeZone == "dead") {
+    queueBgmVariant("deadzone");
+  } else {
+    queueBgmVariant("normal");
+  }
+
   const discreteOldEntropy = Math.floor(player.entropy);
   const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
@@ -592,12 +872,23 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   return { ...player, entropy: newEntropy, entropyInstabilityCountdown: newEntropyInstability };
 }
 
+function updateAfterImages(player: PlayerEntity): PlayerEntity {
+  return {
+    ...player,
+    afterImages: player.afterImages
+      .map((image) => ({ ...image, ticksRemaining: image.ticksRemaining - 1 }))
+      .filter(({ ticksRemaining }) => 0 < ticksRemaining),
+  };
+}
+
 // Maybe this should be split out; the different updates are different events that can be pumped in. But this is a
 // starting point.
 export function updateStateMachine(player: PlayerEntity, input: GameInput): PlayerEntity {
   // There are two steps here (sort of parallel states) - updating entropy, and
   // the main player state.
   const entropyUpdatedPlayer = updateEntropy(player);
+  const afterImageUpdatedPlayer = updateAfterImages(entropyUpdatedPlayer);
+  const tileUpdatedPlayer = updateActiveTile(afterImageUpdatedPlayer);
   return {
     ASPLODE: updateStateDying,
     ASCENDING: updateStateAscending,
@@ -605,11 +896,13 @@ export function updateStateMachine(player: PlayerEntity, input: GameInput): Play
     DASHING: updateStateDashing,
     DESCENDING: updateStateDescending,
     JUMP_PREP: updateStateJumpPrep,
+    DOUBLE_JUMP_PREP: updateStatedDoubleJumpPrep,
     STANDING: updateStateStanding,
     LANDING: updateStateLanding,
     OUT_OF_ENTROPY: updateStateOutOfEntropy,
     WALKING: updateStateWalking,
-  }[player.stateMachine.state.type](entropyUpdatedPlayer, input);
+    VICTORY: updateStateVictory,
+  }[player.stateMachine.state.type](tileUpdatedPlayer, input);
 }
 
 const sprites: Record<string, Image> = {};
@@ -618,6 +911,16 @@ export function loadPlayerSprites(): void {
   const { newImage } = love.graphics;
   sprites.standing = newImage("res/player-standing.png");
   sprites.entropyPip = newImage("res/player-entropy-pip.png");
+}
+
+export function activeZone(pos: Point, hitbox: HitBox, level: Level): ZoneMode {
+  const sensedZones = hitbox.corners.map((corner) => sensorInZone(pos, corner, level));
+  const activeZone = sensedZones.reduce((a, b) => {
+    if (b == "dead") return b;
+    if (b == "hot" && a == "normal") return b;
+    return a;
+  });
+  return activeZone;
 }
 
 export function createPlayerEntity(pos: Point): PlayerEntity {
@@ -637,8 +940,14 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
         { x: 11, y: 14 },
       ],
     },
+    groundHitbox: {
+      corners: [
+        { x: 4, y: 14 },
+        { x: 11, y: 14 },
+      ],
+    },
     footSensor: { x: 8.0, y: 16 },
-    zoneSensor: { x: 8.0, y: 8.0 },
+    tileSensor: { x: 8.0, y: 8.0 },
     entropy: 1,
     entropyPipOffsets: [
       { x: 0, y: -20 },
@@ -654,25 +963,55 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       state: { type: "STANDING", coyoteTime: COYOTE_TIME },
     },
     grounded: false,
+    afterImages: [],
+    lastJumpReleased: true,
     isDead: false,
+    activeZone: "normal",
+    activeTile: "empty",
     draw: (level, entity) => {
       if (entity.type !== "playerEntity") return;
       const { entropy } = entity;
-
-      const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
-      love.graphics.setColor(255, 255, 255);
+      const x = Math.floor(entity.pos.x);
+      const y = Math.floor(entity.pos.y);
+      const { state } = entity.stateMachine;
+      const flipHorizontally = entity.stateMachine.facing === Facing.Right;
       const entropyPercent = (entropy - 1) / (ENTROPY_LIMIT - 1);
-      glitchedDraw(sprites.standing, Math.floor(entity.pos.x), Math.floor(entity.pos.y), {
-        glitchRate: entropyPercent,
-        spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
-        mode: GlitchMode.Progressive,
-        flipHorizontally: entity.stateMachine.facing === Facing.Right,
-      });
+
+      if (state.type !== "ASPLODE") {
+        const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
+        love.graphics.setColor(255, 255, 255);
+        glitchedDraw(sprites.standing, x, y, {
+          glitchRate: entropyPercent,
+          spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
+          mode: GlitchMode.Progressive,
+          flipHorizontally,
+        });
+      } else if (state.framesDead < DEATH_ANIMATION_TICKS) {
+        love.graphics.setColor(1, 1, 1);
+        const deathAnimationPercent = state.framesDead / DEATH_ANIMATION_TICKS;
+        const centeredDeathAnimationPercent = deathAnimationPercent - 0.5;
+        glitchedDraw(sprites.standing, x, y, {
+          glitchRate:
+            entropyPercent * (1 - deathAnimationPercent * deathAnimationPercent) +
+            (1 - 4 * (centeredDeathAnimationPercent * centeredDeathAnimationPercent)),
+          spread: 3 + deathAnimationPercent * DEATH_ANIMATION_PIXEL_SPREAD,
+          mode: deathAnimationPercent < 0.5 ? GlitchMode.Progressive : GlitchMode.GlitchOnly,
+          flipHorizontally,
+        });
+      }
+
+      // Draw after images
+      entity.afterImages.forEach(({ x, y, ticksRemaining }) =>
+        glitchedDraw(sprites.standing, x, y, {
+          glitchRate: (8 / 16) * (ticksRemaining / MAXIMUM_AFTERIMAGE_TICK_DURATION),
+        })
+      );
 
       // Draw pips
+      if (state.type === "ASPLODE") return;
       const redFactor = entropy < ENTROPY_LIMIT - 1 ? 1 : (Math.sin(20 * love.timer.getTime()) + 1) / 4 + 0.75;
       setColor(1, redFactor, redFactor);
-      const center = { x: Math.floor(entity.pos.x) + 16 / 2 - 2, y: Math.floor(entity.pos.y) + 16 / 2 };
+      const center = { x: x + 16 / 2 - 2, y: y + 16 / 2 };
       entity.entropyPipOffsets.slice(0, Math.floor(entropy < 0 ? 0 : entropy)).forEach(({ x, y }, pipNumber) => {
         const instability = entity.entropyInstabilityCountdown[pipNumber];
         glitchedDraw(sprites.entropyPip, center.x + x, center.y + y, {
@@ -687,14 +1026,22 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
       if (entity.type != "playerEntity") return entity;
 
       const input = currentInput();
+      if (!input.wantsToJump) {
+        entity.lastJumpReleased = true;
+      }
+      if (input.wantsToReset) {
+        const terminal = getTerminal();
+        if (terminal && entity.entropy < ENTROPY_LIMIT - 1) {
+          terminal.trackers.deathCount++;
+          terminal.trackers.lastDeathType = "reset";
+          terminal.trackers.deathTick = true;
+        }
+        entity.entropy = ENTROPY_LIMIT;
+      }
       entity = updateStateMachine(entity, input);
       entity = updateCurrentState(entity, level, input);
-
-      // print(entity, level); //stop complaining about unused variables
-      // print(`PlayerPos: ${entity.pos.x}, ${entity.pos.y}`);
-      // print(`PlayerVel: ${entity.vel.x}, ${entity.vel.y}`);
-      // print(`PlayerAcc: ${entity.acc.x}, ${entity.acc.y}`);
-      // print(`PlayerState ${entity.stateMachine.state.type}`);
+      entity.activeZone = activeZone(entity.pos, entity.hitbox, level);
+      entity.activeTile = sensorInPhysicalMode(entity.pos, entity.tileSensor, level);
       return entity;
     },
     drawEffect: {},

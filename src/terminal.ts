@@ -1,8 +1,12 @@
+import { HorizontalDirection, currentInput } from "./input";
 import { getPlayer } from "./levels";
 import {
   Level,
   Point,
+  TERMINAL_FILLER_COOLDOWN_TICKS,
+  TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS,
   TERMINAL_HEIGHT,
+  TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS,
   TERMINAL_WIDTH,
   TILE_SIZE_PIXELS,
   TerminalAnnotation,
@@ -24,7 +28,16 @@ const EMPTY_LINE: TerminalMessage = {
 function pushTerminalMessage(terminal: TerminalEntity, message: TerminalMessage): void {
   terminal.lines.pop(); //remove last message
   terminal.lines.unshift(message); //at message at beginning
+  terminal.trackers.ticksSinceLastFillerMessage = 0;
   return;
+}
+
+function maybePushTerminalMessage(terminal: TerminalEntity, message: TerminalMessage | undefined): boolean {
+  if (!message) return false;
+  terminal.lines.pop(); //remove last message
+  terminal.lines.unshift(message); //at message at beginning
+  terminal.trackers.ticksSinceLastFillerMessage = 0;
+  return true;
 }
 
 const TERMINAL_FONT = love.graphics.newFont(12, "mono");
@@ -138,6 +151,9 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
     });
   }
 
+  // don't deathTick more than once per attempt
+  if (terminal.trackers.hasDied) terminal.trackers.deathTick = false;
+
   // first check conversations
   terminal.trackers.conversations.forEach((conversation) => {
     // if the conversation is matched, use it or post its message and advance the progress by one
@@ -152,9 +168,153 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
   });
   // then use fillers if no conversations match
 
+  // on spawn filler
+  if (
+    terminal.trackers.spawnTick &&
+    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.onSpawn
+  ) {
+    if (maybePushTerminalMessage(terminal, terminal.terminalAnotation.onSpawn[terminal.trackers.onSpawnProgress])) {
+      terminal.trackers.onSpawnProgress++;
+    }
+  }
+
+  // death fillers
+  //  kill plane filler
+  if (
+    terminal.trackers.deathTick &&
+    terminal.trackers.lastDeathType == "killPlane" &&
+    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.onKillPlaneDeath
+  ) {
+    if (
+      maybePushTerminalMessage(
+        terminal,
+        terminal.terminalAnotation.onKillPlaneDeath[terminal.trackers.onKillPlaneDeathProgress]
+      )
+    ) {
+      terminal.trackers.onKillPlaneDeathProgress++;
+    }
+  }
+  //  overload filler
+  if (
+    terminal.trackers.deathTick &&
+    terminal.trackers.lastDeathType == "overload" &&
+    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.onOverloadDeath
+  ) {
+    if (
+      maybePushTerminalMessage(
+        terminal,
+        terminal.terminalAnotation.onOverloadDeath[terminal.trackers.onOverloadDeathProgress]
+      )
+    ) {
+      terminal.trackers.onOverloadDeathProgress++;
+    }
+  }
+  //  telesplat filler
+  if (
+    terminal.trackers.deathTick &&
+    terminal.trackers.lastDeathType == "telesplat" &&
+    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.onTelesplatDeath
+  ) {
+    if (
+      maybePushTerminalMessage(
+        terminal,
+        terminal.terminalAnotation.onTelesplatDeath[terminal.trackers.onTelesplatDeathProgress]
+      )
+    ) {
+      terminal.trackers.onTelesplatDeathProgress++;
+    }
+  }
+  //  reset filler
+  if (
+    terminal.trackers.deathTick &&
+    terminal.trackers.lastDeathType == "reset" &&
+    // terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.onResetDeath
+  ) {
+    if (
+      maybePushTerminalMessage(
+        terminal,
+        terminal.terminalAnotation.onResetDeath[terminal.trackers.onResetDeathProgress]
+      )
+    ) {
+      terminal.trackers.onResetDeathProgress++;
+    }
+  }
+  //  OOB filler
+  if (
+    terminal.trackers.deathTick &&
+    terminal.trackers.lastDeathType == "OOB" &&
+    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.onOOBDeath
+  ) {
+    if (
+      maybePushTerminalMessage(terminal, terminal.terminalAnotation.onOOBDeath[terminal.trackers.onOOBDeathProgress])
+    ) {
+      terminal.trackers.onOOBDeathProgress++;
+    }
+  }
+
+  // on idle filler
+  if (
+    terminal.trackers.ticksOfPlayerIdling > TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS &&
+    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.idleMessages
+  ) {
+    if (
+      maybePushTerminalMessage(
+        terminal,
+        terminal.terminalAnotation.idleMessages[terminal.trackers.idleMessagesProgress]
+      )
+    ) {
+      terminal.trackers.idleMessagesProgress++;
+      terminal.trackers.ticksOfPlayerIdling = 0; // wait the full idling time again for each idle message
+    }
+  }
+
+  // TODO: zone fillers
+
+  // general filler
+  if (
+    terminal.trackers.ticksSinceLastFillerMessage > TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS &&
+    terminal.terminalAnotation.generalMessages
+  ) {
+    if (
+      maybePushTerminalMessage(
+        terminal,
+        terminal.terminalAnotation.generalMessages[terminal.trackers.generalMessagesProgress]
+      )
+    ) {
+      terminal.trackers.generalMessagesProgress++;
+    }
+  }
+
   // clear spawn and death ticks
+  terminal.trackers.hasDied = terminal.trackers.hasDied || terminal.trackers.deathTick;
   terminal.trackers.deathTick = false;
   terminal.trackers.spawnTick = false;
+
+  // advance tick trackers
+  terminal.trackers.ticksSinceLastFillerMessage++;
+
+  // track player idling
+  const input = currentInput();
+  if (
+    player &&
+    player.stateMachine.state.type == "STANDING" &&
+    player.vel.x == 0.0 &&
+    input.moveDirection == HorizontalDirection.Neutral &&
+    !input.wantsToDash &&
+    !input.wantsToJump &&
+    !input.wantsToReset
+  ) {
+    terminal.trackers.ticksOfPlayerIdling++;
+  } else {
+    terminal.trackers.ticksOfPlayerIdling = 0;
+  }
 
   return terminal;
 }
@@ -168,9 +328,9 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
     terminalAnotation,
     lines: [EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE],
     trackers: {
-      ticksSinceLastFillerMessage: 0,
+      ticksSinceLastFillerMessage: TERMINAL_FILLER_COOLDOWN_TICKS * 10, //be ready to send spawn messages
       spawnTick: true,
-      ticksSincePlayerInput: 0,
+      ticksOfPlayerIdling: 0,
       ticksInDeadZone: 0,
       ticksInHotZone: 0,
       ticksInTopHalf: 0,
@@ -181,7 +341,15 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
       ticksOnLevel: 0,
 
       deathTick: false,
+      hasDied: false,
       deathCount: 0,
+      deathsByKillPlane: 0,
+      deathsByOverload: 0,
+      deathsByTelesplat: 0,
+      deathsByReset: 0,
+      deathsByOOB: 0,
+      lastDeathType: "none",
+
       trackedTag: terminalAnotation.trackTags.map((tag) => {
         return {
           tag,
@@ -198,7 +366,11 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
       }),
 
       onSpawnProgress: 0,
-      onDeathProgress: 0,
+      onKillPlaneDeathProgress: 0,
+      onOverloadDeathProgress: 0,
+      onTelesplatDeathProgress: 0,
+      onResetDeathProgress: 0,
+      onOOBDeathProgress: 0,
       idleMessagesProgress: 0,
       deadZoneMessagesProgress: 0,
       hotZoneMessagesProgress: 0,
@@ -219,7 +391,8 @@ export function migrateTerminalEntity(previous: TerminalEntity): TerminalEntity 
     trackers: {
       ...pt,
       spawnTick: true, // preparing for a spawn
-      // deathTick: false, // this should be cleared before level resets, not now
+      hasDied: false,
+      deathTick: false, // this should be cleared before level resets, not now
       // deathCount: pt.deathCount + 1, // this should be incremented when the player dies, not now
       ticksInBottomHalf: 0,
       ticksInTopHalf: 0,
@@ -229,7 +402,7 @@ export function migrateTerminalEntity(previous: TerminalEntity): TerminalEntity 
       ticksInHotZone: 0,
       // ticksOnLevel: 0, // DONT reset this one! it's the total time across multiple plays of the same level
       // ticksSinceLastFillerMessage: 0 // DONT reset this one! death and spawn messages are usually filler messages
-      ticksSincePlayerInput: 0,
+      ticksOfPlayerIdling: 0,
       ticksSinceSpawn: 0,
       trackedTag: pt.trackedTag.map((tt) => {
         return {

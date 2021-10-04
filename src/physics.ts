@@ -1,4 +1,4 @@
-import { GlitchMode, HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, Point, Vector, ZoneMode } from "./models";
+import { GlitchMode, HitBox, LEVEL_HEIGHT, LEVEL_WIDTH, Level, PhysicalMode, Point, Vector, ZoneMode } from "./models";
 import { TILE_HEIGHT, TILE_WIDTH } from "./models";
 
 // Any object which moves
@@ -56,6 +56,15 @@ export function tileCoordinates(pos: Point): Point {
     x: Math.floor(pos.x / TILE_WIDTH),
     y: Math.floor(pos.y / TILE_HEIGHT),
   };
+}
+
+export function sensorInPhysicalMode(pos: Point, sensor: Point, level: Level): PhysicalMode {
+  const sensorPos = { x: pos.x + sensor.x, y: pos.y + sensor.y };
+  const tilePos = tileCoordinates(sensorPos);
+  if (tileInBounds(tilePos)) {
+    return level.physicalModes[tilePos.y][tilePos.x];
+  }
+  return "empty";
 }
 
 export function sensorInZone(pos: Point, sensor: Point, level: Level): ZoneMode {
@@ -118,10 +127,28 @@ export function hitboxOverlapsCollider(
   return false;
 }
 
+export function hitboxOverlapsSemisolid(pos: Point, hitbox: HitBox, level: Level): boolean {
+  const offsetHitbox = {
+    corners: hitbox.corners.map((corner) => {
+      return { x: corner.x + pos.x, y: corner.y + pos.y };
+    }),
+  };
+  for (const corner of offsetHitbox.corners) {
+    const tileCorner = tileCoordinates(corner);
+    if (tileInBounds(tileCorner)) {
+      if (level.physicalModes[tileCorner.y][tileCorner.x] == "semisolid") {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export function collideWithLevel(
   currentPos: Point,
   targetPos: Point,
-  hitbox: HitBox,
+  generalHitbox: HitBox,
+  floorHitbox: HitBox,
   level: Level,
   colliderFn: ColliderFunction
 ): { collidedPos: Point; hitX: boolean; hitY: boolean } {
@@ -153,7 +180,7 @@ export function collideWithLevel(
         x: steppedPos.x + xAdjustment,
         y: steppedPos.y,
       };
-      if (hitboxOverlapsCollider(checkedPosition, hitbox, level, colliderFn)) {
+      if (hitboxOverlapsCollider(checkedPosition, generalHitbox, level, colliderFn)) {
         // we would collide with a wall! cancel the move, and adjust our target on the X
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.x = steppedPos.x;
@@ -168,7 +195,12 @@ export function collideWithLevel(
         x: steppedPos.x,
         y: steppedPos.y + yAdjustment,
       };
-      if (hitboxOverlapsCollider(checkedPosition, hitbox, level, colliderFn)) {
+      if (
+        hitboxOverlapsCollider(checkedPosition, generalHitbox, level, colliderFn) ||
+        (yAdjustment > 0 &&
+          !hitboxOverlapsSemisolid(steppedPos, floorHitbox, level) &&
+          hitboxOverlapsSemisolid(checkedPosition, floorHitbox, level))
+      ) {
         // we would collide with a wall! cancel the move, and adjust our target on the Y
         // axis to the point we have reached, so we make no further moves on this axis
         adjustedTarget.y = steppedPos.y;

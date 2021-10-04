@@ -1,37 +1,59 @@
 import { Canvas, Shader } from "love.graphics";
 
+import { initAudio, playBgm, updateBgm } from "./audio";
 import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
-import { parseLevelDefinition } from "./levelLoader";
 import { getCurrentLevel } from "./levels";
+import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { debugLevel } from "./levels/debugLevel";
+import { level1 } from "./levels/level1";
+import { level2 } from "./levels/level2";
+import { level3 } from "./levels/level3";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
-import { GAME_SCALE } from "./models";
+import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
+import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
+import { simpleJumpLevel } from "./levels/simpleJumpLevel";
+import { simpleKillPlaneLevel } from "./levels/simpleKillPlaneLevel";
+import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
+import { drawParticleEmitters, initZoneEmitters } from "./zone";
 
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
 
-const LEVEL_SEQUENCE = [debugLevel, sampleLevelEmpty];
+const LEVEL_SEQUENCE = [
+  level3,
+  level2,
+  level1,
+  simpleGlitchWallLevel,
+  simpleKillPlaneLevel,
+  simpleGlitchLevel,
+  simpleJumpLevel,
+  debugLevel,
+  blankCorridorLevel,
+  sampleLevelEmpty,
+];
 let currentLevelIndex = 0;
 let globalCanvas: Canvas;
 let bloomShader: Shader;
 
 love.load = () => {
+  buildStructresAtInit();
   initBackgroundCanvas();
+  initZoneEmitters();
 
   initFastRandom();
   loadPlayerSprites();
 
-  const levelData = parseLevelDefinition(debugLevel);
-  print(levelData);
   currentLevelIndex = 0;
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
 
   globalCanvas = love.graphics.newCanvas();
   bloomShader = love.graphics.newShader("res/bloom.hlsl");
+  initAudio();
+  playBgm("level", "normal");
 };
 
 love.keypressed = input.onKeyDown;
@@ -46,6 +68,7 @@ love.update = (dt) => {
 
     // do lots of stuff
     tick(getCurrentLevel());
+    updateBgm();
 
     // check engile-level controls control codes
     const level = getCurrentLevel();
@@ -72,8 +95,11 @@ love.draw = () => {
   const level = getCurrentLevel();
   drawLevel(level);
   drawLevelEntities(level);
+  drawParticleEmitters();
   love.graphics.setColor(0, 0, 0);
   love.graphics.print(`${love.timer.getFPS()}`, 2, 2);
+  love.graphics.setColor(1, 1, 1);
+  love.graphics.print(`${love.timer.getFPS()}`, 1, 1);
   pop();
 
   love.graphics.setCanvas();

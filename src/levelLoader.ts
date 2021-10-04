@@ -9,42 +9,13 @@ import {
   LevelAnnotationFlag,
   LevelDefinition,
   Point,
+  TILE_CODE_TO_TYPE,
   TILE_SIZE_PIXELS,
   TileDef,
   TileTypes,
 } from "./models";
 import { createPlayerEntity } from "./player";
 import { createTerminalEntity } from "./terminal";
-
-love.graphics.setDefaultFilter("nearest");
-const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {
-  " ": { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") },
-  "*": { type: TileTypes.WALL_BLOCK, image: love.graphics.newImage("res/wall.png") },
-  "|": { type: TileTypes.WALL_VERTICAL, image: love.graphics.newImage("res/wall-vertical.png") },
-  "-": { type: TileTypes.WALL_HORIZONTAL, image: love.graphics.newImage("res/wall-horizontal.png") },
-  "^": { type: TileTypes.SEMI_SOLID, image: love.graphics.newImage("res/semisolid.png") },
-  "~": {
-    type: TileTypes.GLITCH_WALL,
-    image: love.graphics.newImage("res/wall-glitch.png"),
-    effect: { glitchyLevel: 2 / 16 },
-  },
-  S: {
-    type: TileTypes.ENTRANCE_CONDUIT,
-    image: love.graphics.newImage("res/conduit-entrance.png"),
-    effect: { glitchyLevel: 1 / 16 },
-  },
-  F: {
-    type: TileTypes.EXIT_CONDUIT,
-    image: love.graphics.newImage("res/conduit-exit.png"),
-    effect: { glitchyLevel: 1 / 16 },
-  },
-  "1": {
-    type: TileTypes.ONCE_WALL,
-    image: love.graphics.newImage("res/wall-once.png"),
-    effect: { glitchyLevel: 1 / 16 },
-  },
-  K: { type: TileTypes.KILL_PLANE, image: love.graphics.newImage("res/kill.png") },
-};
 
 const tileCodeToTileType: (tileCode: string, log: (...items: string[]) => void) => TileDef = (tileCode, log) => {
   if (TILE_CODE_TO_TYPE[tileCode]) return TILE_CODE_TO_TYPE[tileCode];

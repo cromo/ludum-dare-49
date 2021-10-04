@@ -13,6 +13,7 @@ export enum TileTypes {
   ENTRANCE_CONDUIT = "S",
   EXIT_CONDUIT = "F",
   KILL_PLANE = "K",
+  OUT_OF_BOUNDS = "?",
 }
 
 // 1920 x 1080
@@ -28,6 +29,7 @@ export const LEVEL_WIDTH = 40;
 export const TILE_SIZE_PIXELS = 16;
 export const TILE_HEIGHT = TILE_SIZE_PIXELS;
 export const TILE_WIDTH = TILE_SIZE_PIXELS;
+export const HALF_TILE = TILE_SIZE_PIXELS / 2;
 export const TERMINAL_HEIGHT = 5;
 export const TERMINAL_WIDTH = 14;
 
@@ -38,16 +40,38 @@ export const PLAYER_FRICTION = 0.05;
 export const JUMP_VELOCITY = 3.5;
 export const DOUBLE_JUMP_VELOCITY = 3.5;
 export const DASH_LENGTH = 8; // measured in half-tiles, when moving in a cardinal direction. Normalized, diagonals are shorter
+export const EXTENDED_DASH_SAFETY_LIMIT = 255; // measured in half-tiles; should be comfortably more than the length of the widest level
 export const POST_DASH_VELOCITY = 4; // speed, in the direction of the dash, after the teleport effect ends. "Wheeeeee4!#~"
+export const DASH_CHARGE_FRAMES = 18;
 export const COYOTE_TIME = 5; // frames
+
+export const RESET_DURATION_TICKS = 60;
+export const VICTORY_DURATION_TICKS = 60;
+export const DEATH_ANIMATION_TICKS = (1 / 2) * RESET_DURATION_TICKS;
+export const DEATH_ANIMATION_PIXEL_SPREAD = 400;
+
+export const MINIMUM_DISTANCE_BETWEEN_AFTERIMAGES = 18;
+export const MINIMUM_AFTERIMAGE_TICK_DURATION = 3;
+export const MAXIMUM_AFTERIMAGE_TICK_DURATION = 30;
 
 // Add a pip every four seconds (4 * 60 ticks)
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
+export const ENTROPY_DEAD_RATE = 1 / (8 * 60);
+export const ENTROPY_HOT_RATE = 1 / (2 * 60);
 export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;
 export const PIP_INSTABILITY_SPREAD = 10;
 export const OUT_OF_ENTROPY_PENALTY_TICKS = 10;
 export const ENTROPY_LIMIT = 6;
 export const ENTROPY_PIP_GAINED_GLITCH_SPREAD = 30;
+
+// Terminal timing constants
+export const TERMINAL_FILLER_COOLDOWN_TICKS = 30;
+export const TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS = 960;
+// GENERAL_FILLER should be larger than TERMINAL_FILLER_COOLDOWN_TICKS
+export const TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS = 180;
+
+export const ZONE_PARTICLES_PER_SECOND = 0.45;
+export const BACKGROUND_TILE_GLITCH_CHANCE = 0.03;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";
@@ -65,6 +89,7 @@ export interface Level {
   doRestart?: true; // true = reload this level (when you die)
   nextLevel?: true; // true = go to the next level in the level sequence (normal)
   gotoLevel?: LevelDefinition; // go to a specific level (storytelling)
+  requestBackgroundRedraw?: true;
 }
 
 export interface Point {
@@ -118,14 +143,19 @@ export interface PlayerEntity extends VisibleEntity {
   directionalInfluenceAcc: number;
   directionalInfluenceSpeedCap: number;
   hitbox: HitBox;
+  groundHitbox: HitBox;
   footSensor: Point;
-  zoneSensor: Point;
+  tileSensor: Point;
   entropy: number;
   entropyPipOffsets: Vector[];
   entropyInstabilityCountdown: number[];
   stateMachine: PlayerStateMachine;
   grounded: boolean;
+  afterImages: (Vector & { ticksRemaining: number })[];
+  lastJumpReleased: boolean;
   isDead: boolean;
+  activeZone: ZoneMode;
+  activeTile: PhysicalMode;
 }
 
 export enum Facing {
@@ -153,6 +183,11 @@ export interface JumpPrep {
   ticksRemainingBeforeAscent: number;
 }
 
+export interface DoubleJumpPrep {
+  type: "DOUBLE_JUMP_PREP";
+  ticksRemainingBeforeAscent: number;
+}
+
 export interface Ascending {
   type: "ASCENDING";
 }
@@ -169,6 +204,7 @@ export interface Landing {
 export interface DashPrep {
   type: "DASH_PREP";
   ticksBeforeGlitchOff: number;
+  dashDirection: DashDirection;
 }
 
 export interface Dashing {
@@ -182,10 +218,27 @@ export interface Asplode {
   framesDead: number;
 }
 
+export interface Victory {
+  type: "VICTORY";
+  framesVictorious: number;
+}
+
 export interface PlayerStateMachine {
   facing: Facing;
   entropy: number;
-  state: OutOfEntropy | Standing | Walking | JumpPrep | Ascending | Descending | Landing | DashPrep | Dashing | Asplode;
+  state:
+    | OutOfEntropy
+    | Standing
+    | Walking
+    | JumpPrep
+    | DoubleJumpPrep
+    | Ascending
+    | Descending
+    | Landing
+    | DashPrep
+    | Dashing
+    | Asplode
+    | Victory;
 }
 
 export interface LayoutLine {
@@ -205,6 +258,41 @@ export interface TileDef {
 
 export interface TileEffect {
   glitchyLevel?: number;
+}
+
+export const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {};
+
+export function buildStructresAtInit(): void {
+  TILE_CODE_TO_TYPE[" "] = { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") };
+  TILE_CODE_TO_TYPE["*"] = { type: TileTypes.WALL_BLOCK, image: love.graphics.newImage("res/wall.png") };
+  TILE_CODE_TO_TYPE["|"] = { type: TileTypes.WALL_VERTICAL, image: love.graphics.newImage("res/wall-vertical.png") };
+  TILE_CODE_TO_TYPE["-"] = {
+    type: TileTypes.WALL_HORIZONTAL,
+    image: love.graphics.newImage("res/wall-horizontal.png"),
+  };
+  TILE_CODE_TO_TYPE["^"] = { type: TileTypes.SEMI_SOLID, image: love.graphics.newImage("res/semisolid.png") };
+  TILE_CODE_TO_TYPE["~"] = {
+    type: TileTypes.GLITCH_WALL,
+    image: love.graphics.newImage("res/wall-glitch.png"),
+    effect: { glitchyLevel: 2 / 16 },
+  };
+  TILE_CODE_TO_TYPE["S"] = {
+    type: TileTypes.ENTRANCE_CONDUIT,
+    image: love.graphics.newImage("res/conduit-entrance.png"),
+    effect: { glitchyLevel: 1 / 16 },
+  };
+  TILE_CODE_TO_TYPE["F"] = {
+    type: TileTypes.EXIT_CONDUIT,
+    image: love.graphics.newImage("res/conduit-exit.png"),
+    effect: { glitchyLevel: 1 / 16 },
+  };
+  TILE_CODE_TO_TYPE["1"] = {
+    type: TileTypes.ONCE_WALL,
+    image: love.graphics.newImage("res/wall-once.png"),
+    effect: { glitchyLevel: 1 / 16 },
+  };
+  TILE_CODE_TO_TYPE["K"] = { type: TileTypes.KILL_PLANE, image: love.graphics.newImage("res/kill.png") };
+  TILE_CODE_TO_TYPE["?"] = { type: TileTypes.AIR, image: love.graphics.newImage("res/oob.png") };
 }
 
 export interface LevelDefinition {
@@ -231,7 +319,12 @@ export interface LevelAnnotation {
 
 export interface TerminalAnnotation {
   onSpawn?: TerminalMessage[];
-  onDeath?: TerminalMessage[];
+  // onDeath?: TerminalMessage[];
+  onKillPlaneDeath?: TerminalMessage[];
+  onOverloadDeath?: TerminalMessage[];
+  onTelesplatDeath?: TerminalMessage[];
+  onResetDeath?: TerminalMessage[];
+  onOOBDeath?: TerminalMessage[];
 
   idleMessages?: TerminalMessage[];
   deadZoneMessages?: TerminalMessage[];
@@ -262,7 +355,8 @@ export interface TerminalTrackers {
   ticksSinceLastFillerMessage: number;
   spawnTick: boolean; // onSpawn
   deathTick: boolean; // onDeath - the moment the player dies but before the level resets
-  ticksSincePlayerInput: number;
+  hasDied: boolean; // don't process deathTick more than once per life
+  ticksOfPlayerIdling: number;
   ticksInDeadZone: number;
   ticksInHotZone: number;
   ticksInTopHalf: number;
@@ -273,6 +367,12 @@ export interface TerminalTrackers {
   ticksOnLevel: number; // across all lives
 
   deathCount: number; // number of times player died on this level
+  deathsByKillPlane: number;
+  deathsByOverload: number;
+  deathsByOOB: number;
+  deathsByTelesplat: number;
+  deathsByReset: number;
+  lastDeathType: "none" | "killPlane" | "overload" | "OOB" | "telesplat" | "reset";
 
   trackedTag: TerminalTrackedTag[];
 
@@ -280,7 +380,12 @@ export interface TerminalTrackers {
   conversations: TerminalConversation[];
 
   onSpawnProgress: number;
-  onDeathProgress: number;
+  onKillPlaneDeathProgress: number;
+  onOverloadDeathProgress: number;
+  onOOBDeathProgress: number;
+  onTelesplatDeathProgress: number;
+  onResetDeathProgress: number;
+
   idleMessagesProgress: number;
   deadZoneMessagesProgress: number;
   hotZoneMessagesProgress: number;
@@ -304,8 +409,15 @@ export interface TerminalConversationAnnotation {
   steps: TerminalConversationStep[];
 }
 
+export type checkFn = (stats: {
+  player?: PlayerEntity;
+  terminal: TerminalEntity;
+  track: TerminalTrackers;
+  level: Level;
+}) => boolean;
+
 export interface TerminalConversationStep {
-  check: (stats: { player?: PlayerEntity; terminal: TerminalEntity; track: TerminalTrackers; level: Level }) => boolean;
+  check: checkFn;
   run?: (stats: { player?: PlayerEntity; terminal: TerminalEntity; track: TerminalTrackers; level: Level }) => void;
   message?: TerminalMessage;
 }
