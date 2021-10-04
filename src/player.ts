@@ -873,7 +873,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     const oldEntropySubTick = Math.floor(player.entropy * 16) % 16;
     const newEntropySubTick = Math.floor(newEntropy * 16) % 16;
     if (oldEntropySubTick != newEntropySubTick) {
-      const warningVolume = (newEntropySubTick + 1) * (1.0 / 32); // caps at around half volume, on purpose
+      const warningVolume = (newEntropySubTick + 1) * (1.0 / 64); // caps at around quarter volume, on purpose
       playSfx("warning", warningVolume);
     }
   }
