@@ -7,14 +7,20 @@ import * as input from "./input";
 import { getCurrentLevel } from "./levels";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { columns1Level } from "./levels/columns1Level";
+import { deadPitFull2Level } from "./levels/deadPitFull2Level";
 import { debugLevel } from "./levels/debugLevel";
+import { encourageExhaustion } from "./levels/encourageExhaustion";
+import { hotPitFull1Level } from "./levels/hotPitFull1Level";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
+import { killBlockIntro } from "./levels/killBlockIntro";
 import { level1 } from "./levels/level1";
 import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
 import { level4 } from "./levels/level4";
+import { outerGlitchMazeLevel } from "./levels/outerGlitchMazeLevel";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
+import { straightforwardGlitch } from "./levels/simpleGlitch";
 import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
 import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
@@ -32,6 +38,12 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  killBlockIntro,
+  outerGlitchMazeLevel,
+  deadPitFull2Level,
+  hotPitFull1Level,
+  encourageExhaustion,
+  straightforwardGlitch,
   // simpleJumpLevel,
   // singleJumpTutorial,
   // invertedTower2Level,
@@ -58,7 +70,14 @@ const LEVEL_SEQUENCE = [
 /*/
 // The real level sequence
 // Ensure this is uncommented for release!
-const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial, simpleJumpLevel];
+const LEVEL_SEQUENCE = [
+  simpleGlitchLevel,
+  singleJumpTutorial,
+  simpleJumpLevel,
+  killBlockIntro,
+  straightforwardGlitch,
+  encourageExhaustion,
+];
 //*/
 
 let currentLevelIndex = 0;
