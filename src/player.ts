@@ -86,6 +86,7 @@ import {
   tileCoordinates,
   tileInBounds,
 } from "./physics";
+import { triggerStinger } from "./stinger";
 
 function applyNormalMovement(player: PlayerEntity, level: Level): PlayerEntity {
   const oldPos = { x: player.pos.x, y: player.pos.y };
@@ -802,6 +803,7 @@ function updateActiveTile(player: PlayerEntity): PlayerEntity {
     if (player.activeTile == "exit") {
       playSfx("exit");
       playBgm("level", "normal");
+      triggerStinger();
       return {
         ...player,
         afterImages: [...player.afterImages, { ...player.pos, ticksRemaining: 18 }],

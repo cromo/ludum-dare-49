@@ -33,6 +33,7 @@ import { singleJumpTutorial } from "./levels/singleJumpTutorial";
 import { suddenlyFallingLevel } from "./levels/suddenlyFallingLevel";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
+import { drawStinger, updateStinger } from "./stinger";
 import { drawParticleEmitters, initZoneEmitters } from "./zone";
 
 if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
@@ -144,6 +145,7 @@ love.update = (dt) => {
     // do lots of stuff
     tick(getCurrentLevel());
     updateBgm();
+    updateStinger();
 
     // check engile-level controls control codes
     const level = getCurrentLevel();
@@ -190,4 +192,5 @@ love.draw = () => {
   love.graphics.setShader(bloomShader);
   love.graphics.setColor(1, 1, 1, 1);
   love.graphics.draw(globalCanvas, 0, 0);
+  drawStinger();
 };
