@@ -52,6 +52,7 @@ export const encourageExhaustion: LevelDefinition = {
       zoneMode: "dead",
       flags: [LevelAnnotationFlag.spawn_player],
       customTags: [],
+      startWithEntropy: 2,
     },
     {
       symbol: "w",

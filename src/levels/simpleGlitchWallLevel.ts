@@ -35,6 +35,7 @@ export const simpleGlitchWallLevel: LevelDefinition = {
       symbol: "S", //make start square dead zone too
       zoneMode: "dead",
       flags: [LevelAnnotationFlag.spawn_player],
+      startWithEntropy: 2,
     },
     {
       symbol: "T",

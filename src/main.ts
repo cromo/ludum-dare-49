@@ -13,6 +13,7 @@ import { debugLevel } from "./levels/debugLevel";
 import { diagonalDash } from "./levels/diagonalDash";
 import { encourageExhaustion } from "./levels/encourageExhaustion";
 import { hotPitFull1Level } from "./levels/hotPitFull1Level";
+import { hotPitFull3Level } from "./levels/hotPitFull3Level";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
 import { killBlockIntro } from "./levels/killBlockIntro";
@@ -30,6 +31,7 @@ import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
 import { simpleKillPlaneLevel } from "./levels/simpleKillPlaneLevel";
 import { singleJumpTutorial } from "./levels/singleJumpTutorial";
+import { suddenlyFallingLevel } from "./levels/suddenlyFallingLevel";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
 import { drawParticleEmitters, initZoneEmitters } from "./zone";
@@ -43,6 +45,8 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
   bigCentralGlitch,
+  // hotPitFull3Level,
+  suddenlyFallingLevel,
   diagonalDash,
   overloadLikely,
   level2,
@@ -88,10 +92,18 @@ const LEVEL_SEQUENCE = [
   straightforwardGlitch,
   encourageExhaustion,
   level1,
+  simpleGlitchWallLevel,
   telesplatLikely,
   level2,
   overloadLikely,
   diagonalDash,
+  simpleKillPlaneLevel,
+  invertedTower1Level,
+  outerGlitchMazeLevel,
+  invertedTower2Level,
+  hotPitFull1Level,
+  level3,
+  suddenlyFallingLevel,
 ];
 //*/
 
