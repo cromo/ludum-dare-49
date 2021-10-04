@@ -1,3 +1,4 @@
+import { playSfx } from "./audio";
 import { HorizontalDirection, currentInput } from "./input";
 import { getPlayer } from "./levels";
 import {
@@ -31,6 +32,7 @@ function pushTerminalMessage(terminal: TerminalEntity, message: TerminalMessage)
   terminal.lines.pop(); //remove last message
   terminal.lines.unshift({ ...message, ticks: 0 }); //at message at beginning
   terminal.trackers.ticksSinceLastFillerMessage = 0;
+  playSfx("terminal");
   return;
 }
 
@@ -39,6 +41,7 @@ function maybePushTerminalMessage(terminal: TerminalEntity, message: TerminalMes
   terminal.lines.pop(); //remove last message
   terminal.lines.unshift({ ...message, ticks: 0 }); //at message at beginning
   terminal.trackers.ticksSinceLastFillerMessage = 0;
+  playSfx("terminal");
   return true;
 }
 
