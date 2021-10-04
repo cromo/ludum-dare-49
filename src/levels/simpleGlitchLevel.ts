@@ -1,5 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
-import { angry, frustrated, onTagActive, onTagHit, serious, step, teach } from "./terminalTalk";
+import { angry, frustrated, onOutOfEntropy, onTagActive, onTagHit, serious, step, teach, tease } from "./terminalTalk";
 
 enum Tags {
   MovedTowardExit = "MovedTowardExit",
@@ -77,6 +77,10 @@ export const simpleGlitchLevel: LevelDefinition = {
           {
             name: "warn",
             steps: [step(onTagHit(Tags.NearExit), serious("I'm warning you!"))],
+          },
+          {
+            name: "out of breath",
+            steps: [step(onOutOfEntropy, tease("Yeah, just stay there"))],
           },
         ],
       },
