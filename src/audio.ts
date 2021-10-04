@@ -53,8 +53,18 @@ export function initAudio(): void {
       hotzone: audio.newSource("res/bgm/ld49-smooth-molten.wav", "static"),
     },
     looping: true,
-    loopStart: 8.134,
-    loopEnd: 52.439,
+    loopStart: 9.134,
+    loopEnd: 53.439,
+    bpm: 130,
+  };
+
+  availableBgm["title"] = {
+    sources: {
+      normal: audio.newSource("res/bgm/ld49-title.wav", "static"),
+    },
+    looping: true,
+    loopStart: 0.83,
+    loopEnd: 14.868,
     bpm: 130,
   };
 

@@ -82,7 +82,7 @@ love.load = () => {
   globalCanvas = love.graphics.newCanvas();
   bloomShader = love.graphics.newShader("res/bloom.hlsl");
   initAudio();
-  playBgm("level", "normal");
+  playBgm("title", "normal");
 };
 
 love.keypressed = input.onKeyDown;
