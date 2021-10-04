@@ -114,7 +114,7 @@ export interface TerminalEntity extends BaseEntity {
   type: "terminalEntity";
   pos: Point;
   terminalAnotation: TerminalAnnotation;
-  lines: TerminalMessage[];
+  lines: TerminalMessageDisplay[];
   trackers: TerminalTrackers;
   persistLog: boolean;
 }
@@ -355,6 +355,10 @@ export interface TerminalAnnotation {
 export interface TerminalMessage {
   text: string;
   tone: TerminalTone;
+}
+
+export interface TerminalMessageDisplay extends TerminalMessage {
+  ticks: number;
 }
 
 export enum TerminalTone {
