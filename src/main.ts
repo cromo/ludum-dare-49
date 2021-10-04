@@ -5,6 +5,7 @@ import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLe
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
 import { getCurrentLevel } from "./levels";
+import { bigCentralGlitch } from "./levels/bigCentralGlitch";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { columns1Level } from "./levels/columns1Level";
 import { deadPitFull2Level } from "./levels/deadPitFull2Level";
@@ -41,6 +42,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  bigCentralGlitch,
   diagonalDash,
   overloadLikely,
   level2,
