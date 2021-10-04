@@ -1,4 +1,4 @@
-import { initAudio } from "./audio";
+import { initAudio, playBgm, updateBgm } from "./audio";
 import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
@@ -53,6 +53,7 @@ love.load = () => {
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
 
   initAudio();
+  playBgm("level", "normal");
 };
 
 love.keypressed = input.onKeyDown;
@@ -67,6 +68,7 @@ love.update = (dt) => {
 
     // do lots of stuff
     tick(getCurrentLevel());
+    updateBgm();
 
     // check engile-level controls control codes
     const level = getCurrentLevel();
