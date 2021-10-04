@@ -6,6 +6,7 @@ import { initFastRandom } from "./glitch";
 import * as input from "./input";
 import { getCurrentLevel } from "./levels";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
+import { columns1Level } from "./levels/columns1Level";
 import { debugLevel } from "./levels/debugLevel";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
@@ -30,6 +31,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  columns1Level,
   invertedTower2Level,
   invertedTower1Level,
   simpleGlitchLevel,
