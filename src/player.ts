@@ -38,14 +38,17 @@ import {
   COYOTE_TIME,
   DASH_CHARGE_FRAMES,
   DASH_LENGTH,
+  DEAD_ZONE_ENTROPY_LIMIT,
   DEATH_ANIMATION_PIXEL_SPREAD,
   DEATH_ANIMATION_TICKS,
   DOUBLE_JUMP_VELOCITY,
   ENTROPY_BASE_RATE,
   ENTROPY_DEAD_RATE,
   ENTROPY_HOT_RATE,
+  ENTROPY_JUMP_RATE,
   ENTROPY_LIMIT,
   ENTROPY_PIP_GAINED_GLITCH_SPREAD,
+  ENTROPY_WALK_RATE,
   EXTENDED_DASH_SAFETY_LIMIT,
   GRAVITY,
   HitBox,
@@ -841,9 +844,15 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     dead: ENTROPY_DEAD_RATE,
     hot: ENTROPY_HOT_RATE,
   }[player.activeZone];
+  const entropyBurnRate =
+    player.stateMachine.state.type === "WALKING"
+      ? ENTROPY_WALK_RATE
+      : player.stateMachine.state.type === "ASCENDING"
+      ? ENTROPY_JUMP_RATE
+      : 0;
 
-  const entropyCap = player.activeZone == "dead" ? 2 : ENTROPY_LIMIT;
-  const newEntropy = Math.min(player.entropy + entropyGrowthRate, entropyCap);
+  const entropyCap = player.activeZone == "dead" ? DEAD_ZONE_ENTROPY_LIMIT : ENTROPY_LIMIT;
+  const newEntropy = Math.min(player.entropy + entropyGrowthRate + entropyBurnRate, entropyCap);
 
   // figure out which "segment" of our pip charge we're in at the moment. If that changes, play a tick
   const oldEntropySegment = Math.floor(player.entropy / (1 / 16)) % 8;
@@ -866,7 +875,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
     instability <= 0 ? 0 : instability - 1
   );
-  if (discreteOldEntropy < discreteNewEntropy && discreteNewEntropy < 6) {
+  if (discreteOldEntropy < discreteNewEntropy && discreteNewEntropy < ENTROPY_LIMIT) {
     newEntropyInstability[discreteOldEntropy] = PIP_INSTABILITY_ANIMATION_TIME_TICKS;
   }
   return { ...player, entropy: newEntropy, entropyInstabilityCountdown: newEntropyInstability };

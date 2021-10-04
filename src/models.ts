@@ -58,9 +58,12 @@ export const MAXIMUM_AFTERIMAGE_TICK_DURATION = 30;
 export const ENTROPY_BASE_RATE = 1 / (4 * 60);
 export const ENTROPY_DEAD_RATE = 1 / (8 * 60);
 export const ENTROPY_HOT_RATE = 1 / (2 * 60);
+export const ENTROPY_WALK_RATE = -1 / (6 * 60);
+export const ENTROPY_JUMP_RATE = -1 / (5 * 60);
 export const PIP_INSTABILITY_ANIMATION_TIME_TICKS = 15;
 export const PIP_INSTABILITY_SPREAD = 10;
 export const OUT_OF_ENTROPY_PENALTY_TICKS = 10;
+export const DEAD_ZONE_ENTROPY_LIMIT = 2.3;
 export const ENTROPY_LIMIT = 6;
 export const ENTROPY_PIP_GAINED_GLITCH_SPREAD = 30;
 
