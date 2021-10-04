@@ -149,6 +149,9 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
       }
       return;
     });
+    terminal.trackers.activeTags = customTags;
+  } else {
+    terminal.trackers.activeTags = [];
   }
 
   // don't deathTick more than once per attempt
@@ -359,6 +362,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
           timesEnteredAtLeastOnce: 0,
         };
       }),
+      activeTags: [],
       conversations: terminalAnotation.conversations.map((convoAnno) => {
         return {
           ...convoAnno,
@@ -413,6 +417,7 @@ export function migrateTerminalEntity(previous: TerminalEntity): TerminalEntity 
           // timesEnteredAtLeastOnce: 0, // DONT reset this one! number of attempts that have had at least one entry
         };
       }),
+      activeTags: [],
     },
   };
 }

@@ -43,6 +43,10 @@ export const onTagHit: (tag: string) => checkFn = (tag: string) => ({ track: { t
   return trackedTag.filter((tt) => tt.tag == tag && tt.enteredYetThisLife).length > 0;
 };
 
+export const onTagActive: (tag: string) => checkFn = (tag: string) => ({ track: { activeTags } }) => {
+  return activeTags.filter((tt) => tt == tag).length > 0;
+};
+
 export const tagHitCount: (tag: string, targetCount: number) => checkFn = (tag: string, targetCount: number) => ({
   track: { trackedTag },
 }) => {
