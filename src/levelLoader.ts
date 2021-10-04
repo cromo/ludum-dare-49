@@ -1,3 +1,4 @@
+import { createImageEntity } from "./imageEntity";
 import { COMMON_ANNOTATIONS, DEFAULT_ANNO } from "./levelAnnotations";
 import {
   Entity,
@@ -58,6 +59,9 @@ const parseLayoutLine = (
       } else {
         log("terminal flag set but no terminal annotation found");
       }
+    }
+    if (flags.includes(LevelAnnotationFlag.image) && annotation.image) {
+      entities.push(createImageEntity(pos, love.graphics.newImage(annotation.image)));
     }
 
     return {

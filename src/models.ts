@@ -114,9 +114,9 @@ export interface TerminalEntity extends BaseEntity {
   trackers: TerminalTrackers;
 }
 
-export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity;
+export type Entity = TerminalEntity | PlayerEntity | PlayerSpawnEntity | ImageEntity;
 
-export type EntityTypes = "playerEntity" | "playerSpawnEntity" | "terminalEntity";
+export type EntityTypes = "playerEntity" | "playerSpawnEntity" | "terminalEntity" | "imageEntity";
 export interface BaseEntity {
   type: EntityTypes;
   update: (level: Level, entity: Entity) => Entity;
@@ -127,6 +127,12 @@ export interface VisibleEntity extends BaseEntity {
   pos: Point;
   drawEffect: {};
   spritesheetlocation: {};
+}
+
+export interface ImageEntity extends BaseEntity {
+  type: "imageEntity";
+  pos: Point;
+  image: Image;
 }
 
 export interface PlayerSpawnEntity extends BaseEntity {
@@ -264,6 +270,8 @@ export const TILE_CODE_TO_TYPE: { [key: string]: TileDef } = {};
 
 export function buildStructresAtInit(): void {
   TILE_CODE_TO_TYPE[" "] = { type: TileTypes.AIR, image: love.graphics.newImage("res/air.png") };
+  // @cromo
+  // TILE_CODE_TO_TYPE["="] = { type: TileTypes.AIR, image: love.graphics.newImage("res/vent.png") };
   TILE_CODE_TO_TYPE["*"] = { type: TileTypes.WALL_BLOCK, image: love.graphics.newImage("res/wall.png") };
   TILE_CODE_TO_TYPE["|"] = { type: TileTypes.WALL_VERTICAL, image: love.graphics.newImage("res/wall-vertical.png") };
   TILE_CODE_TO_TYPE["-"] = {
@@ -303,6 +311,7 @@ export interface LevelDefinition {
 export enum LevelAnnotationFlag {
   "spawn_player",
   "terminal",
+  "image",
 }
 
 export interface LevelAnnotation {
@@ -313,8 +322,9 @@ export interface LevelAnnotation {
   // For adding entities and other special stuff:
   flags?: LevelAnnotationFlag[];
   customTags?: string[]; // tags for terminal tracking, tied to the tile
-  data?: { [key: string]: string | number };
+  data?: { [key: string]: string | number }; // not actually used
   terminal?: TerminalAnnotation;
+  image?: string;
 }
 
 export interface TerminalAnnotation {

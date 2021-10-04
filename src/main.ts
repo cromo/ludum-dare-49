@@ -8,6 +8,7 @@ import { debugLevel } from "./levels/debugLevel";
 import { level1 } from "./levels/level1";
 import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
+import { level4 } from "./levels/level4";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
 import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
 import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
@@ -22,9 +23,14 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 }
 
 const LEVEL_SEQUENCE = [
-  level3,
-  level2,
   level1,
+  level2,
+  level3,
+  level4,
+  simpleGlitchWallLevel,
+  simpleKillPlaneLevel,
+  simpleGlitchLevel,
+  simpleJumpLevel,
   simpleGlitchWallLevel,
   simpleKillPlaneLevel,
   simpleGlitchLevel,

@@ -183,10 +183,10 @@ function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") return player;
   if (player.stateMachine.state.framesDead >= RESET_DURATION_TICKS) {
     level.doRestart = true;
-    const terminal = getTerminal();
-    if (terminal) {
-      terminal.trackers.deathCount++; // TODO: move this to the causes instead
-    }
+    // const terminal = getTerminal();
+    // if (terminal) {
+    //   // terminal.trackers.deathCount++; // TODO: move this to the causes instead
+    // }
   }
   return player;
 }

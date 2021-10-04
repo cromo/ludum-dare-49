@@ -1,4 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
+import { level2 } from "./level2";
 import { frustrated, glitchy, onRespawn, respawnCount, serious, step, tagHitCount, teach, tease } from "./terminalTalk";
 
 export const debugLevel: LevelDefinition = {
@@ -57,7 +58,7 @@ export const debugLevel: LevelDefinition = {
         trackTags: ["custom_flag", "up"],
         conversations: [
           {
-            name: "death tease",
+            name: "death tease", // more manual conversations for @cromo
             steps: [
               step([onRespawn, respawnCount(1)], tease("not too good at this, are you")),
               step([onRespawn, respawnCount(2)], tease("there you go again")),
@@ -139,7 +140,7 @@ export const debugLevel: LevelDefinition = {
               // {
               //   check: (x) => checkTagHitCount("up", 1)(x),
               //   message: teach("you got up! good job!"),
-              //   run: ({ level }) => (level.nextLevel = true),
+              //   run: ({ level }) => (level.gotoLevel = level2),
               // },
               // step(({ track: { spawnTick } }) => spawnTick, teach("but you died")),
               step(tagHitCount("up", 2), teach("you got up again!")),

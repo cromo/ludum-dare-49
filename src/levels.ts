@@ -21,6 +21,15 @@ export function getTerminal(): TerminalEntity | undefined {
   if (terminals.length == 1) return terminals[0] as TerminalEntity;
   return undefined;
 }
+export function foo(): void {
+  const t = getTerminal();
+  if (!t) return;
+  t.trackers.deathCount++;
+  t.trackers.deathTick = true;
+  t.trackers.lastDeathType = "killPlane";
+  return;
+}
+
 export function getTerminalFrom(level: Level): TerminalEntity | undefined {
   const terminals = level.entities.filter(({ type }) => type == "terminalEntity");
   if (terminals.length == 1) return terminals[0] as TerminalEntity;

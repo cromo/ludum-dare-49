@@ -70,6 +70,14 @@ export function tick(level: Level): void {
 
 export function loadLevel(levelDefinition: LevelDefinition): void {
   const level = parseLevelDefinition(levelDefinition);
+  //if there's a terminal, carry over its log
+  // const oldTerminal = getTerminal(); //@cromo
+  // if (oldTerminal && oldTerminal.persistLog) {
+  //   const newTerminal = getTerminalFrom(level);
+  //   if (newTerminal) {
+  //     newTerminal.lines = oldTerminal.lines;
+  //   }
+  // }
   setCurrentLevel(level);
   drawBackgroundTiles(level);
   clearParticleEmitters();
