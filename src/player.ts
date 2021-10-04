@@ -797,6 +797,7 @@ function updateActiveTile(player: PlayerEntity): PlayerEntity {
       playBgm("level", "normal");
       return {
         ...player,
+        afterImages: [...player.afterImages, { ...player.pos, ticksRemaining: 18 }],
         stateMachine: {
           ...player.stateMachine,
           state: { type: "VICTORY", framesVictorious: 0 },
@@ -1050,7 +1051,7 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
           ? sprites.walking
           : sprites.standing;
 
-      if (state.type !== "ASPLODE") {
+      if (state.type !== "ASPLODE" && state.type !== "VICTORY") {
         const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
         const color = playerColor(entity);
         love.graphics.setColor(color.r, color.g, color.b);
@@ -1060,7 +1061,7 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
           mode: GlitchMode.Progressive,
           flipHorizontally,
         });
-      } else if (state.framesDead < DEATH_ANIMATION_TICKS) {
+      } else if (state.type === "ASPLODE" && state.framesDead < DEATH_ANIMATION_TICKS) {
         love.graphics.setColor(1, 1, 1);
         const deathAnimationPercent = state.framesDead / DEATH_ANIMATION_TICKS;
         const centeredDeathAnimationPercent = deathAnimationPercent - 0.5;
@@ -1082,7 +1083,7 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
       );
 
       // Draw pips
-      if (state.type === "ASPLODE") return;
+      if (state.type === "ASPLODE" || state.type === "VICTORY") return;
       const redFactor = entropy < ENTROPY_LIMIT - 1 ? 1 : (Math.sin(20 * love.timer.getTime()) + 1) / 4 + 0.75;
       setColor(1, redFactor, redFactor);
       const center = { x: x + 16 / 2 - 2, y: y + 16 / 2 };
