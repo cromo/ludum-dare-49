@@ -29,7 +29,7 @@
 
 import { Image, setColor } from "love.graphics";
 
-import { playSfx } from "./audio";
+import { playSfx, queueBgmVariant } from "./audio";
 import { GlitchMode, glitchedDraw } from "./glitch";
 import { DashDirection, GameInput, HorizontalDirection } from "./input";
 import { currentInput } from "./input";
@@ -845,13 +845,20 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   const entropyCap = player.activeZone == "dead" ? 2 : ENTROPY_LIMIT;
   const newEntropy = Math.min(player.entropy + entropyGrowthRate, entropyCap);
 
-  // figure out which "segment" of our pip charge we're in at the moment
+  // figure out which "segment" of our pip charge we're in at the moment. If that changes, play a tick
   const oldEntropySegment = Math.floor(player.entropy / (1 / 16)) % 8;
   const newEntropySegment = Math.floor(newEntropy / (1 / 16)) % 8;
   if (oldEntropySegment != newEntropySegment) {
     const baseClickVolume = newEntropySegment % 2 == 0 ? 0.5 : 0.25;
     const zoneMultiplier = player.activeZone == "hot" ? 1.5 : 1.0;
     playSfx("geiger", baseClickVolume * zoneMultiplier);
+  }
+
+  // Switch to the appropriate BGM variant for the zone the player is standing in, if one exists
+  if (player.activeZone == "dead") {
+    queueBgmVariant("deadzone");
+  } else {
+    queueBgmVariant("normal");
   }
 
   const discreteOldEntropy = Math.floor(player.entropy);

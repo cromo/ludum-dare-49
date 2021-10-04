@@ -31,7 +31,7 @@ love.load = () => {
   loadLevel(LEVEL_SEQUENCE[currentLevelIndex]);
 
   initAudio();
-  playBgm("level");
+  playBgm("level", "normal");
 };
 
 love.keypressed = input.onKeyDown;
