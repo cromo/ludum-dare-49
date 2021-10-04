@@ -90,11 +90,18 @@ const LEVEL_SEQUENCE = [
   straightforwardGlitch,
   encourageExhaustion,
   level1,
+  simpleGlitchWallLevel,
   telesplatLikely,
   level2,
   overloadLikely,
   diagonalDash,
   simpleKillPlaneLevel,
+  invertedTower1Level,
+  outerGlitchMazeLevel,
+  invertedTower2Level,
+  hotPitFull1Level,
+  level3,
+  suddenlyFallingLevel,
 ];
 //*/
 
