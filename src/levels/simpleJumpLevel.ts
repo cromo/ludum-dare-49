@@ -1,5 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
-import { serious, teach, tease } from "./terminalTalk";
+import { glitchy, serious, teach, tease } from "./terminalTalk";
 
 export const simpleJumpLevel: LevelDefinition = {
   layout: [
@@ -48,7 +48,7 @@ export const simpleJumpLevel: LevelDefinition = {
           serious("Try jumping over it."),
           teach("Try double jumping."),
           teach("Try jumping even more times."),
-          teach("Wait to build entropy."),
+          glitchy("Wait to build entropy. Be unstable."),
         ],
         idleMessages: [serious("Ah, sweet Serenity~")],
         conversations: [],

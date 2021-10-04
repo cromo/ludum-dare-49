@@ -70,7 +70,7 @@ export const straightforwardGlitch: LevelDefinition = {
             steps: [
               step(onTagActive(Tags.NextToWall), tease("I told you.")),
               step(onTagActive(Tags.AwayFromWall), tease("Just give up.")),
-              step(onTagActive(Tags.NextToWall), tease("You're stuck.")),
+              step(onTagActive(Tags.NextToWall), tease("Hitting your head won't help.")),
               step(onTagActive(Tags.AwayFromWall), teach("Shift gears.")),
               step(onTagActive(Tags.NextToWall), glitchy("(Left shift)")),
             ],
