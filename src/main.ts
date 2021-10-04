@@ -12,6 +12,7 @@ import { debugLevel } from "./levels/debugLevel";
 import { diagonalDash } from "./levels/diagonalDash";
 import { encourageExhaustion } from "./levels/encourageExhaustion";
 import { hotPitFull1Level } from "./levels/hotPitFull1Level";
+import { hotPitFull3Level } from "./levels/hotPitFull3Level";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
 import { killBlockIntro } from "./levels/killBlockIntro";
@@ -42,6 +43,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  // hotPitFull3Level,
   suddenlyFallingLevel,
   diagonalDash,
   overloadLikely,
