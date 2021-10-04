@@ -12,6 +12,7 @@ import {
   TerminalAnnotation,
   TerminalEntity,
   TerminalMessage,
+  TerminalMessageDisplay,
   TerminalTone,
 } from "./models";
 
@@ -20,14 +21,15 @@ love.graphics.setDefaultFilter("nearest");
 const LINE_LEFT_MARGIN = 2;
 const LINE_TOP_MARGIN = 0;
 
-const EMPTY_LINE: TerminalMessage = {
+const EMPTY_LINE: TerminalMessageDisplay = {
   text: "",
   tone: TerminalTone.emptyLine,
+  ticks: 50,
 };
 
 function pushTerminalMessage(terminal: TerminalEntity, message: TerminalMessage): void {
   terminal.lines.pop(); //remove last message
-  terminal.lines.unshift(message); //at message at beginning
+  terminal.lines.unshift({ ...message, ticks: 0 }); //at message at beginning
   terminal.trackers.ticksSinceLastFillerMessage = 0;
   return;
 }
@@ -35,7 +37,7 @@ function pushTerminalMessage(terminal: TerminalEntity, message: TerminalMessage)
 function maybePushTerminalMessage(terminal: TerminalEntity, message: TerminalMessage | undefined): boolean {
   if (!message) return false;
   terminal.lines.pop(); //remove last message
-  terminal.lines.unshift(message); //at message at beginning
+  terminal.lines.unshift({ ...message, ticks: 0 }); //at message at beginning
   terminal.trackers.ticksSinceLastFillerMessage = 0;
   return true;
 }
@@ -94,15 +96,22 @@ function drawTerminalEntity(level: Level, terminal: TerminalEntity): void {
   for (let terminalLine = 0; terminalLine < lines.length; terminalLine++) {
     push();
     translate(0, terminalLine * TILE_SIZE_PIXELS);
-    const { text, tone } = lines[terminalLine];
+    const { text, tone, ticks } = lines[terminalLine];
 
     TERMINAL_TONE_SHADOW_COLOR();
     print(text, LINE_LEFT_MARGIN + 1, LINE_TOP_MARGIN + 1);
     print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN + 1);
 
-    const dim = terminalLine == lines.length - 1 ? 0.5 : terminalLine == lines.length - 2 ? 0.8 : 1;
-    (TERMINAL_TONE_COLOR[tone] || TERMINAL_TONE_COLOR[TerminalTone.emptyLine])(dim);
-    print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN);
+    if (ticks >= 4) {
+      const dim = terminalLine == lines.length - 1 ? 0.5 : terminalLine == lines.length - 2 ? 0.8 : 1;
+      (TERMINAL_TONE_COLOR[tone] || TERMINAL_TONE_COLOR[TerminalTone.emptyLine])(dim);
+      print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN);
+    } else {
+      lines[terminalLine].ticks++;
+      const dim = (ticks + 1) * 0.3;
+      (TERMINAL_TONE_COLOR[tone] || TERMINAL_TONE_COLOR[TerminalTone.emptyLine])(dim);
+      print(text, LINE_LEFT_MARGIN, LINE_TOP_MARGIN);
+    }
 
     pop();
   }
