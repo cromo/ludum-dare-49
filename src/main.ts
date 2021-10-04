@@ -1,6 +1,6 @@
 import { Canvas, Shader } from "love.graphics";
 
-import { initAudio, playBgm, updateBgm } from "./audio";
+import { currentBeat, initAudio, playBgm, updateBgm } from "./audio";
 import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLevel, tick } from "./engine";
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
@@ -89,6 +89,8 @@ love.draw = () => {
   const { push, pop, scale } = love.graphics;
 
   love.graphics.setCanvas(globalCanvas);
+  love.graphics.setShader();
+  love.graphics.setColor(1, 1, 1, 1);
 
   push();
   scale(GAME_SCALE, GAME_SCALE);
@@ -103,12 +105,14 @@ love.draw = () => {
   pop();
 
   love.graphics.setCanvas();
-  // draw the stage once, normally
-  love.graphics.setShader();
-  love.graphics.setColor(1, 1, 1);
-  love.graphics.draw(globalCanvas, 0, 0);
-  // draw it again, with the bloom shader active
+  love.graphics.clear();
+  // draw the global canvas with the bloom shader active
+  const beat = currentBeat();
+  const beatProgress = beat % 1.0;
+  const invertedBeatProgress = 1.0 - beatProgress;
+  const bloomStrength = Math.min(beatProgress * invertedBeatProgress, 1.0);
+  bloomShader.send("strength", bloomStrength);
   love.graphics.setShader(bloomShader);
-  love.graphics.setColor(1, 1, 1);
+  love.graphics.setColor(1, 1, 1, 1);
   love.graphics.draw(globalCanvas, 0, 0);
 };
