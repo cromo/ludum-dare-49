@@ -16,5 +16,5 @@ package.path += ";node_modules/?/?.lua";
 love.conf = (t) => {
   t.window.title = "Heat Death";
   t.window.width = GAME_SCALE * 640;
-  t.window.height = GAME_SCALE * 360;
+  t.window.height = GAME_SCALE * 352;
 };
