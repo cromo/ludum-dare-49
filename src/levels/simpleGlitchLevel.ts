@@ -1,5 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
-import { angry, frustrated, onTagHit, serious, step, teach } from "./terminalTalk";
+import { angry, frustrated, onTagActive, onTagHit, serious, step, teach } from "./terminalTalk";
 
 enum Tags {
   MovedTowardExit = "MovedTowardExit",
@@ -60,23 +60,24 @@ export const simpleGlitchLevel: LevelDefinition = {
           {
             name: "OBEY",
             steps: [
-              step(onTagHit(Tags.MovedTowardExit), angry("Hey! Go back!")),
-              // step(onTagHit(Tags.NearBeginning), serious("That's better")),
-              // step(onTagHit(Tags.InCorner), teach("That's even better")),
-              step(onTagHit(Tags.InCorner), serious("That's better")),
-              // step(onTagHit(Tags.MovedTowardExit), frustrated("What did I say?")),
-              // step(onTagHit(Tags.NearBeginning), teach("Good, good.")),
+              step(onTagActive(Tags.MovedTowardExit), angry("Hey! Go back!")),
+              step(onTagActive(Tags.NearBeginning), serious("That's better")),
+              step(onTagActive(Tags.MovedTowardExit), frustrated("What did I say?")),
+              step(onTagActive(Tags.NearBeginning), teach("Good, good.")),
+            ],
+          },
+          {
+            name: "even better",
+            steps: [
+              step(onTagActive(Tags.MovedTowardExit)),
+              step(onTagActive(Tags.NearBeginning)),
+              step(onTagActive(Tags.InCorner), teach("That's even better")),
             ],
           },
           {
             name: "warn",
             steps: [step(onTagHit(Tags.NearExit), serious("I'm warning you!"))],
           },
-          // Just touching the exit is fine now, no need for this
-          // {
-          //   name: "dash to get out",
-          //   steps: [step(onTagHit("w"), teach("Glitch to exit via the conduit"))],
-          // },
         ],
       },
     },
