@@ -8,7 +8,22 @@ export interface SfxDef {
   volume?: number;
 }
 
+export interface BgmDef {
+  source: Source;
+  looping: boolean;
+  loopStart: number;
+  loopEnd: number;
+}
+
 const availableSfx: { [key: string]: SfxDef } = {};
+const availableBgm: { [key: string]: BgmDef } = {};
+
+export interface BgmPlayer {
+  activeSource?: string;
+  playing: boolean;
+}
+
+let bgmPlayer: BgmPlayer;
 
 export function initAudio(): void {
   // Both jumps share a source; if the second plays, it should interrupt the first.
@@ -27,6 +42,15 @@ export function initAudio(): void {
   availableSfx["dash"] = { source: audio.newSource("res/sfx/glitch-dash3.wav", "static"), pitchVariation: 0.1 };
   availableSfx["exit"] = { source: audio.newSource("res/sfx/tepelort.wav", "static") };
   availableSfx["geiger"] = { source: audio.newSource("res/sfx/geiger-raw.wav", "static"), pitchVariation: 0.2 };
+
+  availableBgm["level"] = {
+    source: audio.newSource("res/bgm/ld49-smooth.wav", "static"),
+    looping: true,
+    loopStart: 7.484,
+    loopEnd: 14.868,
+  };
+
+  bgmPlayer = { playing: false };
 }
 
 export function playSfx(id: string, volume?: number, pitchVariation?: number): void {
@@ -40,4 +64,39 @@ export function playSfx(id: string, volume?: number, pitchVariation?: number): v
     sfx.source.setVolume(selectedVolume);
     sfx.source.play();
   }
+}
+
+export function playBgm(id: string): void {
+  if (id in availableBgm) {
+    const source = availableBgm[id].source;
+    source.seek(0);
+    source.setVolume(1.0);
+    source.play();
+    bgmPlayer.activeSource = id;
+  }
+}
+
+export function updateBgm(): void {
+  print("Called");
+  if (bgmPlayer.activeSource) {
+    const bgm = availableBgm[bgmPlayer.activeSource];
+    if (bgm.looping) {
+      const source = availableBgm[bgmPlayer.activeSource].source;
+      const currentPosition = source.tell();
+      print(`CurrentPos: ${currentPosition}`);
+      if (currentPosition > bgm.loopEnd) {
+        const loopLength = bgm.loopEnd - bgm.loopStart;
+        const rewindPosition = currentPosition - loopLength;
+        print(`Will rewind to: ${rewindPosition}`);
+        source.seek(rewindPosition);
+      }
+    }
+  }
+}
+
+export function stopBgm(): void {
+  if (bgmPlayer.activeSource) {
+    availableBgm[bgmPlayer.activeSource].source.stop();
+  }
+  bgmPlayer.playing = false;
 }
