@@ -41,6 +41,7 @@ export const level1: LevelDefinition = {
       symbol: "S", //make start square dead zone too
       zoneMode: "dead",
       flags: [LevelAnnotationFlag.spawn_player],
+      startWithEntropy: 2,
       customTags: [],
     },
     {
@@ -57,7 +58,7 @@ export const level1: LevelDefinition = {
       symbol: "T",
       flags: [LevelAnnotationFlag.terminal],
       terminal: {
-        trackTags: [Tags.ReachedCenter],
+        trackTags: [Tags.ReachedCenter, Tags.ReachedEnd],
         generalMessages: [tease("So you can glitch.")],
         conversations: [
           {
@@ -66,6 +67,10 @@ export const level1: LevelDefinition = {
               step(onTagHit(Tags.ReachedCenter), frustrated("No big deal.")),
               step(onTagHit(Tags.ReachedEnd), glitchy("... while jumping? Wow.")),
             ],
+          },
+          {
+            name: "pain",
+            steps: [step(onTagHit(Tags.ReachedCenter)), step(onDeath, tease("You're not good at it."))],
           },
         ],
       },
