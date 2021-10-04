@@ -28,6 +28,7 @@ import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
 import { simpleKillPlaneLevel } from "./levels/simpleKillPlaneLevel";
 import { singleJumpTutorial } from "./levels/singleJumpTutorial";
+import { suddenlyFallingLevel } from "./levels/suddenlyFallingLevel";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
 import { drawParticleEmitters, initZoneEmitters } from "./zone";
@@ -40,6 +41,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  suddenlyFallingLevel,
   overloadLikely,
   level2,
   telesplatLikely,
