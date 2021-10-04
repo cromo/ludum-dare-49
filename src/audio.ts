@@ -52,7 +52,11 @@ export function initAudio(): void {
   availableSfx["exit"] = { source: audio.newSource("res/sfx/tepelort.wav", "static"), volume: 0.5 };
   availableSfx["geiger"] = { source: audio.newSource("res/sfx/geiger-raw.wav", "static"), pitchVariation: 0.2 };
 
-  availableSfx["terminal"] = { source: audio.newSource("res/sfx/typing_dot_matrix.wav", "static"), volume: 0.5 };
+  availableSfx["terminal"] = {
+    source: audio.newSource("res/sfx/just_typing.wav", "static"),
+    volume: 0.5,
+    pitchVariation: 0.15,
+  };
   availableSfx["charge"] = {
     source: audio.newSource("res/sfx/dash_charge.wav", "static"),
     pitchVariation: 0.1,
