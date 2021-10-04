@@ -1,6 +1,7 @@
 import { createImageEntity } from "./imageEntity";
 import { COMMON_ANNOTATIONS, DEFAULT_ANNO } from "./levelAnnotations";
 import {
+  DEFAULT_PLAYER_ENTROPY,
   Entity,
   LEVEL_HEIGHT,
   LEVEL_WIDTH,
@@ -51,7 +52,7 @@ const parseLayoutLine = (
     const flags = annotation.flags || [];
 
     if (flags.includes(LevelAnnotationFlag.spawn_player)) {
-      entities.push(createPlayerEntity(pos));
+      entities.push(createPlayerEntity(pos, annotation.startWithEntropy || DEFAULT_PLAYER_ENTROPY));
     }
     if (flags.includes(LevelAnnotationFlag.terminal)) {
       if (annotation.terminal) {

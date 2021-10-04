@@ -935,7 +935,7 @@ export function activeZone(pos: Point, hitbox: HitBox, level: Level): ZoneMode {
   return activeZone;
 }
 
-export function createPlayerEntity(pos: Point): PlayerEntity {
+export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
   return {
     type: "playerEntity",
     pos: pos,
@@ -960,7 +960,7 @@ export function createPlayerEntity(pos: Point): PlayerEntity {
     },
     footSensor: { x: 8.0, y: 16 },
     tileSensor: { x: 8.0, y: 8.0 },
-    entropy: 1,
+    entropy: entropy,
     entropyPipOffsets: [
       { x: 0, y: -20 },
       { x: 10, y: -20 },
