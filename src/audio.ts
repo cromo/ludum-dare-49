@@ -1,5 +1,6 @@
-import { audio } from "love";
 import { Source } from "love.audio";
+
+const { audio } = love;
 
 export interface SfxDef {
   source: Source;
