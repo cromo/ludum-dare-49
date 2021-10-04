@@ -18,6 +18,7 @@ import { level1 } from "./levels/level1";
 import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
 import { level4 } from "./levels/level4";
+import { outerGlitchMazeLevel } from "./levels/outerGlitchMazeLevel";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
 import { straightforwardGlitch } from "./levels/simpleGlitch";
 import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
@@ -38,6 +39,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
   killBlockIntro,
+  outerGlitchMazeLevel,
   deadPitFull2Level,
   hotPitFull1Level,
   encourageExhaustion,
