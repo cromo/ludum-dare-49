@@ -17,6 +17,7 @@ export function getPlayer(): PlayerEntity | undefined {
 }
 
 export function getTerminal(): TerminalEntity | undefined {
+  if (!currentLevel) return undefined;
   const terminals = currentLevel.entities.filter(({ type }) => type == "terminalEntity");
   if (terminals.length == 1) return terminals[0] as TerminalEntity;
   return undefined;

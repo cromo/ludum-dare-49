@@ -327,6 +327,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
     update: (l, e) => updateTerminalEntity(l, e as TerminalEntity),
     terminalAnotation,
     lines: [EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE, EMPTY_LINE],
+    persistLog: true,
     trackers: {
       ticksSinceLastFillerMessage: TERMINAL_FILLER_COOLDOWN_TICKS * 10, //be ready to send spawn messages
       spawnTick: true,

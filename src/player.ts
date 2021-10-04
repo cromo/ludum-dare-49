@@ -380,7 +380,7 @@ function updateStateOutOfEntropy(player: PlayerEntity): PlayerEntity {
         },
       },
     };
-  } else if (state.ticksRemainingBeforeRechargeStarts === 0 && 1 <= player.entropy) {
+  } else if (state.ticksRemainingBeforeRechargeStarts <= 0 && 1 <= player.entropy) {
     return {
       ...player,
       stateMachine: {
