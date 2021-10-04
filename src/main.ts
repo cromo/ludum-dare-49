@@ -40,7 +40,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
 
-//*
+/*
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
