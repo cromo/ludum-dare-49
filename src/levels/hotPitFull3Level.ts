@@ -22,8 +22,8 @@ export const hotPitFull3Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . _SS _ . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . .-#-#-# . . . . . . . . . . . . . . . . . . .|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|#KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK|#",
+    "|# .?.?. . . . . . .?. . . . . . . . . . . . . .?. . . . . . . . .?. . .?. . .|#",
+    "|#?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K|#",
   ],
   annotations: [
     {

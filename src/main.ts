@@ -5,6 +5,7 @@ import { drawLevel, drawLevelEntities, initBackgroundCanvas, loadLevel, reloadLe
 import { initFastRandom } from "./glitch";
 import * as input from "./input";
 import { getCurrentLevel } from "./levels";
+import { bigCentralGlitch } from "./levels/bigCentralGlitch";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { columns1Level } from "./levels/columns1Level";
 import { deadPitFull2Level } from "./levels/deadPitFull2Level";
@@ -19,7 +20,6 @@ import { killBlockIntro } from "./levels/killBlockIntro";
 import { level1 } from "./levels/level1";
 import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
-import { level4 } from "./levels/level4";
 import { outerGlitchMazeLevel } from "./levels/outerGlitchMazeLevel";
 import { overloadLikely } from "./levels/overload";
 import { telesplatLikely } from "./levels/probablySplat";
@@ -43,6 +43,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  bigCentralGlitch,
   // hotPitFull3Level,
   suddenlyFallingLevel,
   diagonalDash,
@@ -67,7 +68,7 @@ const LEVEL_SEQUENCE = [
   level3,
   level1,
   level2,
-  level4,
+  // level4,
   simpleGlitchWallLevel,
   simpleKillPlaneLevel,
   simpleGlitchLevel,
@@ -97,6 +98,10 @@ const LEVEL_SEQUENCE = [
   diagonalDash,
   simpleKillPlaneLevel,
   invertedTower1Level,
+  hotPitFull3Level,
+  columns1Level,
+  bigCentralGlitch,
+  deadPitFull2Level,
   outerGlitchMazeLevel,
   invertedTower2Level,
   hotPitFull1Level,

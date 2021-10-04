@@ -23,7 +23,7 @@ export const outerGlitchMazeLevel: LevelDefinition = {
     "|# . . ! ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|#-#-#*#*#-#-#-#-#-# . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|#?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K|#",
+    "|#KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK|#",
   ],
   annotations: [],
 };
