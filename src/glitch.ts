@@ -78,13 +78,20 @@ export function glitchedDraw(
   drawable: Texture,
   x: number,
   y: number,
-  options?: { glitchRate?: number; mode?: GlitchMode; spread?: number; flipHorizontally?: boolean }
+  options?: {
+    glitchRate?: number;
+    mode?: GlitchMode;
+    spread?: number;
+    flipHorizontally?: boolean;
+    glitchChance?: number;
+  }
 ): void {
   const mode = options?.mode ?? GlitchMode.GlitchOnly;
   const requestedGlitchRate = options?.glitchRate ?? 0;
   const glitchRate = requestedGlitchRate < 0 ? 0 : 1 < requestedGlitchRate ? 1 : requestedGlitchRate;
   const spread = options?.spread ?? 10;
   const flipHorizontally = options?.flipHorizontally ?? false;
+  const glitchChance = options?.glitchChance ?? 1;
 
   const scale = flipHorizontally ? -1 : 1;
   const xOffset = flipHorizontally ? 16 : 0;
@@ -92,6 +99,9 @@ export function glitchedDraw(
 
   const { draw } = love.graphics;
   const random = fastRandom;
+
+  // There's a chance that we don't draw glitches this frame.
+  if (!(random() <= glitchChance)) return;
 
   if (glitchRate === 0 || spread === 0) {
     draw(drawable, xAdjusted, y, undefined, scale, 1);
