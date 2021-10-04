@@ -47,10 +47,19 @@ export function initAudio(): void {
   availableSfx["geiger"] = { source: audio.newSource("res/sfx/geiger-raw.wav", "static"), pitchVariation: 0.2 };
 
   availableSfx["terminal"] = { source: audio.newSource("res/sfx/typing_dot_matrix.wav", "static") };
-  availableSfx["charge"] = { source: audio.newSource("res/sfx/dash_charge.wav", "static"), pitchVariation: 0.1 };
+  availableSfx["charge"] = {
+    source: audio.newSource("res/sfx/dash_charge.wav", "static"),
+    pitchVariation: 0.1,
+    volume: 0.7,
+  };
   availableSfx["powerdown"] = { source: audio.newSource("res/sfx/power_down.wav", "static"), pitchVariation: 0.1 };
-  availableSfx["lostpips"] = { source: audio.newSource("res/sfx/lose_pips.wav", "static"), pitchVariation: 0.1 };
+  availableSfx["lostpips"] = {
+    source: audio.newSource("res/sfx/lose_pips.wav", "static"),
+    pitchVariation: 0.1,
+    volume: 0.5,
+  };
   availableSfx["warning"] = { source: audio.newSource("res/sfx/lose_pips.wav", "static") };
+  availableSfx["gainpip"] = { source: audio.newSource("res/sfx/pip_get.wav", "static"), volume: 0.5 };
 
   availableBgm["level"] = {
     sources: {

@@ -856,13 +856,14 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   const entropyCap = player.activeZone == "dead" ? DEAD_ZONE_ENTROPY_LIMIT : ENTROPY_LIMIT;
   const newEntropy = Math.min(player.entropy + entropyGrowthRate + entropyBurnRate, entropyCap);
 
-  // figure out which "segment" of our pip charge we're in at the moment. If that changes, play a tick
-  const oldEntropySegment = Math.floor(player.entropy / (1 / 16)) % 8;
-  const newEntropySegment = Math.floor(newEntropy / (1 / 16)) % 8;
-  if (oldEntropySegment != newEntropySegment) {
-    const baseClickVolume = newEntropySegment % 2 == 0 ? 0.5 : 0.25;
-    const zoneMultiplier = player.activeZone == "hot" ? 1.5 : 1.0;
-    playSfx("geiger", baseClickVolume * zoneMultiplier);
+  // If we have advanced to a new pip, play an acquisition sound
+  const discreteOldEntropy = Math.floor(player.entropy);
+  const discreteNewEntropy = Math.floor(newEntropy);
+
+  if (discreteNewEntropy > discreteOldEntropy) {
+    playSfx("gainpip");
+  } else if (discreteOldEntropy > 2 && discreteNewEntropy <= 2 && player.activeZone == "dead") {
+    playSfx("lostpips");
   }
 
   // Switch to the appropriate BGM variant for the zone the player is standing in, if one exists
@@ -874,8 +875,6 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     queueBgmVariant("normal");
   }
 
-  const discreteOldEntropy = Math.floor(player.entropy);
-  const discreteNewEntropy = Math.floor(newEntropy);
   const newEntropyInstability = player.entropyInstabilityCountdown.map((instability) =>
     instability <= 0 ? 0 : instability - 1
   );
