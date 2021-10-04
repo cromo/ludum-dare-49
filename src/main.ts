@@ -6,6 +6,7 @@ import { initFastRandom } from "./glitch";
 import * as input from "./input";
 import { getCurrentLevel } from "./levels";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
+import { columns1Level } from "./levels/columns1Level";
 import { debugLevel } from "./levels/debugLevel";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
 import { invertedTower2Level } from "./levels/invertedTower2Level";
@@ -18,6 +19,7 @@ import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
 import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
 import { simpleKillPlaneLevel } from "./levels/simpleKillPlaneLevel";
+import { singleJumpTutorial } from "./levels/singleJumpTutorial";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
 import { drawParticleEmitters, initZoneEmitters } from "./zone";
@@ -30,6 +32,10 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  // simpleJumpLevel,
+  // singleJumpTutorial,
+  // invertedTower2Level,
+  columns1Level,
   invertedTower2Level,
   invertedTower1Level,
   simpleGlitchLevel,
@@ -53,7 +59,7 @@ const LEVEL_SEQUENCE = [
 /*/
 // The real level sequence
 // Ensure this is uncommented for release!
-const LEVEL_SEQUENCE = [simpleGlitchLevel];
+const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial, simpleJumpLevel];
 //*/
 
 let currentLevelIndex = 0;
