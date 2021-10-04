@@ -33,6 +33,7 @@ export const step = (check: checkFn | checkFn[], message: TerminalMessage): Term
 };
 
 export const onRespawn: checkFn = ({ track: { spawnTick } }) => spawnTick;
+export const onDeath: checkFn = ({ track: { deathTick } }) => deathTick;
 
 export const respawnCount: (deathCount: number) => checkFn = (targetCount: number) => ({ track: { deathCount } }) =>
   deathCount == targetCount;
