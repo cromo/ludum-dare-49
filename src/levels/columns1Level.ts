@@ -1,9 +1,9 @@
-import { LevelDefinition } from "../models";
+import { LevelAnnotationFlag, LevelDefinition } from "../models";
 
 export const columns1Level: LevelDefinition = {
   layout: [
     "*#-#-#-#-#-#-#-#-#-#-#*#-#-#-#-#-#*#?K?K?K?K*#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*#",
-    "|# . . . . . . . . . . . . . . . .|#?K?K?K?K|# . . . . . . . . . . . . . . . .|#",
+    "|# . . . . . . . . . . . . T . . .|#?K?K?K?K|# . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . .|#?K?K?K?K|# . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . .|#?K?K?K?K|# . . . . . . . . . . . . . . . .|#",
     "*#-#-#-# ! ! ! !-#-#-#*#|#-#1111-#|#?K?K?K?K|#-#1111-#|#*#-#-#-#~~~~~~~~-#-#-#*#",
@@ -25,5 +25,17 @@ export const columns1Level: LevelDefinition = {
     "|#*# ! ! ! ! ! ! ! !*#|#|# ! ! ! ! ! ! ! ! ! ! ! ! ! !|#|# . . . . . . . . . .|#",
     "*#-#-#-#-#-#-#-#-#-#-#*#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#*#KKKKKKKKKKKKKKKKKKKK*#",
   ],
-  annotations: [],
+  annotations: [
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "empty",
+      glitchMode: "empty",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        conversations: [],
+        trackTags: [],
+        onSpawn: [],
+      },
+    },
+  ],
 };

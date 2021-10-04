@@ -74,6 +74,7 @@ export function initAudio(): void {
   };
   availableSfx["warning"] = { source: audio.newSource("res/sfx/warning.wav", "static") };
   availableSfx["gainpip"] = { source: audio.newSource("res/sfx/pip_get.wav", "static"), volume: 0.5 };
+  availableSfx["swoosh"] = { source: audio.newSource("res/sfx/swoosh.wav", "static"), volume: 1.0 };
 
   availableBgm["level"] = {
     sources: {

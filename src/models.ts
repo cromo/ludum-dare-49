@@ -201,6 +201,7 @@ export interface DoubleJumpPrep {
 
 export interface Ascending {
   type: "ASCENDING";
+  ticksSpentAscending: number;
 }
 
 export interface Descending {

@@ -1,4 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
+import { glitchy, serious, teach } from "./terminalTalk";
 
 export const deadPitFull2Level: LevelDefinition = {
   layout: [
@@ -7,7 +8,7 @@ export const deadPitFull2Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
+    "|# . . . . . . . . . . T . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
@@ -29,5 +30,20 @@ export const deadPitFull2Level: LevelDefinition = {
     // { symbol: ".", zoneMode: "hot" },
     { symbol: "S", flags: [LevelAnnotationFlag.spawn_player], zoneMode: "hot" },
     // { symbol: "^", physicalMode: "semisolid", zoneMode: "hot" },
+
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "empty",
+      glitchMode: "empty",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        conversations: [],
+        trackTags: [],
+        onSpawn: [
+          //
+          teach("Think you can make it across?"),
+        ],
+      },
+    },
   ],
 };

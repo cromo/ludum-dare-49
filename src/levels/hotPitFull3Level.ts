@@ -1,4 +1,5 @@
 import { LevelAnnotationFlag, LevelDefinition } from "../models";
+import { teach } from "./terminalTalk";
 
 export const hotPitFull3Level: LevelDefinition = {
   layout: [
@@ -13,7 +14,7 @@ export const hotPitFull3Level: LevelDefinition = {
     "|#-#-#|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#-#-#|#",
     "|# . . . . . . . _ _ _ _ . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . .-#-#-#-#KK . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
+    "|# . T . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . _ _ _ _ . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . .KK-#-#-#-# . . . . .|#",
     "|# . . . . . . . . . . . . _ _ _ _ _ _ _ _ _ _ _ . . . . . . . . . . . . . . .|#",
@@ -30,6 +31,17 @@ export const hotPitFull3Level: LevelDefinition = {
       symbol: "S",
       flags: [LevelAnnotationFlag.spawn_player],
       zoneMode: "dead",
+    },
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "empty",
+      glitchMode: "empty",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        conversations: [],
+        trackTags: [],
+        onSpawn: [teach("Up and over")],
+      },
     },
   ],
 };

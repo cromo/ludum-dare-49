@@ -1,4 +1,4 @@
-import { LevelDefinition } from "../models";
+import { LevelAnnotationFlag, LevelDefinition } from "../models";
 
 export const invertedTower2Level: LevelDefinition = {
   layout: [
@@ -15,7 +15,7 @@ export const invertedTower2Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . .~~~~~~~~~~ ! ! . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . .|#~~~~~~|# ! ! . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . .|#~~~~~~|# ! ! . . . . . . . . . . . . . .|#",
-    "*# . . . . . . . . . . . . . . . . . .~~~~~~*#-#-# . . . . . . . . . . . . . .*#",
+    "*# . T . . . . . . . . . . . . . . . .~~~~~~*#-#-# . . . . . . . . . . . . . .*#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
@@ -25,5 +25,17 @@ export const invertedTower2Level: LevelDefinition = {
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|#?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K|#",
   ],
-  annotations: [],
+  annotations: [
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "empty",
+      glitchMode: "empty",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        conversations: [],
+        trackTags: [],
+        onSpawn: [],
+      },
+    },
+  ],
 };

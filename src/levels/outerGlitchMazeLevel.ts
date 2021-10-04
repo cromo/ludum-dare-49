@@ -1,4 +1,5 @@
-import { LevelDefinition } from "../models";
+import { LevelAnnotationFlag, LevelDefinition } from "../models";
+import { serious } from "./terminalTalk";
 
 export const outerGlitchMazeLevel: LevelDefinition = {
   layout: [
@@ -18,12 +19,24 @@ export const outerGlitchMazeLevel: LevelDefinition = {
     "|# . . .*#*#*#~~~~~~*#*#*#*#*#*#*#*#*#-#-#*#*#*#*#*#*#*#*#*#111111*#*#*# . . .|#",
     "|# . . .*#*#*#~~~~~~*#*#*#*#*#*#*#*#*#~~~~*#*#*#*#*#*#*#*#*#~~~~~~*#*#*# . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
-    "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
+    "|# . . . . . . . . . . . . T . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . ! ! . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|#-#-#*#*#-#-#-#-#-# . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .|#",
     "|#KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK|#",
   ],
-  annotations: [],
+  annotations: [
+    {
+      symbol: "T", // terminal top left
+      physicalMode: "empty",
+      glitchMode: "empty",
+      flags: [LevelAnnotationFlag.terminal],
+      terminal: {
+        conversations: [],
+        trackTags: [],
+        onSpawn: [serious("What to do here?")],
+      },
+    },
+  ],
 };
