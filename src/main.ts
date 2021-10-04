@@ -66,7 +66,7 @@ const LEVEL_SEQUENCE = [
   level3,
   level1,
   level2,
-  level4,
+  // level4,
   simpleGlitchWallLevel,
   simpleKillPlaneLevel,
   simpleGlitchLevel,
