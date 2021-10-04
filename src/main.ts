@@ -90,6 +90,7 @@ const LEVEL_SEQUENCE = [
   level2,
   overloadLikely,
   diagonalDash,
+  simpleKillPlaneLevel,
 ];
 //*/
 

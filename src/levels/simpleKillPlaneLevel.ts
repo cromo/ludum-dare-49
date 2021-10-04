@@ -27,14 +27,15 @@ export const simpleKillPlaneLevel: LevelDefinition = {
     "?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K?K",
   ],
   annotations: [
-    {
-      symbol: ".", //make all air dead zone
-      zoneMode: "dead",
-    },
+    // {
+    //   symbol: ".", //make all air dead zone
+    //   zoneMode: "dead",
+    // },
     {
       symbol: "S", //make start square dead zone too
-      zoneMode: "dead",
+      // zoneMode: "dead",
       flags: [LevelAnnotationFlag.spawn_player],
+      startWithEntropy: 2,
     },
     {
       symbol: "T",
@@ -64,7 +65,7 @@ export const simpleKillPlaneLevel: LevelDefinition = {
     {
       symbol: "w",
       customTags: ["w"],
-      zoneMode: "dead",
+      // zoneMode: "dead",
     },
   ],
 };
