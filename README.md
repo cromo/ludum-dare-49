@@ -30,6 +30,7 @@ yarn build:watch:all
 
 - cromo
 - Zachery Delafosse
+- zeta0134
 
 ## Credits
 
