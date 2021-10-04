@@ -2,6 +2,7 @@ import { Image } from "love.graphics";
 
 import { playSfx } from "./audio";
 import { glitchedDraw } from "./glitch";
+import { DEATH_ANIMATION_TICKS, RESET_DURATION_TICKS } from "./models";
 
 const STINGER_SCALE = 44;
 const STINGER_SPEED = 30;
@@ -18,7 +19,9 @@ function getStingerImage(): Image {
 
 let framesSinceStingerTrigger = 1000;
 export function triggerStinger(): void {
-  framesSinceStingerTrigger = 0;
+  if (RESET_DURATION_TICKS < framesSinceStingerTrigger) {
+    framesSinceStingerTrigger = 0;
+  }
 }
 
 export function updateStinger(): void {

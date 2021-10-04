@@ -185,6 +185,7 @@ function doubleJumpInitState(player: PlayerEntity, level: Level, input: GameInpu
 
 function dyingState(player: PlayerEntity, level: Level): PlayerEntity {
   if (player.stateMachine.state.type != "ASPLODE") return player;
+  triggerStinger();
   if (player.stateMachine.state.framesDead >= RESET_DURATION_TICKS) {
     level.doRestart = true;
     // const terminal = getTerminal();
