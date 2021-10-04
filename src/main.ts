@@ -9,6 +9,7 @@ import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { columns1Level } from "./levels/columns1Level";
 import { deadPitFull2Level } from "./levels/deadPitFull2Level";
 import { debugLevel } from "./levels/debugLevel";
+import { diagonalDash } from "./levels/diagonalDash";
 import { encourageExhaustion } from "./levels/encourageExhaustion";
 import { hotPitFull1Level } from "./levels/hotPitFull1Level";
 import { invertedTower1Level } from "./levels/invertedTower1Level";
@@ -40,6 +41,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  diagonalDash,
   overloadLikely,
   level2,
   telesplatLikely,
@@ -87,6 +89,7 @@ const LEVEL_SEQUENCE = [
   telesplatLikely,
   level2,
   overloadLikely,
+  diagonalDash,
 ];
 //*/
 
