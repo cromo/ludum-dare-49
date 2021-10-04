@@ -43,7 +43,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
-  hotPitFull3Level,
+  // hotPitFull3Level,
   suddenlyFallingLevel,
   diagonalDash,
   overloadLikely,
