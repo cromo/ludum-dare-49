@@ -8,6 +8,7 @@ import { getCurrentLevel } from "./levels";
 import { bigCentralGlitch } from "./levels/bigCentralGlitch";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { columns1Level } from "./levels/columns1Level";
+import { creditsLevel } from "./levels/credits";
 import { deadPitFull2Level } from "./levels/deadPitFull2Level";
 import { debugLevel } from "./levels/debugLevel";
 import { diagonalDash } from "./levels/diagonalDash";
@@ -40,10 +41,11 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
 
-//*
+/*
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  creditsLevel,
   bigCentralGlitch,
   // hotPitFull3Level,
   suddenlyFallingLevel,
@@ -108,6 +110,7 @@ const LEVEL_SEQUENCE = [
   hotPitFull1Level,
   level3,
   suddenlyFallingLevel,
+  creditsLevel,
 ];
 //*/
 
