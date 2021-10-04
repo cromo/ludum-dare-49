@@ -15,6 +15,7 @@ import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
 import { level4 } from "./levels/level4";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
+import { straightforwardGlitch } from "./levels/simpleGlitch";
 import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
 import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
@@ -32,6 +33,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  straightforwardGlitch,
   // simpleJumpLevel,
   // singleJumpTutorial,
   // invertedTower2Level,
@@ -59,7 +61,7 @@ const LEVEL_SEQUENCE = [
 /*/
 // The real level sequence
 // Ensure this is uncommented for release!
-const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial, simpleJumpLevel];
+const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial, simpleJumpLevel, straightforwardGlitch];
 //*/
 
 let currentLevelIndex = 0;
