@@ -936,6 +936,7 @@ export function loadPlayerSprites(): void {
   const { newImage } = love.graphics;
   sprites.standing = newImage("res/player-standing.png");
   sprites.shutdown = newImage("res/player-shutdown.png");
+  sprites.walking = newImage("res/player-walking.png");
   sprites.entropyPip = newImage("res/player-entropy-pip.png");
 }
 
@@ -1042,7 +1043,12 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
       const flipHorizontally = entity.stateMachine.facing === Facing.Right;
       const entropyPercent = (entropy - 1) / (ENTROPY_LIMIT - 1);
 
-      const sprite = state.type === "OUT_OF_ENTROPY" ? sprites.shutdown : sprites.standing;
+      const sprite =
+        state.type === "OUT_OF_ENTROPY"
+          ? sprites.shutdown
+          : state.type === "WALKING"
+          ? sprites.walking
+          : sprites.standing;
 
       if (state.type !== "ASPLODE") {
         const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
