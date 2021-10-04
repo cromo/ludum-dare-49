@@ -38,6 +38,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  level1,
   killBlockIntro,
   outerGlitchMazeLevel,
   deadPitFull2Level,
@@ -77,6 +78,7 @@ const LEVEL_SEQUENCE = [
   killBlockIntro,
   straightforwardGlitch,
   encourageExhaustion,
+  level1,
 ];
 //*/
 
