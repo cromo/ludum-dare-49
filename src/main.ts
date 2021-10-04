@@ -16,6 +16,7 @@ import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
 import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
 import { simpleKillPlaneLevel } from "./levels/simpleKillPlaneLevel";
+import { singleJumpTutorial } from "./levels/singleJumpTutorial";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
 import { drawParticleEmitters, initZoneEmitters } from "./zone";
@@ -28,6 +29,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  singleJumpTutorial,
   simpleGlitchLevel,
   debugLevel,
   level3,
@@ -49,7 +51,7 @@ const LEVEL_SEQUENCE = [
 /*/
 // The real level sequence
 // Ensure this is uncommented for release!
-const LEVEL_SEQUENCE = [simpleGlitchLevel];
+const LEVEL_SEQUENCE = [simpleGlitchLevel, singleJumpTutorial];
 //*/
 
 let currentLevelIndex = 0;
