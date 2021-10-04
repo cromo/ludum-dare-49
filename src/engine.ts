@@ -1,9 +1,17 @@
-import { Canvas, ParticleSystem } from "love.graphics";
+import { Canvas } from "love.graphics";
 
 import { glitchedDraw } from "./glitch";
 import { parseLevelDefinition } from "./levelLoader";
 import { getPlayer, getTerminal, getTerminalFrom, setCurrentLevel } from "./levels";
-import { LEVEL_HEIGHT, LEVEL_WIDTH, Level, LevelDefinition, Point, TILE_SIZE_PIXELS } from "./models";
+import {
+  BACKGROUND_TILE_GLITCH_CHANCE,
+  LEVEL_HEIGHT,
+  LEVEL_WIDTH,
+  Level,
+  LevelDefinition,
+  Point,
+  TILE_SIZE_PIXELS,
+} from "./models";
 import { migrateTerminalEntity } from "./terminal";
 import { clearParticleEmitters, createParticleEmitters, updateParticleEmitters } from "./zone";
 
@@ -96,7 +104,10 @@ export function drawLevel({ tiles }: Level): void {
       const tile = tiles[y][x];
       const glitchRate = tile.effect?.glitchyLevel;
       if (glitchRate !== undefined) {
-        glitchedDraw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS, { glitchRate });
+        glitchedDraw(tile.image, x * TILE_SIZE_PIXELS, y * TILE_SIZE_PIXELS, {
+          glitchRate,
+          glitchChance: BACKGROUND_TILE_GLITCH_CHANCE,
+        });
       }
     }
   }
