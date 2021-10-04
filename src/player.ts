@@ -935,6 +935,7 @@ const sprites: Record<string, Image> = {};
 export function loadPlayerSprites(): void {
   const { newImage } = love.graphics;
   sprites.standing = newImage("res/player-standing.png");
+  sprites.shutdown = newImage("res/player-shutdown.png");
   sprites.entropyPip = newImage("res/player-entropy-pip.png");
 }
 
@@ -1041,11 +1042,13 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
       const flipHorizontally = entity.stateMachine.facing === Facing.Right;
       const entropyPercent = (entropy - 1) / (ENTROPY_LIMIT - 1);
 
+      const sprite = state.type === "OUT_OF_ENTROPY" ? sprites.shutdown : sprites.standing;
+
       if (state.type !== "ASPLODE") {
         const totalPipGlitch = entity.entropyInstabilityCountdown.reduce((a, b) => a + b, 0);
         const color = playerColor(entity);
         love.graphics.setColor(color.r, color.g, color.b);
-        glitchedDraw(sprites.standing, x, y, {
+        glitchedDraw(sprite, x, y, {
           glitchRate: entropyPercent,
           spread: 3 + 1 - (totalPipGlitch / PIP_INSTABILITY_ANIMATION_TIME_TICKS) * ENTROPY_PIP_GAINED_GLITCH_SPREAD,
           mode: GlitchMode.Progressive,
@@ -1055,7 +1058,7 @@ export function createPlayerEntity(pos: Point, entropy: number): PlayerEntity {
         love.graphics.setColor(1, 1, 1);
         const deathAnimationPercent = state.framesDead / DEATH_ANIMATION_TICKS;
         const centeredDeathAnimationPercent = deathAnimationPercent - 0.5;
-        glitchedDraw(sprites.standing, x, y, {
+        glitchedDraw(sprite, x, y, {
           glitchRate:
             entropyPercent * (1 - deathAnimationPercent * deathAnimationPercent) +
             (1 - 4 * (centeredDeathAnimationPercent * centeredDeathAnimationPercent)),
