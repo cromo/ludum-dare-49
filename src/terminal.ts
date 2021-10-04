@@ -53,23 +53,23 @@ const setDimmedColor = (r: number, g: number, b: number, a: number): void => {
 };
 const TERMINAL_TONE_COLOR: { [key: number]: (a: number) => void } = {
   [TerminalTone.angry]: (a: number) => {
-    return setDimmedColor(0.8, 0.2, 0.2, a);
+    return setDimmedColor(0.8, 0.2, 0.2, a); // Red
   },
   [TerminalTone.emptyLine]: (a: number) => {
     return setDimmedColor(1, 0, 1, a);
   },
   [TerminalTone.frustrated]: (a: number) => {
-    return setDimmedColor(0.85, 0.1, 0.1, a);
+    return setDimmedColor(0.85, 0.1, 0.1, a); // Very red
   },
   [TerminalTone.serious]: (a: number) => {
-    return setDimmedColor(0.75, 0.75, 0.95, a);
+    return setDimmedColor(0.75, 0.75, 0.95, a); // Light blue
   },
   [TerminalTone.teach]: (a: number) => {
-    return setDimmedColor(0.5, 0.8, 0.5, a);
+    return setDimmedColor(0.5, 0.8, 0.5, a); // Light green
   },
   [TerminalTone.tease]: (a: number) => {
     // it will do this a lot
-    return setDimmedColor(0.85, 0.85, 0.85, a);
+    return setDimmedColor(0.85, 0.85, 0.85, a); // White
   },
 };
 TERMINAL_FONT.setFilter("nearest");
@@ -149,6 +149,9 @@ function updateTerminalEntity(level: Level, terminal: TerminalEntity): TerminalE
       }
       return;
     });
+    terminal.trackers.activeTags = customTags;
+  } else {
+    terminal.trackers.activeTags = [];
   }
 
   // don't deathTick more than once per attempt
@@ -359,6 +362,7 @@ export function createTerminalEntity(pos: Point, terminalAnotation: TerminalAnno
           timesEnteredAtLeastOnce: 0,
         };
       }),
+      activeTags: [],
       conversations: terminalAnotation.conversations.map((convoAnno) => {
         return {
           ...convoAnno,
@@ -413,6 +417,7 @@ export function migrateTerminalEntity(previous: TerminalEntity): TerminalEntity 
           // timesEnteredAtLeastOnce: 0, // DONT reset this one! number of attempts that have had at least one entry
         };
       }),
+      activeTags: [],
     },
   };
 }

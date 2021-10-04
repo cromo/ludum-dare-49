@@ -34,6 +34,20 @@ export const step = (check: checkFn | checkFn[], message?: TerminalMessage): Ter
 
 export const onRespawn: checkFn = ({ track: { spawnTick } }) => spawnTick;
 export const onDeath: checkFn = ({ track: { deathTick } }) => deathTick;
+export const onOutOfEntropy: checkFn = ({ player }) => {
+  if (player && player.stateMachine.state.type == "OUT_OF_ENTROPY") return true;
+  return false;
+};
+
+export const onNotOutOfEntropy: checkFn = ({ player }) => {
+  if (player && player.stateMachine.state.type != "OUT_OF_ENTROPY") return true;
+  return false;
+};
+
+export const onEntropyLevel: (targetEnergy: number) => checkFn = (targetEnergy: number) => ({ player }) => {
+  if (player && player.entropy >= targetEnergy) return true;
+  return false;
+};
 
 export const respawnCount: (deathCount: number) => checkFn = (targetCount: number) => ({ track: { deathCount } }) => {
   return deathCount == targetCount;
@@ -41,6 +55,10 @@ export const respawnCount: (deathCount: number) => checkFn = (targetCount: numbe
 
 export const onTagHit: (tag: string) => checkFn = (tag: string) => ({ track: { trackedTag } }) => {
   return trackedTag.filter((tt) => tt.tag == tag && tt.enteredYetThisLife).length > 0;
+};
+
+export const onTagActive: (tag: string) => checkFn = (tag: string) => ({ track: { activeTags } }) => {
+  return activeTags.filter((tt) => tt == tag).length > 0;
 };
 
 export const tagHitCount: (tag: string, targetCount: number) => checkFn = (tag: string, targetCount: number) => ({
