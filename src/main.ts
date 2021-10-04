@@ -78,6 +78,7 @@ const LEVEL_SEQUENCE = [
   killBlockIntro,
   straightforwardGlitch,
   encourageExhaustion,
+  level1,
 ];
 //*/
 
