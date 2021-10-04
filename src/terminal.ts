@@ -76,6 +76,9 @@ const TERMINAL_TONE_COLOR: { [key: number]: (a: number) => void } = {
     // it will do this a lot
     return setDimmedColor(0.85, 0.85, 0.85, a); // White
   },
+  [TerminalTone.glitchy]: (a: number) => {
+    return setDimmedColor(0.97, 0.97, 0, a); // Yellow
+  },
 };
 TERMINAL_FONT.setFilter("nearest");
 
