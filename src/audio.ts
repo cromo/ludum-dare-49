@@ -14,6 +14,7 @@ export interface BgmDef {
   looping: boolean;
   loopStart: number;
   loopEnd: number;
+  bpm: number;
 }
 
 const availableSfx: { [key: string]: SfxDef } = {};
@@ -53,6 +54,7 @@ export function initAudio(): void {
     looping: true,
     loopStart: 7.484,
     loopEnd: 51.789,
+    bpm: 130,
   };
 
   bgmPlayer = { playing: false };
@@ -156,4 +158,14 @@ export function updateBgm(): void {
     }
   }
   crossfadeToVariant();
+}
+
+export function currentBeat(): number {
+  if (bgmPlayer.activeBgm && bgmPlayer.activeVariant) {
+    const bgm = availableBgm[bgmPlayer.activeBgm];
+    const activeSource = bgm.sources[bgmPlayer.activeVariant];
+    const currentSeconds = activeSource.tell();
+    return (currentSeconds * bgm.bpm) / 60.0;
+  }
+  return 0.0;
 }
