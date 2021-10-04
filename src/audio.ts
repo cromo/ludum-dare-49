@@ -34,28 +34,38 @@ export function initAudio(): void {
   availableSfx["jump"] = {
     source: jumpSource,
     pitchVariation: 0.1,
+    volume: 0.5,
   };
   availableSfx["doublejump"] = {
     source: jumpSource,
     basePitch: 1.4,
     pitchVariation: 0.1,
+    volume: 0.6,
   };
 
-  availableSfx["death"] = { source: audio.newSource("res/sfx/death.wav", "static"), pitchVariation: 0.1 };
-  availableSfx["dash"] = { source: audio.newSource("res/sfx/glitch-dash3.wav", "static"), pitchVariation: 0.1 };
-  availableSfx["exit"] = { source: audio.newSource("res/sfx/tepelort.wav", "static") };
+  availableSfx["death"] = { source: audio.newSource("res/sfx/death.wav", "static"), pitchVariation: 0.1, volume: 0.5 };
+  availableSfx["dash"] = {
+    source: audio.newSource("res/sfx/glitch-dash3.wav", "static"),
+    pitchVariation: 0.1,
+    volume: 0.6,
+  };
+  availableSfx["exit"] = { source: audio.newSource("res/sfx/tepelort.wav", "static"), volume: 0.5 };
   availableSfx["geiger"] = { source: audio.newSource("res/sfx/geiger-raw.wav", "static"), pitchVariation: 0.2 };
 
-  availableSfx["terminal"] = { source: audio.newSource("res/sfx/typing_dot_matrix.wav", "static"), volume: 0.5 };
+  availableSfx["terminal"] = {
+    source: audio.newSource("res/sfx/just_typing.wav", "static"),
+    volume: 0.5,
+    pitchVariation: 0.15,
+  };
   availableSfx["charge"] = {
     source: audio.newSource("res/sfx/dash_charge.wav", "static"),
     pitchVariation: 0.1,
-    volume: 0.7,
+    volume: 0.4,
   };
   availableSfx["powerdown"] = {
     source: audio.newSource("res/sfx/power_down.wav", "static"),
     pitchVariation: 0.1,
-    volume: 0.4,
+    volume: 0.3,
   };
   availableSfx["lostpips"] = {
     source: audio.newSource("res/sfx/lose_pips.wav", "static"),

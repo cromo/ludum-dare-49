@@ -816,9 +816,10 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
   ) {
     // Forcefully yank the player out of any state when they run out of entropy.
     playSfx("powerdown");
+    const adjustedEntropy = player.activeZone == "dead" ? 0.5 : 0.0;
     return {
       ...player,
-      entropy: 0,
+      entropy: adjustedEntropy,
       stateMachine: {
         ...player.stateMachine,
         state: { type: "OUT_OF_ENTROPY", ticksRemainingBeforeRechargeStarts: OUT_OF_ENTROPY_PENALTY_TICKS },
@@ -873,7 +874,7 @@ function updateEntropy(player: PlayerEntity): PlayerEntity {
     const oldEntropySubTick = Math.floor(player.entropy * 16) % 16;
     const newEntropySubTick = Math.floor(newEntropy * 16) % 16;
     if (oldEntropySubTick != newEntropySubTick) {
-      const warningVolume = (newEntropySubTick + 1) * (1.0 / 32); // caps at around half volume, on purpose
+      const warningVolume = (newEntropySubTick + 1) * (1.0 / 64); // caps at around quarter volume, on purpose
       playSfx("warning", warningVolume);
     }
   }
