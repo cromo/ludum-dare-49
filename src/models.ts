@@ -71,6 +71,7 @@ export const TERMINAL_IDLE_AFTER_NO_PLAYER_INPUT_FOR_TICKS = 960;
 export const TERMINAL_GENERAL_FILLER_COOLDOWN_TICKS = 180;
 
 export const ZONE_PARTICLES_PER_SECOND = 0.45;
+export const BACKGROUND_TILE_GLITCH_CHANCE = 0.03;
 
 export type PhysicalMode = "empty" | "solid" | "semisolid" | "exit" | "kill";
 export type GlitchMode = "empty" | "solid" | "glitch" | "glitch_once";

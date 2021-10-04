@@ -5,9 +5,14 @@ import * as input from "./input";
 import { getCurrentLevel } from "./levels";
 import { blankCorridorLevel } from "./levels/blankCorridorLevel";
 import { debugLevel } from "./levels/debugLevel";
+import { level1 } from "./levels/level1";
+import { level2 } from "./levels/level2";
+import { level3 } from "./levels/level3";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
+import { simpleGlitchLevel } from "./levels/simpleGlitchLevel";
+import { simpleGlitchWallLevel } from "./levels/simpleGlitchWallLevel";
 import { simpleJumpLevel } from "./levels/simpleJumpLevel";
-import { simpleWalkLevel } from "./levels/simpleWalkLevel";
+import { simpleKillPlaneLevel } from "./levels/simpleKillPlaneLevel";
 import { GAME_SCALE, buildStructresAtInit } from "./models";
 import { loadPlayerSprites } from "./player";
 import { drawParticleEmitters, initZoneEmitters } from "./zone";
@@ -16,7 +21,18 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
   require("@NoResolution:lldebugger").start();
 }
 
-const LEVEL_SEQUENCE = [debugLevel, simpleWalkLevel, simpleJumpLevel, debugLevel, blankCorridorLevel, sampleLevelEmpty];
+const LEVEL_SEQUENCE = [
+  level3,
+  level2,
+  level1,
+  simpleGlitchWallLevel,
+  simpleKillPlaneLevel,
+  simpleGlitchLevel,
+  simpleJumpLevel,
+  debugLevel,
+  blankCorridorLevel,
+  sampleLevelEmpty,
+];
 let currentLevelIndex = 0;
 
 love.load = () => {
@@ -74,5 +90,7 @@ love.draw = () => {
   drawParticleEmitters();
   love.graphics.setColor(0, 0, 0);
   love.graphics.print(`${love.timer.getFPS()}`, 2, 2);
+  love.graphics.setColor(1, 1, 1);
+  love.graphics.print(`${love.timer.getFPS()}`, 1, 1);
   pop();
 };
