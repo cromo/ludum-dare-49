@@ -19,6 +19,7 @@ import { level2 } from "./levels/level2";
 import { level3 } from "./levels/level3";
 import { level4 } from "./levels/level4";
 import { outerGlitchMazeLevel } from "./levels/outerGlitchMazeLevel";
+import { overloadLikely } from "./levels/overload";
 import { telesplatLikely } from "./levels/probablySplat";
 import { sampleLevelEmpty } from "./levels/sampleLevel";
 import { straightforwardGlitch } from "./levels/simpleGlitch";
@@ -39,6 +40,7 @@ if (os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") === "1") {
 // Dev level sequence
 // Feel free to alter this list for testing/debugging
 const LEVEL_SEQUENCE = [
+  overloadLikely,
   level2,
   telesplatLikely,
   level1,
@@ -84,6 +86,7 @@ const LEVEL_SEQUENCE = [
   level1,
   telesplatLikely,
   level2,
+  overloadLikely,
 ];
 //*/
 
